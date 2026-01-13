@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  esloveno:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - XML_PATH=/data/xml
+      - SPRING_DATASOURCE_URL=jdbc:sqlite:/data/esloveno.db
+    volumes:
+      # Montar volumen para archivos XML
+      - C:\Users\bcada\proyectos\esloveno\docker\xml:/data/xml
+      # Montar volumen para base de datos
+      - C:\Users\bcada\proyectos\esloveno\docker\db:/data
+    restart: unless-stopped
+

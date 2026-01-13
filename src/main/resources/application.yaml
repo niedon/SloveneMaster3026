@@ -1,0 +1,45 @@
+debug: true
+spring:
+  application:
+    name: com.bcadaval.esloveno
+  datasource:
+    url: jdbc:sqlite:/data/esloveno.db
+    driver-class-name: org.sqlite.JDBC
+    username: sa
+    password: sa
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:initDatabase.sql
+      continue-on-error: true
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    defer-datasource-initialization: true
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+  web:
+    resources:
+      static-locations: file:/app/WEB-INF/,classpath:/WEB-INF/
+app:
+  db:
+    path: /data/esloveno.db
+  xml:
+    path: /data/xml
+hibernate:
+  dialect: org.hibernate.community.dialect.SQLiteDialect
+  hbm2ddl:
+    auto: none
+  show_sql: true
+logging:
+  level:
+    com.bcadaval.esloveno: TRACE
+    org:
+      hibernate:
+        type: TRACE
+        orm.jdbc.bind: trace
+        SQL: DEBUG
+      springframework:
+        boot:
+         autoconfigure: ERROR
