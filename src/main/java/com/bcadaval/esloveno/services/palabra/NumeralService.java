@@ -26,6 +26,9 @@ public class NumeralService {
 	/**
 	 * Devuelve un numeral que coincida con el género, número y caso del sustantivo dado.
 	 * Si el género es null, busca cualquier género.
+	 * - Si numero es SINGULAR: principal debe ser "en"
+	 * - Si numero es DUAL: principal debe ser "dva"
+	 * - Si numero es PLURAL: principal debe ser distinto de "en" y "dva"
 	 */
 	public NumeralFlexion getNumeral(SustantivoFlexion sustantivoFlexion) {
 		// Primero intentar buscar con el género del sustantivo
@@ -33,27 +36,52 @@ public class NumeralService {
 				? sustantivoFlexion.getSustantivoBase().getGenero()
 				: null;
 
-		return numeralFlexionRepo.findAll(
+		// Determinar el principal basado en el número
+		Numero numero = sustantivoFlexion.getNumero();
+		Caso caso = sustantivoFlexion.getCaso();
+
+		// Obtener resultados con género específico
+		var resultados = numeralFlexionRepo.findAll(
 				Example.of(
 						NumeralFlexion.builder()
-							.numero(sustantivoFlexion.getNumero())
-							.caso(sustantivoFlexion.getCaso())
+							.numero(numero)
+							.caso(caso)
 							.genero(generoSustantivo)
 							.build())).stream()
-		.sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
-		.findAny()
-		.orElseGet(() ->
-			// Si no hay con género específico, buscar sin género
-			numeralFlexionRepo.findAll(
-					Example.of(
-							NumeralFlexion.builder()
-								.numero(sustantivoFlexion.getNumero())
-								.caso(sustantivoFlexion.getCaso())
-								.build())).stream()
-			.sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
-			.findAny()
-			.orElse(null)
-		);
+		.filter(nf -> filterByPrincipal(nf, numero))
+		.sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2));
+
+		var resultado = resultados.findAny();
+
+		// Si no hay con género específico, buscar sin género
+		return resultado.orElseGet(() -> numeralFlexionRepo.findAll(
+				Example.of(
+						NumeralFlexion.builder()
+							.numero(numero)
+							.caso(caso)
+							.build())).stream()
+				.filter(nf -> filterByPrincipal(nf, numero))
+				.sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
+				.findAny()
+				.orElse(null));
+	}
+
+	/**
+	 * Filtra los numerales según el número:
+	 * - SINGULAR: principal debe ser "en"
+	 * - DUAL: principal debe ser "dva"
+	 * - PLURAL: principal debe ser distinto de "en" y "dva"
+	 */
+	private boolean filterByPrincipal(NumeralFlexion nf, Numero numero) {
+		if (numero == null || nf.getPrincipal() == null) {
+			return false;
+		}
+
+		return switch (numero) {
+			case SINGULAR -> "en".equals(nf.getPrincipal());
+			case DUAL -> "dva".equals(nf.getPrincipal());
+			case PLURAL -> !"en".equals(nf.getPrincipal()) && !"dva".equals(nf.getPrincipal());
+		};
 	}
 
 	/**
