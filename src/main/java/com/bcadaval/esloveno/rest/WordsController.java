@@ -105,6 +105,11 @@ public class WordsController {
 
 		// Ninguna estructura se completó
 		log.warn("Ninguna estructura de frase se completó con las {} tarjetas disponibles", tarjetas.size());
+		log.info("=================== Tarjetas no usadas ==================");
+		for (PalabraFlexion<?> tarjeta : tarjetas) {
+			log.info(" - {}", tarjeta);
+		}
+		log.info("=============== Fin de tarjetas no usadas ===============");
 		return new ArrayList<>();
 	}
 }

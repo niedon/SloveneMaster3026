@@ -136,6 +136,10 @@ public class SustantivoFlexion implements PalabraFlexion<Sustantivo> {
         this.sustantivoBase = palabra;
     }
 
-
+    @Override
+    public String toString() {
+        return String.format("SustantivoFlexion[id=%d, principal='%s', flexion='%s', numero=%s, caso=%s]",
+                id, principal, flexion, numero, caso);
+    }
 
 }

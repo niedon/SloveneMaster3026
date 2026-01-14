@@ -136,4 +136,10 @@ public class PronombreFlexion implements PalabraFlexion<Pronombre> {
         this.pronombreBase = palabra;
     }
 
+    @Override
+    public String toString() {
+        return String.format("PronombreFlexion[id=%d, principal='%s', flexion='%s', persona=%s, genero=%s, numero=%s, caso=%s, clitico=%s]",
+                id, principal, flexion, persona, genero, numero, caso, clitico);
+    }
+
 }

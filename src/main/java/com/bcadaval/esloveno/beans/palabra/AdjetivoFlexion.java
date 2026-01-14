@@ -141,4 +141,10 @@ public class AdjetivoFlexion implements PalabraFlexion<Adjetivo> {
         this.adjetivoBase = palabra;
     }
 
+    @Override
+    public String toString() {
+        return String.format("AdjetivoFlexion[id=%d, principal='%s', flexion='%s', genero=%s, numero=%s, caso=%s, grado=%s, definitud=%s]",
+                id, principal, flexion, genero, numero, caso, grado, definitud);
+    }
+
 }

@@ -126,5 +126,10 @@ public class NumeralFlexion implements PalabraFlexion<Numeral> {
         this.numeralBase = palabra;
     }
 
+    @Override
+    public String toString() {
+        return String.format("NumeralFlexion[id=%d, principal='%s', flexion='%s', genero=%s, numero=%s, caso=%s]",
+                id, principal, flexion, genero, numero, caso);
+    }
 
 }

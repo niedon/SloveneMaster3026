@@ -144,5 +144,11 @@ public class VerboFlexion implements PalabraFlexion<Verbo> {
     public void setPalabraBase(Verbo palabra) {
         this.verboBase = palabra;
     }
+
+    @Override
+    public String toString() {
+        return String.format("VerboFlexion[id=%d, principal='%s', flexion='%s', formaVerbal=%s, persona=%s, numero=%s, genero=%s]",
+                id, principal, flexion, formaVerbal, persona, numero, genero);
+    }
 }
 
