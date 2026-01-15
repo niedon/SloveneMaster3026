@@ -6,14 +6,12 @@ import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboFlexionRepo;
 import com.bcadaval.esloveno.services.EstructuraFraseService;
-import com.bcadaval.esloveno.structures.EstructuraFrase;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +40,8 @@ public class EstructuraPalabraService {
      * @return Lista de SustantivoFlexion que cumplen algún criterio
      */
     public List<SustantivoFlexion> buscarSustantivosParaEstructurasActivas() {
-        Specification<SustantivoFlexion> specCombinada = combinarSpecifications(
-                SustantivoFlexion.class,
-                estructuraFraseService.getEstructurasActivas()
-        );
+        Specification<SustantivoFlexion> specCombinada =
+                estructuraFraseService.getSpecificationCombinadaPorTipo(SustantivoFlexion.class);
 
         if (specCombinada == null) {
             log.debug("No hay criterios de SustantivoFlexion en estructuras activas");
@@ -63,10 +59,8 @@ public class EstructuraPalabraService {
      * @return Lista de VerboFlexion que cumplen algún criterio
      */
     public List<VerboFlexion> buscarVerbosParaEstructurasActivas() {
-        Specification<VerboFlexion> specCombinada = combinarSpecifications(
-                VerboFlexion.class,
-                estructuraFraseService.getEstructurasActivas()
-        );
+        Specification<VerboFlexion> specCombinada =
+                estructuraFraseService.getSpecificationCombinadaPorTipo(VerboFlexion.class);
 
         if (specCombinada == null) {
             log.debug("No hay criterios de VerboFlexion en estructuras activas");
@@ -102,36 +96,6 @@ public class EstructuraPalabraService {
         return resultado;
     }
 
-    /**
-     * Combina las Specifications de todas las estructuras para un tipo específico.
-     * Las combina con OR (cualquier criterio es válido).
-     *
-     * @param tipoFlexion Clase del tipo de flexión
-     * @param estructuras Lista de estructuras de las que obtener criterios
-     * @return Specification combinada o null si no hay criterios de ese tipo
-     */
-    private <T extends PalabraFlexion<?>> Specification<T> combinarSpecifications(
-            Class<T> tipoFlexion,
-            List<EstructuraFrase> estructuras) {
-
-        List<Specification<T>> todasSpecs = new ArrayList<>();
-
-        for (EstructuraFrase estructura : estructuras) {
-            Specification<T> spec = estructura.getSpecificationPorTipo(tipoFlexion);
-            if (spec != null) {
-                todasSpecs.add(spec);
-            }
-        }
-
-        if (todasSpecs.isEmpty()) {
-            return null;
-        }
-
-        // Combinar todas con OR
-        return todasSpecs.stream()
-                .reduce(Specification::or)
-                .orElse(null);
-    }
 
     /**
      * Busca palabras de un tipo específico usando una specification directa.

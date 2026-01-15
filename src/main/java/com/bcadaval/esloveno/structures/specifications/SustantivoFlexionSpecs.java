@@ -46,5 +46,17 @@ public final class SustantivoFlexionSpecs {
     public static Specification<SustantivoFlexion> conCasoNumeroYBase(Caso caso, Numero numero) {
         return conCaso(caso).and(conNumero(numero)).and(conSustantivoBase());
     }
+
+    /**
+     * Specification para sustantivos con información completa para estudio SRS.
+     * Requiere: sustantivoBase no null, significado no null, animado no null.
+     */
+    public static Specification<SustantivoFlexion> completaParaEstudio() {
+        return (root, query, cb) -> cb.and(
+                cb.isNotNull(root.get("sustantivoBase")),
+                cb.isNotNull(root.get("sustantivoBase").get("significado")),
+                cb.isNotNull(root.get("sustantivoBase").get("animado"))
+        );
+    }
 }
 

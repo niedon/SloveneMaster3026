@@ -2,16 +2,14 @@ package com.bcadaval.esloveno.services;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Predicate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
-import com.bcadaval.esloveno.beans.enums.Caso;
-import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
@@ -19,6 +17,10 @@ import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
 import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboFlexionRepo;
 import com.bcadaval.esloveno.rest.dto.EstadisticasDTO;
+import com.bcadaval.esloveno.structures.specifications.AdjetivoFlexionSpecs;
+import com.bcadaval.esloveno.structures.specifications.SrsSpecs;
+import com.bcadaval.esloveno.structures.specifications.SustantivoFlexionSpecs;
+import com.bcadaval.esloveno.structures.specifications.VerboFlexionSpecs;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -121,55 +123,41 @@ public class RepeticionEspaciadaService {
 
     /**
      * Obtiene las tarjetas disponibles para estudiar ahora.
-     * Filtra por: tiempo vencido, palabra completa, caso habilitado, forma verbal habilitada.
+     * Filtra por: tiempo vencido, palabra completa, criterios de estructuras activas.
      * Ordena por: reaprendizaje primero, luego antigüedad, luego aleatorio.
      *
      * @param limite Máximo de tarjetas a devolver
      * @return Lista de flexiones disponibles
      */
     public List<PalabraFlexion<?>> obtenerTarjetasDisponibles(int limite) {
-        Instant ahora = Instant.now();
-        Set<Caso> casosActivos = estructuraFraseService.getCasosActivos();
-        Set<FormaVerbal> formasVerbalesActivas = estructuraFraseService.getFormasVerbalesActivas();
-
-        // Predicados reutilizables
-        Predicate<PalabraFlexion<?>> tieneProximaRevisionVencida = f ->
-            f.getProximaRevision() != null && !f.getProximaRevision().isAfter(ahora);
-
-        Predicate<VerboFlexion> verboElegible = v ->
-            v.getSignificado() != null &&
-            v.getVerboBase() != null &&
-            v.getVerboBase().getTransitividad() != null &&
-            (formasVerbalesActivas.isEmpty() || formasVerbalesActivas.contains(v.getFormaVerbal()));
-
-        Predicate<SustantivoFlexion> sustantivoElegible = s ->
-            s.getSignificado() != null &&
-            s.getSustantivoBase() != null &&
-            s.getSustantivoBase().getAnimado() != null &&
-            (s.getCaso() == null || casosActivos.contains(s.getCaso()));
-
-        Predicate<AdjetivoFlexion> adjetivoElegible = a ->
-            a.getSignificado() != null &&
-            a.getAdjetivoBase() != null &&
-            (a.getCaso() == null || casosActivos.contains(a.getCaso()));
-
-        // Obtener tarjetas de cada tipo
         List<PalabraFlexion<?>> tarjetas = new ArrayList<>();
 
-        tarjetas.addAll(verboFlexionRepo.findAll().stream()
-            .filter(verboElegible)
-            .filter(tieneProximaRevisionVencida)
-            .toList());
+        // Obtener verbos disponibles
+        Specification<VerboFlexion> specVerbo = estructuraFraseService.getSpecificationCombinadaPorTipo(VerboFlexion.class);
+        if (specVerbo != null) {
+            Specification<VerboFlexion> specVerboCompleta = specVerbo
+                    .and(VerboFlexionSpecs.completaParaEstudio())
+                    .and(SrsSpecs.<VerboFlexion>listaParaRevisar());
+            tarjetas.addAll(verboFlexionRepo.findAll(specVerboCompleta));
+        }
 
-        tarjetas.addAll(sustantivoFlexionRepo.findAll().stream()
-            .filter(sustantivoElegible)
-            .filter(tieneProximaRevisionVencida)
-            .toList());
+        // Obtener sustantivos disponibles
+        Specification<SustantivoFlexion> specSustantivo = estructuraFraseService.getSpecificationCombinadaPorTipo(SustantivoFlexion.class);
+        if (specSustantivo != null) {
+            Specification<SustantivoFlexion> specSustantivoCompleta = specSustantivo
+                    .and(SustantivoFlexionSpecs.completaParaEstudio())
+                    .and(SrsSpecs.<SustantivoFlexion>listaParaRevisar());
+            tarjetas.addAll(sustantivoFlexionRepo.findAll(specSustantivoCompleta));
+        }
 
-        tarjetas.addAll(adjetivoFlexionRepo.findAll().stream()
-            .filter(adjetivoElegible)
-            .filter(tieneProximaRevisionVencida)
-            .toList());
+        // Obtener adjetivos disponibles
+        Specification<AdjetivoFlexion> specAdjetivo = estructuraFraseService.getSpecificationCombinadaPorTipo(AdjetivoFlexion.class);
+        if (specAdjetivo != null) {
+            Specification<AdjetivoFlexion> specAdjetivoCompleta = specAdjetivo
+                    .and(AdjetivoFlexionSpecs.completaParaEstudio())
+                    .and(SrsSpecs.<AdjetivoFlexion>listaParaRevisar());
+            tarjetas.addAll(adjetivoFlexionRepo.findAll(specAdjetivoCompleta));
+        }
 
         // Ordenar: reaprendizaje primero, luego por antigüedad
         tarjetas.sort(Comparator
@@ -184,51 +172,40 @@ public class RepeticionEspaciadaService {
 
     /**
      * Obtiene tarjetas nuevas (nunca estudiadas) para iniciar estudio.
-     * Solo incluye palabras completas y con casos/formas verbales activos.
+     * Solo incluye palabras completas y que cumplan criterios de estructuras activas.
      *
      * @param limite Máximo de tarjetas a devolver
      * @return Lista de flexiones nuevas
      */
     public List<PalabraFlexion<?>> obtenerTarjetasNuevas(int limite) {
-        Set<Caso> casosActivos = estructuraFraseService.getCasosActivos();
-        Set<FormaVerbal> formasVerbalesActivas = estructuraFraseService.getFormasVerbalesActivas();
-
-        // Predicado: nunca estudiada (proximaRevision == null)
-        Predicate<PalabraFlexion<?>> esNueva = f -> f.getProximaRevision() == null;
-
-        Predicate<VerboFlexion> verboElegible = v ->
-            v.getVerboBase() != null &&
-            v.getVerboBase().getSignificado() != null &&
-            v.getVerboBase().getTransitividad() != null &&
-            (formasVerbalesActivas.isEmpty() || formasVerbalesActivas.contains(v.getFormaVerbal()));
-
-        Predicate<SustantivoFlexion> sustantivoElegible = s ->
-            s.getSustantivoBase() != null &&
-            s.getSustantivoBase().getSignificado() != null &&
-            s.getSustantivoBase().getAnimado() != null &&
-            (s.getCaso() == null || casosActivos.contains(s.getCaso()));
-
-        Predicate<AdjetivoFlexion> adjetivoElegible = a ->
-            a.getAdjetivoBase() != null &&
-            a.getAdjetivoBase().getSignificado() != null &&
-            (a.getCaso() == null || casosActivos.contains(a.getCaso()));
-
         List<PalabraFlexion<?>> tarjetas = new ArrayList<>();
 
-        tarjetas.addAll(verboFlexionRepo.findAll().stream()
-            .filter(verboElegible)
-            .filter(esNueva)
-            .toList());
+        // Obtener verbos nuevos
+        Specification<VerboFlexion> specVerbo = estructuraFraseService.getSpecificationCombinadaPorTipo(VerboFlexion.class);
+        if (specVerbo != null) {
+            Specification<VerboFlexion> specVerboNueva = specVerbo
+                    .and(VerboFlexionSpecs.completaParaEstudio())
+                    .and(SrsSpecs.<VerboFlexion>nueva());
+            tarjetas.addAll(verboFlexionRepo.findAll(specVerboNueva));
+        }
 
-        tarjetas.addAll(sustantivoFlexionRepo.findAll().stream()
-            .filter(sustantivoElegible)
-            .filter(esNueva)
-            .toList());
+        // Obtener sustantivos nuevos
+        Specification<SustantivoFlexion> specSustantivo = estructuraFraseService.getSpecificationCombinadaPorTipo(SustantivoFlexion.class);
+        if (specSustantivo != null) {
+            Specification<SustantivoFlexion> specSustantivoNueva = specSustantivo
+                    .and(SustantivoFlexionSpecs.completaParaEstudio())
+                    .and(SrsSpecs.<SustantivoFlexion>nueva());
+            tarjetas.addAll(sustantivoFlexionRepo.findAll(specSustantivoNueva));
+        }
 
-        tarjetas.addAll(adjetivoFlexionRepo.findAll().stream()
-            .filter(adjetivoElegible)
-            .filter(esNueva)
-            .toList());
+        // Obtener adjetivos nuevos
+        Specification<AdjetivoFlexion> specAdjetivo = estructuraFraseService.getSpecificationCombinadaPorTipo(AdjetivoFlexion.class);
+        if (specAdjetivo != null) {
+            Specification<AdjetivoFlexion> specAdjetivoNueva = specAdjetivo
+                    .and(AdjetivoFlexionSpecs.completaParaEstudio())
+                    .and(SrsSpecs.<AdjetivoFlexion>nueva());
+            tarjetas.addAll(adjetivoFlexionRepo.findAll(specAdjetivoNueva));
+        }
 
         Collections.shuffle(tarjetas);
 
@@ -256,32 +233,32 @@ public class RepeticionEspaciadaService {
      *       Una tarjeta es "nueva" si proximaRevision == null O totalRevisiones == 0.
      */
     public EstadisticasDTO obtenerEstadisticas() {
-        Set<Caso> casosActivos = estructuraFraseService.getCasosActivos();
-        Set<FormaVerbal> formasVerbalesActivas = estructuraFraseService.getFormasVerbalesActivas();
-
-        // Predicados reutilizables
-        Predicate<VerboFlexion> verboElegible = v ->
-            v.getVerboBase() != null &&
-            v.getVerboBase().getSignificado() != null &&
-            v.getVerboBase().getTransitividad() != null &&
-            (formasVerbalesActivas.isEmpty() || formasVerbalesActivas.contains(v.getFormaVerbal()));
-
-        Predicate<SustantivoFlexion> sustantivoElegible = s ->
-            s.getSustantivoBase() != null &&
-            s.getSustantivoBase().getSignificado() != null &&
-            s.getSustantivoBase().getAnimado() != null &&
-            (s.getCaso() == null || casosActivos.contains(s.getCaso()));
-
-        Predicate<AdjetivoFlexion> adjetivoElegible = a ->
-            a.getAdjetivoBase() != null &&
-            a.getAdjetivoBase().getSignificado() != null &&
-            (a.getCaso() == null || casosActivos.contains(a.getCaso()));
-
-        // Recopilar todas las tarjetas elegibles
+        // Recopilar todas las tarjetas elegibles según estructuras activas
         List<PalabraFlexion<?>> todasElegibles = new ArrayList<>();
-        todasElegibles.addAll(verboFlexionRepo.findAll().stream().filter(verboElegible).toList());
-        todasElegibles.addAll(sustantivoFlexionRepo.findAll().stream().filter(sustantivoElegible).toList());
-        todasElegibles.addAll(adjetivoFlexionRepo.findAll().stream().filter(adjetivoElegible).toList());
+
+        // Verbos elegibles
+        Specification<VerboFlexion> specVerbo = estructuraFraseService.getSpecificationCombinadaPorTipo(VerboFlexion.class);
+        if (specVerbo != null) {
+            Specification<VerboFlexion> specVerboCompleta = specVerbo
+                    .and(VerboFlexionSpecs.completaParaEstudio());
+            todasElegibles.addAll(verboFlexionRepo.findAll(specVerboCompleta));
+        }
+
+        // Sustantivos elegibles
+        Specification<SustantivoFlexion> specSustantivo = estructuraFraseService.getSpecificationCombinadaPorTipo(SustantivoFlexion.class);
+        if (specSustantivo != null) {
+            Specification<SustantivoFlexion> specSustantivoCompleta = specSustantivo
+                    .and(SustantivoFlexionSpecs.completaParaEstudio());
+            todasElegibles.addAll(sustantivoFlexionRepo.findAll(specSustantivoCompleta));
+        }
+
+        // Adjetivos elegibles
+        Specification<AdjetivoFlexion> specAdjetivo = estructuraFraseService.getSpecificationCombinadaPorTipo(AdjetivoFlexion.class);
+        if (specAdjetivo != null) {
+            Specification<AdjetivoFlexion> specAdjetivoCompleta = specAdjetivo
+                    .and(AdjetivoFlexionSpecs.completaParaEstudio());
+            todasElegibles.addAll(adjetivoFlexionRepo.findAll(specAdjetivoCompleta));
+        }
 
         // Contadores
         long totalTarjetas = todasElegibles.size();

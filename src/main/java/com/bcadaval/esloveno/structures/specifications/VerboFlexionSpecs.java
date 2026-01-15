@@ -76,5 +76,17 @@ public final class VerboFlexionSpecs {
                 .and(conNumero(numero))
                 .and(conVerboBase());
     }
+
+    /**
+     * Specification para verbos con información completa para estudio SRS.
+     * Requiere: verboBase no null, significado no null, transitividad no null.
+     */
+    public static Specification<VerboFlexion> completaParaEstudio() {
+        return (root, query, cb) -> cb.and(
+                cb.isNotNull(root.get("verboBase")),
+                cb.isNotNull(root.get("verboBase").get("significado")),
+                cb.isNotNull(root.get("verboBase").get("transitividad"))
+        );
+    }
 }
 

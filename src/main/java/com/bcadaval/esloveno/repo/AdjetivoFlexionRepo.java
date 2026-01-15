@@ -3,12 +3,14 @@ package com.bcadaval.esloveno.repo;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 
 @Repository
-public interface AdjetivoFlexionRepo extends JpaRepository<AdjetivoFlexion, Integer>{
+public interface AdjetivoFlexionRepo extends JpaRepository<AdjetivoFlexion, Integer>,
+        JpaSpecificationExecutor<AdjetivoFlexion> {
 
 	/**
 	 * Encuentra flexiones por el principal (adjetivo base)
