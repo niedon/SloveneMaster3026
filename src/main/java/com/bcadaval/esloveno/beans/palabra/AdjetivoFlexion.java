@@ -2,7 +2,6 @@ package com.bcadaval.esloveno.beans.palabra;
 
 import java.time.Instant;
 
-import com.bcadaval.esloveno.beans.base.Palabra;
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.config.InstantConverter;
@@ -21,17 +20,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+/**
+ * Representa una flexión específica de un adjetivo en esloveno.
+ * Contiene información sobre género, número, caso y grado.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Accessors(chain = true)
 @Entity
-
-/**
- * Representa una flexión específica de un adjetivo en esloveno.
- * Contiene información sobre género, número, caso y grado.
- */
 public class AdjetivoFlexion implements PalabraFlexion<Adjetivo> {
 
     /**

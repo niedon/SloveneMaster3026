@@ -1,12 +1,15 @@
 package com.bcadaval.esloveno.beans.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum NumeralForm {
 
     LETTER("letter"), DIGIT("digit"), ROMAN("roman");
 
-    private String code;
+    private final String code;
 
-    private NumeralForm(String code) {
+    NumeralForm(String code) {
         this.code = code;
     }
 
@@ -18,4 +21,5 @@ public enum NumeralForm {
             default -> throw new IllegalArgumentException(String.format("Code %s not supported", code));
         };
     }
+
 }

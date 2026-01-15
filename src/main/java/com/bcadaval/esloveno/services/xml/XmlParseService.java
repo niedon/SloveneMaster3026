@@ -10,7 +10,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.IntStream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -113,7 +112,7 @@ public class XmlParseService {
             List<ResultadoBusqueda> resultados = getAllXmlStrings(word);
             log.info("Encontradas {} entradas para '{}'", resultados.size(), word);
             return resultados;
-        } catch (IOException | URISyntaxException | VTDException e) {
+        } catch (IOException e) {
             throw new XmlParserException("Error buscando palabra: " + e.getMessage(), e);
         } finally {
             log.debug("buscarTodas() - Duración: {}", Duration.between(inicio, Instant.now()));
@@ -337,7 +336,7 @@ public class XmlParseService {
     /**
      * Busca TODAS las entradas con el lema dado en los XMLs
      */
-    private List<ResultadoBusqueda> getAllXmlStrings(String word) throws IOException, URISyntaxException, VTDException {
+    private List<ResultadoBusqueda> getAllXmlStrings(String word) throws IOException {
         List<ResultadoBusqueda> resultados = new ArrayList<>();
         VTDGen vtdGenerator = new VTDGen();
 

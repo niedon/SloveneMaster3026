@@ -5,13 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * DTO para representar una palabra incompleta
+ */
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-/**
- * DTO para representar una palabra incompleta
- */
 public class PalabraIncompletaDTO {
 
     /**

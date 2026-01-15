@@ -2,7 +2,9 @@ package com.bcadaval.esloveno.beans.enums;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.Getter;
 
+@Getter
 public enum Definitud {
     INDEFINIDO("no", 0), DEFINIDO("yes", 1);
 
@@ -12,14 +14,6 @@ public enum Definitud {
     Definitud(String codigoXml, Integer codigoBd) {
         this.codigoXml = codigoXml;
         this.codigoBd = codigoBd;
-    }
-
-    public String getCodigoXml() {
-        return codigoXml;
-    }
-
-    public Integer getCodigoBd() {
-        return codigoBd;
     }
 
     public static Definitud fromCodigoXml(String codigoXml) {

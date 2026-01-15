@@ -4,30 +4,24 @@ import java.util.Optional;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.Getter;
 
 /**
  * Número gramatical: singular, dual, plural
  */
+@Getter
 public enum Numero {
 	SINGULAR("1", "singular"), DUAL("2", "dual"), PLURAL("3", "plural");
 
-	private String code;
-	private String xmlCode;
+	private final String code;
+	private final String xmlCode;
 
-	private Numero(String code, String xmlCode) {
+	Numero(String code, String xmlCode) {
 		this.code = code;
 		this.xmlCode = xmlCode;
 	}
 
-	public String getCode() {
-		return code;
-	}
-	
-	public String getXmlCode() {
-		return xmlCode;
-	}
-
-	public static Numero fromCode(String code) {
+    public static Numero fromCode(String code) {
 		if (code == null || code.isBlank()) return null;
 		return switch (code) {
 	        case "1", "singular" -> Numero.SINGULAR;
@@ -35,12 +29,6 @@ public enum Numero {
 	        case "3", "plural" -> Numero.PLURAL;
 	        default -> null;
         };
-	}
-
-	public static Numero getRandom() {
-		Numero[] values = Numero.values();
-		int randomIndex = (int) (Math.random() * values.length);
-		return values[randomIndex];
 	}
 	
 	@Converter(autoApply = true)

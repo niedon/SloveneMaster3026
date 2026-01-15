@@ -1,12 +1,15 @@
 package com.bcadaval.esloveno.beans.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum NumeralType {
 
     SPECIAL("special"), CARDINAL("cardinal"), ORDINAL("ordinal"), PRONOMINAL("pronominal");
 
-    private String code;
+    private final String code;
 
-    private NumeralType(String code) {
+    NumeralType(String code) {
         this.code = code;
     }
 

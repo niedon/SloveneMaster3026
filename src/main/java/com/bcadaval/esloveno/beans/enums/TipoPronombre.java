@@ -1,12 +1,15 @@
 package com.bcadaval.esloveno.beans.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum TipoPronombre {
 
     INDEFINIDO("indefinite"), PERSONAL("personal"), POSESIVO("possessive"), DEMOSTRATIVO("demonstrative"), RELATIVO("relative"), INTERROGATIVO("interrogative"), REFLEXIVO("reflexive"), GENERALIZADOR("general"), NEGATIVO("negative");
 
-    private String code;
+    private final String code;
 
-    private TipoPronombre(String code) {
+    TipoPronombre(String code) {
         this.code = code;
     }
 

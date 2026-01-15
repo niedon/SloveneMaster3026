@@ -2,7 +2,6 @@ package com.bcadaval.esloveno.beans.palabra;
 
 import java.time.Instant;
 
-import com.bcadaval.esloveno.beans.base.Palabra;
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.Numero;
@@ -22,17 +21,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+/**
+ * Representa una flexión específica de un sustantivo en esloveno.
+ * Contiene información sobre número y caso.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Accessors(chain = true)
 @Entity
-
-/**
- * Representa una flexión específica de un sustantivo en esloveno.
- * Contiene información sobre número y caso.
- */
 public class SustantivoFlexion implements PalabraFlexion<Sustantivo> {
 
     /**

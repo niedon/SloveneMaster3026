@@ -44,6 +44,30 @@ public enum TipoPalabra {
         return null;
     }
 
+    public static TipoPalabra fromClass(Class<?> clazz) {
+        if (clazz == null) {
+            return null;
+        }
+        for (TipoPalabra tipo : values()) {
+            if (tipo.clazz.equals(clazz)) {
+                return tipo;
+            }
+        }
+        return null;
+    }
+
+    public static TipoPalabra fromFlexionClass(Class<?> flexionClazz) {
+        if (flexionClazz == null) {
+            return null;
+        }
+        for (TipoPalabra tipo : values()) {
+            if (tipo.flexionClazz.equals(flexionClazz)) {
+                return tipo;
+            }
+        }
+        return null;
+    }
+
     /**
      * Traduce el tipo de palabra al español
      */

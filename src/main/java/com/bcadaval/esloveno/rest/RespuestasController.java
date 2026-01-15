@@ -19,7 +19,7 @@ import lombok.extern.log4j.Log4j2;
  * Controlador para procesar las respuestas del formulario de palabras.
  * Integra el sistema de repetición espaciada (SRS) para actualizar
  * el progreso de aprendizaje de cada tarjeta.
- *
+ * <p>
  * Recibe respuestas de forma: tipo_INDEX, id_INDEX, valor_INDEX
  * Donde INDEX es el índice del elemento en la lista del formulario
  * tipo es 'v', 's', 'a' o 'p' (verbo, sustantivo, adjetivo, pronombre)

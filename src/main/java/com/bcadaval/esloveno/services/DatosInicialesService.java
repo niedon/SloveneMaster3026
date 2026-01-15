@@ -56,7 +56,7 @@ public class DatosInicialesService {
 
     /**
      * Verifica si la base de datos tiene datos y, si no, carga las palabras iniciales.
-     * Este método debe llamarse después de que la BD y los XMLs estén listos.
+     * Esta función debe llamarse después de que la BD y los XMLs estén listos.
      */
     @Transactional
     public void cargarDatosInicialesSiNecesario() {

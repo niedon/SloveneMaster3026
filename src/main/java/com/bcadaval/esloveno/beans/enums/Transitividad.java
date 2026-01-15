@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.Getter;
 
 /**
  * Transitividad de un verbo
@@ -11,20 +12,17 @@ import jakarta.persistence.Converter;
  * INTRANSITIVO: no requiere objeto directo
  * AMBITRANSITIVO: puede ser transitivo o intransitivo
  */
+@Getter
 public enum Transitividad {
 	TRANSITIVO("T"), INTRANSITIVO("I"), AMBITRANSITIVO("A");
 
-	private String code;
+	private final String code;
 
-	private Transitividad(String code) {
+	Transitividad(String code) {
 		this.code = code;
 	}
 
-	public String getCode() {
-		return code;
-	}
-	
-	public static Transitividad fromCode(String code) {
+    public static Transitividad fromCode(String code) {
 		return code==null ? null : switch (code) {
         case "T" -> Transitividad.TRANSITIVO;
         case "I" -> Transitividad.INTRANSITIVO;

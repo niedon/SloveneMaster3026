@@ -251,7 +251,7 @@ public class RepeticionEspaciadaService {
 
     /**
      * Obtiene estadísticas del sistema de estudio.
-     *
+     * <p>
      * NOTA: Una tarjeta es "estudiada" si tiene totalRevisiones > 0.
      *       Una tarjeta es "nueva" si proximaRevision == null O totalRevisiones == 0.
      */

@@ -20,7 +20,7 @@ public class Pronombre implements Palabra<PronombreFlexion> {
 	@Id
 	private String principal;
 
-	@Column(nullable = true)
+	@Column
 	private String acentuado;
 
 	@Enumerated(EnumType.STRING)

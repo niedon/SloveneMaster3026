@@ -1,8 +1,11 @@
 package com.bcadaval.esloveno.services.palabra.verbo;
 
+import java.io.Serial;
+
 public class VerboNotFoundException extends Exception {
 
-	private static final long serialVersionUID = -5993620109310158885L;
+	@Serial
+    private static final long serialVersionUID = -5993620109310158885L;
 
 	public VerboNotFoundException() {
 		super();

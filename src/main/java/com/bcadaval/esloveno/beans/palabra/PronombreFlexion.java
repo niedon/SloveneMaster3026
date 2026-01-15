@@ -1,6 +1,5 @@
 package com.bcadaval.esloveno.beans.palabra;
 
-import com.bcadaval.esloveno.beans.base.Palabra;
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.Genero;
@@ -126,10 +125,6 @@ public class PronombreFlexion implements PalabraFlexion<Pronombre> {
     @ManyToOne
     @JoinColumn(name = "PRINCIPAL", nullable = false)
     private Pronombre pronombreBase;
-
-//    public String getSignificado() {
-//        return getPronombreBase().getSignificado();
-//    }
 
     @Override
     public void setPalabraBase(Pronombre palabra) {

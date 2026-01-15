@@ -24,7 +24,7 @@ public class Numeral implements Palabra<NumeralFlexion> {
     @Id
     private String principal;
 
-    @Column(nullable = true)
+    @Column
     private String acentuado;
 
     private String sloleksId;

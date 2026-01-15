@@ -1,8 +1,11 @@
 package com.bcadaval.esloveno.services.xml;
 
+import java.io.Serial;
+
 public class XmlParserException extends Exception {
 
-	private static final long serialVersionUID = -6455408509342582463L;
+	@Serial
+    private static final long serialVersionUID = -6455408509342582463L;
 
 	public XmlParserException() {
 		super();

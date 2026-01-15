@@ -16,27 +16,27 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Entity
-@Accessors(chain = true)
 /**
  * Representa un verbo en esloveno.
  * Contiene la forma principal del verbo, su acentuación,
  * transitividad, aspecto, verbo correspondiente del otro aspecto (puede no tener),
  * identificadores en Sloleks, significado en español y una lista de sus flexiones.
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Accessors(chain = true)
 public class Verbo implements Palabra<VerboFlexion> {
 
 	@Id
 	private String principal;
 
-	@Column(nullable = true)
+	@Column
 	private String acentuado;
 
-	@Column(nullable = true)
+	@Column
 	private Transitividad transitividad;
 
 	private Aspecto aspecto;

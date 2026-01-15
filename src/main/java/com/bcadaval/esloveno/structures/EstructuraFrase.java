@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
@@ -15,14 +16,16 @@ import lombok.extern.log4j.Log4j2;
 
 /**
  * Clase abstracta base para estructuras de frase.
- * Define el patrón de slots que deben cumplirse para formar una frase válida.
- *
+ * Define el patrón de elementos que deben cumplirse para formar una frase válida.
+ * <p>
  * La frase puede contener:
- * - Slots principales: requieren PalabraFlexion de la lista de tarjetas (con ID para SRS)
- * - Elementos de apoyo: generados dinámicamente (pronombres, números, etc.) sin ID
- *
+ * - Slots: elementos con CriterioBusqueda, buscan palabras en repositorios (participan en SRS)
+ * - Apoyos: elementos con generadorObjeto, generan palabras dinámicamente sin ID
+ * <p>
  * El orden de los elementos en la lista determina el orden en la vista.
- *
+ * El orden en que se añaden en configurarEstructura es indiferente gracias a
+ * la resolución de dependencias en tiempo de construcción.
+ * <p>
  * Las implementaciones deben ser beans de Spring (@Component) para:
  * - Inyección automática de dependencias
  * - Auto-registro en base de datos
@@ -34,16 +37,20 @@ import lombok.extern.log4j.Log4j2;
 public abstract class EstructuraFrase {
 
     /**
-     * Lista ordenada de elementos de la frase.
-     * Cada elemento puede ser un SlotPalabra o un ElementoApoyo.
+     * Lista ordenada de todos los elementos de la frase (slots + apoyos).
      * El orden determina cómo se muestra en la vista.
      */
-    protected final List<Object> elementos = new ArrayList<>();
+    protected final List<ElementoFrase<?>> elementos = new ArrayList<>();
 
     /**
-     * Lista de slots principales (para búsqueda rápida y validación)
+     * Lista de slots (elementos con criterio de búsqueda) para búsqueda rápida.
      */
-    protected final List<SlotPalabra> slots = new ArrayList<>();
+    protected final List<ElementoFrase<?>> slots = new ArrayList<>();
+
+    /**
+     * Lista de apoyos (elementos con generador) para procesamiento posterior.
+     */
+    protected final List<ElementoFrase<?>> apoyos = new ArrayList<>();
 
     /**
      * Constructor por defecto para Spring
@@ -52,34 +59,52 @@ public abstract class EstructuraFrase {
     }
 
     /**
-     * Añade un slot principal a la estructura.
-     * El slot se añade tanto a la lista de slots como a la lista de elementos.
-     */
-    protected void agregarSlot(SlotPalabra slot) {
-        slots.add(slot);
-        elementos.add(slot);
-    }
-
-    /**
-     * Añade un elemento de apoyo a la estructura.
-     * Los elementos de apoyo no participan en el SRS (sin ID).
-     */
-    protected void agregarApoyo(ElementoApoyo apoyo) {
-        elementos.add(apoyo);
-    }
-
-    /**
-     * Busca un slot por su nombre.
-     * Útil para que los elementos de apoyo accedan a los slots asignados.
+     * Añade un elemento a la estructura.
+     * Clasifica automáticamente como slot o apoyo según su configuración.
      *
-     * @param nombre Nombre del slot (ej: "VERBO", "CD")
-     * @return El SlotPalabra o null si no existe
+     * @param elemento Elemento a añadir (slot o apoyo)
      */
-    public SlotPalabra getSlotPorNombre(String nombre) {
+    protected void agregarElemento(ElementoFrase<?> elemento) {
+        elementos.add(elemento);
+        if (elemento.esSlot()) {
+            slots.add(elemento);
+        } else if (elemento.esApoyo()) {
+            apoyos.add(elemento);
+        }
+    }
+
+    /**
+     * Obtiene los criterios de búsqueda de todos los slots.
+     * Útil para EstructuraPalabraService.
+     *
+     * @return Lista de criterios de búsqueda
+     */
+    public List<? extends CriterioBusqueda<?>> getCriteriosBusqueda() {
         return slots.stream()
-            .filter(s -> nombre.equals(s.getNombre()))
-            .findFirst()
-            .orElse(null);
+                .map(e -> (CriterioBusqueda<?>) e.getCriterioBusqueda())
+                .toList();
+    }
+
+    /**
+     * Obtiene la Specification combinada para un tipo específico de flexión.
+     * Combina todos los criterios del mismo tipo con OR.
+     *
+     * @param tipoFlexion Clase del tipo de flexión
+     * @return Specification combinada o null si no hay criterios de ese tipo
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends PalabraFlexion<?>> Specification<T> getSpecificationPorTipo(Class<T> tipoFlexion) {
+        List<Specification<T>> specs = slots.stream()
+                .map(ElementoFrase::getCriterioBusqueda)
+                .filter(c -> c.getTipoFlexion().equals(tipoFlexion))
+                .map(c -> (Specification<T>) c.getSpecification())
+                .toList();
+
+        if (specs.isEmpty()) return null;
+
+        return specs.stream()
+                .reduce(Specification::or)
+                .orElse(null);
     }
 
     /**
@@ -88,12 +113,12 @@ public abstract class EstructuraFrase {
      * @param indice Índice de la palabra en la lista original
      * @return true si se asignó a algún slot, false si no coincide con ninguno
      */
-    public boolean intentarAsignar(PalabraFlexion palabra, int indice) {
-        for (SlotPalabra slot : slots) {
+    public boolean intentarAsignar(PalabraFlexion<?> palabra, int indice) {
+        for (ElementoFrase<?> slot : slots) {
             if (slot.coincide(palabra)) {
                 slot.asignar(palabra, indice);
                 log.debug("Asignado {} a slot '{}' en índice {}",
-                    palabra.getClass().getSimpleName(), slot.getNombre(), indice);
+                        palabra.getClass().getSimpleName(), slot.getNombre(), indice);
                 return true;
             }
         }
@@ -104,7 +129,7 @@ public abstract class EstructuraFrase {
      * Verifica si todos los slots tienen una palabra asignada
      */
     public boolean estaCompleta() {
-        return slots.stream().allMatch(SlotPalabra::estaAsignado);
+        return slots.stream().allMatch(ElementoFrase::estaAsignado);
     }
 
     /**
@@ -112,9 +137,9 @@ public abstract class EstructuraFrase {
      */
     public List<Integer> getIndicesUsados() {
         return slots.stream()
-            .filter(SlotPalabra::estaAsignado)
-            .map(SlotPalabra::getIndiceEnLista)
-            .toList();
+                .filter(ElementoFrase::estaAsignado)
+                .map(ElementoFrase::getIndiceEnLista)
+                .toList();
     }
 
     /**
@@ -122,15 +147,25 @@ public abstract class EstructuraFrase {
      * El modo se decide ALEATORIAMENTE aquí (singleton con modo dinámico).
      * Itera sobre los elementos EN ORDEN para mantener la estructura de la frase.
      * El JSP recibirá textoFila1 y textoFila2 sin saber qué idioma es cada uno.
+     * <p>
+     * IMPORTANTE: Primero genera los objetos de apoyo (que dependen de slots asignados).
      */
     public List<DatoVisualizacion> construirDatosVisualizacion() {
         // Modo aleatorio cada vez que se construye
         ModoVisualizacion modo = ModoVisualizacion.aleatorio();
         log.debug("Construyendo datos con modo: {}", modo);
 
-        List<DatoVisualizacion> datos = new ArrayList<>();
+        // Primero generar y asignar objetos de apoyo
+        for (ElementoFrase<?> apoyo : apoyos) {
+            if (apoyo.esApoyo()) {
+                PalabraFlexion objetoGenerado = apoyo.generarObjeto(this);
+                apoyo.asignar(objetoGenerado, null);
+            }
+        }
 
-        for (Object elemento : elementos) {
+        // Construir datos de visualización en orden
+        List<DatoVisualizacion> datos = new ArrayList<>();
+        for (ElementoFrase<?> elemento : elementos) {
             DatoVisualizacion dato = construirDato(elemento, modo);
             if (dato != null) {
                 datos.add(dato);
@@ -141,39 +176,26 @@ public abstract class EstructuraFrase {
     }
 
     /**
-     * Construye un DatoVisualizacion para un elemento (slot o apoyo)
+     * Construye un DatoVisualizacion para un elemento
      */
-    private DatoVisualizacion construirDato(Object elemento, ModoVisualizacion modo) {
-        if (elemento instanceof SlotPalabra slot) {
-            if (!slot.estaAsignado()) return null;
+    private DatoVisualizacion construirDato(ElementoFrase<?> elemento, ModoVisualizacion modo) {
+        if (!elemento.estaAsignado()) return null;
 
-            PalabraFlexion palabra = slot.getPalabraAsignada();
-            return DatoVisualizacion.builder()
-                .textoFila1(slot.getTextoFila1(modo))
-                .textoFila2(slot.getTextoFila2(modo))
-                .id(palabra.getId())
-                .tipo(FraseTipoPalabra.fromObject(palabra))
+        PalabraFlexion palabra = elemento.getPalabraAsignada();
+
+        return DatoVisualizacion.builder()
+                .textoFila1(elemento.getTextoFila1(modo))
+                .textoFila2(elemento.getTextoFila2(modo))
+                .id(elemento.esSlot() ? palabra.getId() : null)
+                .tipo(elemento.esSlot() ? FraseTipoPalabra.fromObject(palabra) : null)
                 .build();
-
-        } else if (elemento instanceof ElementoApoyo apoyo) {
-            PalabraFlexion objetoGenerado = apoyo.generarObjeto(this);
-
-            return DatoVisualizacion.builder()
-                .textoFila1(apoyo.getTextoFila1(modo, objetoGenerado))
-                .textoFila2(apoyo.getTextoFila2(modo, objetoGenerado))
-                .id(null)
-                .tipo(null)
-                .build();
-        }
-
-        return null;
     }
 
     /**
-     * Limpia todos los slots para reutilización (singleton)
+     * Limpia todos los elementos para reutilización (singleton)
      */
     public void limpiar() {
-        slots.forEach(SlotPalabra::limpiar);
+        elementos.forEach(ElementoFrase::limpiar);
     }
 
     /**

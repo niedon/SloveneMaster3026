@@ -4,30 +4,24 @@ import java.util.Optional;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.Getter;
 
 /**
  * Persona gramatical: primera, segunda, tercera
  */
+@Getter
 public enum Persona {
 	PRIMERA("1", "first"), SEGUNDA("2", "second"), TERCERA("3", "third");
 
-	private String code;
-	private String xmlCode;
+	private final String code;
+	private final String xmlCode;
 
-	private Persona(String code, String xmlCode) {
+	Persona(String code, String xmlCode) {
 		this.code = code;
 		this.xmlCode = xmlCode;
 	}
 
-	public String getCode() {
-		return code;
-	}
-
-	public String getXmlCode() {
-		return xmlCode;
-	}
-
-	public static Persona fromCode(String code) {
+    public static Persona fromCode(String code) {
 		if (code == null || code.isBlank()) return null;
 		return switch (code) {
 		case "1", "first", "S" -> Persona.PRIMERA;

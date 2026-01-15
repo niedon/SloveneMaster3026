@@ -1,15 +1,16 @@
 package com.bcadaval.esloveno.structures.frases;
 
-import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
-import com.bcadaval.esloveno.beans.palabra.Pronombre;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.services.palabra.PronombreService;
-import com.bcadaval.esloveno.structures.ElementoApoyo;
+import com.bcadaval.esloveno.structures.CriterioBusqueda;
+import com.bcadaval.esloveno.structures.ElementoFrase;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
-import com.bcadaval.esloveno.structures.SlotPalabra;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
+import com.bcadaval.esloveno.structures.specifications.VerboFlexionSpecs;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,9 +20,9 @@ import java.util.Set;
 
 /**
  * Estructura de frase: Solo un Verbo en presente
- *
+ * <p>
  * Ejemplo: "yo corro" → "jaz tečem"
- *
+ * <p>
  * Elementos (en orden):
  * 1. PRONOMBRE (apoyo): generado a partir del verbo
  * 2. VERBO (slot): VerboFlexion con forma PRESENT
@@ -35,35 +36,42 @@ public class FraseSoloVerboPresente extends EstructuraFrase {
     @Autowired
     private PronombreService pronombreService;
 
+    @Autowired
+    private ExtraccionSlotEstandar extraccionSlotEstandar;
+
+    @Autowired
+    private ExtraccionApoyoEstandar extraccionApoyoEstandar;
+
     public FraseSoloVerboPresente() {
         super();
     }
 
     @PostConstruct
     public void configurarEstructura() {
-        agregarApoyo(ElementoApoyo.builder()
-            .nombre("PRONOMBRE")
-            .generadorObjeto(frase -> {
-                SlotPalabra slotVerbo = frase.getSlotPorNombre("VERBO");
-                if (slotVerbo == null || !slotVerbo.estaAsignado()) return null;
-                VerboFlexion verbo = (VerboFlexion) slotVerbo.getPalabraAsignada();
-                return pronombreService.getPronombre(verbo);
-            })
-            .extractorDeEspanol(PalabraFlexion::getSignificado)   // ES_SL fila1: "yo"
-            .extractorAEsloveno(PalabraFlexion::getFlexion)   // ES_SL fila2: "jaz"
-            .extractorDeEsloveno(PalabraFlexion::getFlexion)  // SL_ES fila1: "jaz"
-            .extractorAEspanol(PalabraFlexion::getSignificado)    // SL_ES fila2: "yo"
-            .build());
+        // Definir slot de verbo
+        ElementoFrase<VerboFlexion> verbo = ElementoFrase.<VerboFlexion>builder()
+                .nombre("VERBO")
+                .criterio(CriterioBusqueda.de(
+                        VerboFlexion.class,
+                        vf -> vf.getFormaVerbal() == FormaVerbal.PRESENT && vf.getVerboBase() != null,
+                        VerboFlexionSpecs.conFormaVerbalYBase(FormaVerbal.PRESENT)
+                ))
+                .extractor(extraccionSlotEstandar)
+                .build();
 
-        // Slot: Verbo en presente
-        agregarSlot(SlotPalabra.builder()
-            .nombre("VERBO")
-            .matcher(p -> p instanceof VerboFlexion vf && vf.getFormaVerbal() == FormaVerbal.PRESENT)
-            .extractorDeEspanol(PalabraFlexion::getSignificado)
-            .extractorAEsloveno(PalabraFlexion::getAcentuado)
-            .extractorDeEsloveno(PalabraFlexion::getFlexion)
-            .extractorAEspanol(PalabraFlexion::getSignificado)
-            .build());
+        // Definir apoyo de pronombre (depende del verbo)
+        ElementoFrase<PronombreFlexion> pronombre = ElementoFrase.<PronombreFlexion>builder()
+                .nombre("PRONOMBRE")
+                .generador(verbo, palabra -> {
+                    VerboFlexion vf = (VerboFlexion) palabra;
+                    return pronombreService.getPronombre(vf);
+                })
+                .extractor(extraccionApoyoEstandar)
+                .build();
+
+        // Agregar en orden de visualización
+        agregarElemento(pronombre);
+        agregarElemento(verbo);
     }
 
     @Override

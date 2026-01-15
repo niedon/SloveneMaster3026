@@ -15,23 +15,23 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+/**
+ * Representa un sustantivo en esloveno.
+ * Contiene la forma principal del sustantivo, su acentuación,
+ * género, animacidad, identificadores en Sloleks, significado en español y una lista de sus flexiones.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
 @Accessors(chain = true)
-/**
- * Representa un sustantivo en esloveno.
- * Contiene la forma principal del sustantivo, su acentuación,
- * género, animacidad, identificadores en Sloleks, significado en español y una lista de sus flexiones.
- */
 public class Sustantivo implements Palabra<SustantivoFlexion> {
 	
 	@Id
 	private String principal;
 	
-	@Column(nullable = true)
+	@Column
 	private String acentuado;
 	
 	private Genero genero;

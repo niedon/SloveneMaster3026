@@ -1,5 +1,6 @@
 package com.bcadaval.esloveno.services.palabra;
 
+import com.bcadaval.esloveno.beans.enums.TipoPalabra;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -53,33 +54,34 @@ public class PalabraService {
 	private NumeralFlexionRepo numeralFlexionRepo;
 
 	/** Devuelve el repositorio correspondiente según la clase de la palabra */
-	private JpaRepository getRepository(Palabra palabra) {
-		return switch(palabra) {
-		case Verbo ignored -> verboRepo;
-		case Adjetivo ignored -> adjetivoRepo;
-		case Sustantivo ignored -> sustantivoRepo;
-		case Pronombre ignored -> pronombreRepo;
-		case Numeral ignored -> numeralRepo;
-		default -> throw new IllegalArgumentException("Clase no soportada: " + palabra.getClass().getSimpleName());
+	private JpaRepository getRepository(Palabra<?> palabra) {
+		return switch (TipoPalabra.fromClass(palabra.getClass())){
+			case SUSTANTIVO -> sustantivoRepo;
+			case VERBO -> verboRepo;
+			case ADJETIVO -> adjetivoRepo;
+			case PRONOMBRE -> pronombreRepo;
+			case NUMERAL -> numeralRepo;
+			default -> throw new IllegalArgumentException("Clase no soportada: " + palabra.getClass().getSimpleName());
 		};
 	}
 
 	/** Devuelve el repositorio de flexiones correspondiente según la clase de la palabra */
-	private JpaRepository getFlexionRepository(Palabra palabra) {
-		return switch(palabra) {
-		case Verbo ignored -> verboFlexionRepo;
-		case Adjetivo ignored -> adjetivoFlexionRepo;
-		case Sustantivo ignored -> sustantivoFlexionRepo;
-		case Pronombre ignored -> pronombreFlexionRepo;
-		case Numeral ignored -> numeralFlexionRepo;
-		default -> throw new IllegalArgumentException("Clase no soportada: " + palabra.getClass().getSimpleName());
-		};
+	private JpaRepository getFlexionRepository(Palabra<?> palabra) {
+		return switch (TipoPalabra.fromClass(palabra.getClass())){
+            case SUSTANTIVO -> sustantivoFlexionRepo;
+            case VERBO -> verboFlexionRepo;
+            case ADJETIVO -> adjetivoFlexionRepo;
+            case PRONOMBRE -> pronombreFlexionRepo;
+            case NUMERAL -> numeralFlexionRepo;
+			default -> throw new IllegalArgumentException("Clase no soportada: " + palabra.getClass().getSimpleName());
+        };
+
 	}
 
 	/** Guarda una palabra y sus flexiones asociadas */
-	public Palabra saveWordAndConjugations(Palabra palabra) {
+	public Palabra<?> saveWordAndConjugations(Palabra<?> palabra) {
 		log.debug("Guardando palabra {} con {} flexiones", palabra.getPrincipal(), palabra.getListaFlexiones().size());
-		Palabra palabraGuardada = (Palabra) getRepository(palabra).save(palabra);
+		Palabra palabraGuardada = (Palabra<?>) getRepository(palabra).save(palabra);
 
 		// Asignar la referencia a la palabra base en cada flexión
 		for (Object flexion : palabra.getListaFlexiones()) {

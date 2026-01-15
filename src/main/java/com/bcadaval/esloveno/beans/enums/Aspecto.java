@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.Getter;
 
 /**
  * Enum que representa los aspectos verbales en esloveno.
@@ -11,27 +12,20 @@ import jakarta.persistence.Converter;
  * IMPERFECTIVO (I): Indica una acción en progreso o habitual.
  * AMBIPREFECTIVO (*): Indica que el verbo puede usarse en ambos aspectos.
  */
+@Getter
 public enum Aspecto {
 
 	PERFECTIVO("P", "perfective"), IMPERFECTIVO("I", "progressive"), AMBIPREFECTIVO("*", "biaspectual");
 
-	private String code;
-	private String xmlCode;
+	private final String code;
+	private final String xmlCode;
 
-	private Aspecto(String code, String xmlCode) {
+	Aspecto(String code, String xmlCode) {
 		this.code = code;
 		this.xmlCode = xmlCode;
 	}
 
-	public String getCode() {
-		return code;
-	}
-
-	public String getXmlCode() {
-		return xmlCode;
-	}
-
-	public static Aspecto fromCode(String code) {
+    public static Aspecto fromCode(String code) {
 		if (code == null || code.isBlank()) return null;
 		return switch (code) {
 		case "I", "progressive" -> Aspecto.IMPERFECTIVO;

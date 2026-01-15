@@ -83,7 +83,7 @@ public class InitializationService {
     }
 
     /**
-     * Comprueba si todo está listo para usar la aplicación
+     * Comprueba si la aplicación está lista para funcionar
      * (BD existe, XMLs existen, y BD tiene datos)
      */
     public boolean isFullyReady() {

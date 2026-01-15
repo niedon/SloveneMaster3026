@@ -14,23 +14,23 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+/**
+ * Representa un adjetivo en esloveno.
+ * Contiene la forma principal del adjetivo, su acentuación,
+ * identificadores en Sloleks, significado en español y una lista de sus flexiones.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
 @Accessors(chain = true)
-/**
- * Representa un adjetivo en esloveno.
- * Contiene la forma principal del adjetivo, su acentuación,
- * identificadores en Sloleks, significado en español y una lista de sus flexiones.
- */
 public class Adjetivo implements Palabra<AdjetivoFlexion> {
 	
 	@Id
 	private String principal;
 	
-	@Column(nullable = true)
+	@Column
 	private String acentuado;
 
 	private String sloleksId;

@@ -4,31 +4,25 @@ import java.util.Optional;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.Getter;
 
 /**
  * Grado de un adjetivo: positivo, comparativo, superlativo
  */
+@Getter
 public enum Grado {
 
 	POSITIVO("P", "positive"), COMPARATIVO("C", "comparative"), SUPERLATIVO("S", "superlative");
 
-	private String code;
-	private String xmlCode;
+	private final String code;
+	private final String xmlCode;
 
-	private Grado(String code, String xmlCode) {
+	Grado(String code, String xmlCode) {
 		this.code = code;
 		this.xmlCode = xmlCode;
 	}
 
-	public String getCode() {
-		return code;
-	}
-
-	public String getXmlCode() {
-		return xmlCode;
-	}
-
-	public static Grado fromCode(String code) {
+    public static Grado fromCode(String code) {
 		if (code == null || code.isBlank()) return null;
 		return switch (code) {
 		case "P", "positive" -> Grado.POSITIVO;

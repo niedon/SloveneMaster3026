@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.Getter;
 
 /**
  * Enum que representa los casos gramaticales en esloveno.
@@ -14,28 +15,21 @@ import jakarta.persistence.Converter;
  * LOCATIVO: Indica ubicación o lugar.
  * INSTRUMENTAL: Indica el medio o instrumento con el que se realiza una acción
  */
+@Getter
 public enum Caso{
 
 	NOMINATIVO("1", "nominative"), GENITIVO("2", "genitive"), DATIVO("3", "dative"), ACUSATIVO("4", "accusative"),
 	LOCATIVO("5", "locative"), INSTRUMENTAL("6", "instrumental");
 
-	private String code;
-	private String xmlCode;
+	private final String code;
+	private final String xmlCode;
 
-	private Caso(String code, String xmlCode) {
+	Caso(String code, String xmlCode) {
 		this.code = code;
 		this.xmlCode = xmlCode;
 	}
 
-	public String getCode() {
-		return code;
-	}
-
-	public String getXmlCode() {
-		return xmlCode;
-	}
-
-	public static Caso fromCode(String code) {
+    public static Caso fromCode(String code) {
 		if (code == null || code.isBlank()) return null;
 		return switch (code) {
 		case "1", "nominative" -> Caso.NOMINATIVO;
