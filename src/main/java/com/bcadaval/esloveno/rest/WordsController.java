@@ -1,6 +1,8 @@
 package com.bcadaval.esloveno.rest;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
@@ -85,23 +87,56 @@ public class WordsController {
 			return new ArrayList<>();
 		}
 
+		// Inicializar contador de usos por índice (cuántas estructuras usan cada palabra)
+		List<Integer> usosPorIndice = new ArrayList<>(tarjetas.size());
+		for (int i = 0; i < tarjetas.size(); i++) {
+			usosPorIndice.add(0);
+		}
+
 		// Limpiar slots antes de usar (singleton)
 		estructuras.forEach(EstructuraFrase::limpiar);
 
-		// Iterar sobre palabras (ya ordenadas por prioridad SRS)
+		// Intentar asignar palabras a todas las estructuras
 		for (int i = 0; i < tarjetas.size(); i++) {
-			PalabraFlexion palabra = tarjetas.get(i);
-
+			PalabraFlexion<?> palabra = tarjetas.get(i);
 			for (EstructuraFrase estructura : estructuras) {
-				estructura.intentarAsignar(palabra, i);
-
-				// Primera estructura completa gana
-				if (estructura.estaCompleta()) {
-					log.info("Estructura '{}' completada", estructura.getNombre());
-					return estructura.construirDatosVisualizacion();
+				if (estructura.intentarAsignar(palabra, i)) {
+					usosPorIndice.set(i, usosPorIndice.get(i) + 1);
 				}
 			}
 		}
+
+		// Calcular puntuación para estructuras completas (media de usos de sus palabras)
+		// Menor puntuación = mejor (prioriza palabras menos asignables)
+		EstructuraFrase mejorEstructura = estructuras.stream()
+				.filter(EstructuraFrase::estaCompleta)
+				.peek(estructura -> {
+					List<Integer> indices = estructura.getIndicesUsados();
+					if (!indices.isEmpty()) {
+						double mediaUsos = indices.stream()
+								.mapToInt(usosPorIndice::get)
+								.average()
+								.orElse(Double.MAX_VALUE);
+						estructura.setPuntuacion(BigDecimal.valueOf(mediaUsos));
+					} else {
+						estructura.setPuntuacion(BigDecimal.valueOf(Double.MAX_VALUE));
+					}
+				})
+				.min(Comparator.comparing(EstructuraFrase::getPuntuacion))
+				.orElse(null);
+
+		// Log de puntuaciones para debug
+		estructuras.stream()
+				.filter(EstructuraFrase::estaCompleta)
+				.forEach(el -> log.info("Estructura '{}': puntuación = {}",
+						el.getNombreMostrar(), el.getPuntuacion()));
+
+		if (mejorEstructura != null) {
+			log.info("Estructura seleccionada: '{}' con puntuación {}",
+					mejorEstructura.getNombreMostrar(), mejorEstructura.getPuntuacion());
+			return mejorEstructura.construirDatosVisualizacion();
+		}
+
 
 		// Ninguna estructura se completó
 		log.warn("Ninguna estructura de frase se completó con las {} tarjetas disponibles", tarjetas.size());

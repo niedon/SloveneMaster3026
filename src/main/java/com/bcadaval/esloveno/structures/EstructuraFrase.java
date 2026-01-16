@@ -1,9 +1,11 @@
 package com.bcadaval.esloveno.structures;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import lombok.Setter;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -51,6 +53,12 @@ public abstract class EstructuraFrase {
      * Lista de apoyos (elementos con generador) para procesamiento posterior.
      */
     protected final List<ElementoFrase<?>> apoyos = new ArrayList<>();
+
+    /**
+     * Puntuación de la estructura para selección preferente (menor es mejor)
+     * */
+    @Setter
+    private BigDecimal puntuacion;
 
     /**
      * Constructor por defecto para Spring
@@ -228,4 +236,5 @@ public abstract class EstructuraFrase {
      * Se usa para calcular las formas verbales activas derivadas de las frases activas.
      */
     public abstract Set<FormaVerbal> getFormasVerbalesUsadas();
+
 }
