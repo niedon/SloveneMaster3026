@@ -3,6 +3,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 .kotlin
+.idea/*.xml
+*.bat
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
