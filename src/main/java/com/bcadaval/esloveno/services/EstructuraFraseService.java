@@ -1,27 +1,15 @@
 package com.bcadaval.esloveno.services;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
-import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
-import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
-import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
-import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
-import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
-import com.bcadaval.esloveno.repo.VerboFlexionRepo;
-import com.bcadaval.esloveno.structures.specifications.AdjetivoFlexionSpecs;
-import com.bcadaval.esloveno.structures.specifications.SustantivoFlexionSpecs;
-import com.bcadaval.esloveno.structures.specifications.VerboFlexionSpecs;
+import com.bcadaval.esloveno.structures.CriterioBusqueda;
+import com.bcadaval.esloveno.structures.CriterioGramatical;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.bcadaval.esloveno.beans.EstructuraFraseConfig;
@@ -51,15 +39,6 @@ public class EstructuraFraseService {
     @Lazy
     @Autowired
     private InitializationService initializationService;
-
-    @Autowired
-    private SustantivoFlexionRepo sustantivoFlexionRepo;
-
-    @Autowired
-    private VerboFlexionRepo verboFlexionRepo;
-
-    @Autowired
-    private AdjetivoFlexionRepo adjetivoFlexionRepo;
 
     /** Flag para controlar que solo se registran una vez */
     private final AtomicBoolean estructurasRegistradas = new AtomicBoolean(false);
@@ -116,104 +95,44 @@ public class EstructuraFraseService {
 
     /**
      * Obtiene los casos activos derivados de las frases activas.
-     * Un caso está activo si existen palabras disponibles con ese caso
-     * según los criterios de las estructuras activas.
+     * Un caso está activo si está configurado en alguna estructura activa.
+     * Usa el nuevo sistema de CriterioGramatical.
      */
     public Set<Caso> getCasosActivos() {
-        Set<Caso> casosActivos = new HashSet<>();
-
-        // Obtener sustantivos que cumplan criterios de estructuras activas
-        Specification<SustantivoFlexion> specSustantivo = getSpecificationCombinadaPorTipo(SustantivoFlexion.class);
-        if (specSustantivo != null) {
-            // Añadir specification de palabra completa
-            Specification<SustantivoFlexion> specCompleta = specSustantivo
-                    .and(SustantivoFlexionSpecs.completaParaEstudio());
-
-            List<SustantivoFlexion> sustantivos = sustantivoFlexionRepo.findAll(specCompleta);
-            sustantivos.stream()
-                    .map(SustantivoFlexion::getCaso)
-                    .filter(Objects::nonNull)
-                    .forEach(casosActivos::add);
-        }
-
-        // Obtener adjetivos que cumplan criterios de estructuras activas
-        Specification<AdjetivoFlexion> specAdjetivo = getSpecificationCombinadaPorTipo(AdjetivoFlexion.class);
-        if (specAdjetivo != null) {
-            Specification<AdjetivoFlexion> specCompleta = specAdjetivo
-                    .and(AdjetivoFlexionSpecs.completaParaEstudio());
-
-            List<AdjetivoFlexion> adjetivos = adjetivoFlexionRepo.findAll(specCompleta);
-            adjetivos.stream()
-                    .map(AdjetivoFlexion::getCaso)
-                    .filter(Objects::nonNull)
-                    .forEach(casosActivos::add);
-        }
-
-        return casosActivos;
+        return getEstructurasActivas().stream()
+                .map(EstructuraFrase::getCasosUsados)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
     }
 
     /**
      * Obtiene las formas verbales activas derivadas de las frases activas.
-     * Una forma verbal está activa si existen verbos disponibles con esa forma
-     * según los criterios de las estructuras activas.
+     * Una forma verbal está activa si está configurada en alguna estructura activa.
+     * Usa el nuevo sistema de CriterioGramatical.
      */
     public Set<FormaVerbal> getFormasVerbalesActivas() {
-        Set<FormaVerbal> formasActivas = new HashSet<>();
-
-        // Obtener verbos que cumplan criterios de estructuras activas
-        Specification<VerboFlexion> specVerbo = getSpecificationCombinadaPorTipo(VerboFlexion.class);
-        if (specVerbo != null) {
-            // Añadir specification de palabra completa
-            Specification<VerboFlexion> specCompleta = specVerbo
-                    .and(VerboFlexionSpecs.completaParaEstudio());
-
-            List<VerboFlexion> verbos = verboFlexionRepo.findAll(specCompleta);
-            verbos.stream()
-                    .map(VerboFlexion::getFormaVerbal)
-                    .filter(Objects::nonNull)
-                    .forEach(formasActivas::add);
-        }
-
-        return formasActivas;
+        return getEstructurasActivas().stream()
+                .map(EstructuraFrase::getFormasVerbalesUsadas)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
     }
 
     /**
-     * Obtiene la Specification combinada de todas las estructuras activas para un tipo de flexión.
-     * Combina todos los criterios de todas las estructuras activas con OR.
-     * <p>
-     * Ejemplo: Si hay 2 estructuras activas:
-     * - FraseSoloSustantivoNominativo: sustantivo con caso=NOMINATIVO
-     * - FraseVerboTransitivoAcusativo: sustantivo con caso=ACUSATIVO
-     * <p>
-     * El resultado sería: (caso=NOMINATIVO) OR (caso=ACUSATIVO)
+     * Obtiene los CriterioGramatical combinados de todas las estructuras activas para un tipo de flexión.
+     * Útil para filtrar palabras en memoria.
      *
      * @param tipoFlexion Clase del tipo de flexión (ej: SustantivoFlexion.class)
-     * @return Specification combinada, o null si no hay criterios para ese tipo
+     * @return Lista de CriterioGramatical, vacía si no hay criterios para ese tipo
      */
-    public <T extends PalabraFlexion<?>> Specification<T> getSpecificationCombinadaPorTipo(Class<T> tipoFlexion) {
-        List<Specification<T>> specs = getEstructurasActivas().stream()
-                .map(e -> e.<T>getSpecificationPorTipo(tipoFlexion))
+    public List<CriterioGramatical> getCriteriosGramaticalesPorTipo(Class<? extends PalabraFlexion<?>> tipoFlexion) {
+        return getEstructurasActivas().stream()
+                .flatMap(e -> e.getCriteriosBusqueda().stream())
+                .filter(c -> c.getTipoFlexion().equals(tipoFlexion))
+                .map(CriterioBusqueda::getCriterioGramatical)
                 .filter(Objects::nonNull)
                 .toList();
-
-        if (specs.isEmpty()) {
-            return null;
-        }
-
-        return specs.stream()
-                .reduce(Specification::or)
-                .orElse(null);
     }
 
-    /**
-     * Verifica si hay alguna estructura activa que use el tipo de flexión dado.
-     *
-     * @param tipoFlexion Clase del tipo de flexión
-     * @return true si al menos una estructura activa usa ese tipo
-     */
-    public <T extends PalabraFlexion<?>> boolean tieneEstructurasParaTipo(Class<T> tipoFlexion) {
-        return getSpecificationCombinadaPorTipo(tipoFlexion) != null;
-    }
 
     /**
      * Obtiene todas las estructuras para la pantalla de configuración.

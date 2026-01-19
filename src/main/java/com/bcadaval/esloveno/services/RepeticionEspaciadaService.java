@@ -2,10 +2,12 @@ package com.bcadaval.esloveno.services;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.bcadaval.esloveno.structures.CriterioGramatical;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,10 +19,6 @@ import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
 import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboFlexionRepo;
 import com.bcadaval.esloveno.rest.dto.EstadisticasDTO;
-import com.bcadaval.esloveno.structures.specifications.AdjetivoFlexionSpecs;
-import com.bcadaval.esloveno.structures.specifications.SrsSpecs;
-import com.bcadaval.esloveno.structures.specifications.SustantivoFlexionSpecs;
-import com.bcadaval.esloveno.structures.specifications.VerboFlexionSpecs;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -39,6 +37,10 @@ public class RepeticionEspaciadaService {
     @Autowired
     private EstructuraFraseService estructuraFraseService;
 
+    @Lazy
+    @Autowired
+    private ConsultaPalabrasService consultaPalabrasService;
+
     @Autowired
     private VerboFlexionRepo verboFlexionRepo;
 
@@ -51,9 +53,6 @@ public class RepeticionEspaciadaService {
     /**
      * Procesa la respuesta del usuario y actualiza el estado de la tarjeta.
      * Implementa el algoritmo SM-2 con precisión de segundos.
-     *
-     * @param flexion La flexión (VerboFlexion, SustantivoFlexion, AdjetivoFlexion)
-     * @param recordo true si el usuario recordó la palabra, false si no
      */
     @Transactional
     public void procesarRespuesta(PalabraFlexion<?> flexion, boolean recordo) {
@@ -79,7 +78,6 @@ public class RepeticionEspaciadaService {
      * Actualiza los campos SRS de una flexión según el algoritmo SM-2
      */
     private void actualizarCamposSRS(PalabraFlexion<?> flexion, boolean recordo) {
-        // Obtener valores actuales con defaults
         double factorFacilidad = Optional.ofNullable(flexion.getFactorFacilidad())
             .orElse(variablesService.getFactorFacilidadInicial());
         long intervaloSegundos = Optional.ofNullable(flexion.getIntervaloRepeticionSegundos()).orElse(0L);
@@ -111,7 +109,6 @@ public class RepeticionEspaciadaService {
             flexion.setEnReaprendizaje(true);
         }
 
-        // Actualizar todos los campos
         flexion.setFactorFacilidad(factorFacilidad);
         flexion.setIntervaloRepeticionSegundos(nuevoIntervalo);
         flexion.setVecesConsecutivasCorrectas(vecesCorrectas);
@@ -122,168 +119,77 @@ public class RepeticionEspaciadaService {
     }
 
     /**
-     * Obtiene las tarjetas disponibles para estudiar ahora.
-     * Filtra por: tiempo vencido, palabra completa, criterios de estructuras activas.
-     * Ordena por: reaprendizaje primero, luego antigüedad, luego aleatorio.
-     *
-     * @param limite Máximo de tarjetas a devolver
-     * @return Lista de flexiones disponibles
+     * Obtiene las tarjetas listas para estudiar.
+     * Una tarjeta está lista si: proximaRevision != null AND proximaRevision <= ahora
+     * La consulta a BD ya filtra esto, solo se aplica filtro gramatical en memoria.
      */
     public List<PalabraFlexion<?>> obtenerTarjetasDisponibles(int limite) {
-        List<PalabraFlexion<?>> tarjetas = new ArrayList<>();
+        // Obtener criterios activos por tipo
+        List<CriterioGramatical> criteriosVerbo = estructuraFraseService.getCriteriosGramaticalesPorTipo(VerboFlexion.class);
+        List<CriterioGramatical> criteriosSustantivo = estructuraFraseService.getCriteriosGramaticalesPorTipo(SustantivoFlexion.class);
+        List<CriterioGramatical> criteriosAdjetivo = estructuraFraseService.getCriteriosGramaticalesPorTipo(AdjetivoFlexion.class);
 
-        // Obtener verbos disponibles
-        Specification<VerboFlexion> specVerbo = estructuraFraseService.getSpecificationCombinadaPorTipo(VerboFlexion.class);
-        if (specVerbo != null) {
-            Specification<VerboFlexion> specVerboCompleta = specVerbo
-                    .and(VerboFlexionSpecs.completaParaEstudio())
-                    .and(SrsSpecs.<VerboFlexion>listaParaRevisar());
-            tarjetas.addAll(verboFlexionRepo.findAll(specVerboCompleta));
-        }
-
-        // Obtener sustantivos disponibles
-        Specification<SustantivoFlexion> specSustantivo = estructuraFraseService.getSpecificationCombinadaPorTipo(SustantivoFlexion.class);
-        if (specSustantivo != null) {
-            Specification<SustantivoFlexion> specSustantivoCompleta = specSustantivo
-                    .and(SustantivoFlexionSpecs.completaParaEstudio())
-                    .and(SrsSpecs.<SustantivoFlexion>listaParaRevisar());
-            tarjetas.addAll(sustantivoFlexionRepo.findAll(specSustantivoCompleta));
-        }
-
-        // Obtener adjetivos disponibles
-        Specification<AdjetivoFlexion> specAdjetivo = estructuraFraseService.getSpecificationCombinadaPorTipo(AdjetivoFlexion.class);
-        if (specAdjetivo != null) {
-            Specification<AdjetivoFlexion> specAdjetivoCompleta = specAdjetivo
-                    .and(AdjetivoFlexionSpecs.completaParaEstudio())
-                    .and(SrsSpecs.<AdjetivoFlexion>listaParaRevisar());
-            tarjetas.addAll(adjetivoFlexionRepo.findAll(specAdjetivoCompleta));
-        }
-
+        // Combinar streams con filtro gramatical ya aplicado
+        // Importante: recolectar cada stream a lista antes de combinar
+        // porque los streams de JPA se cierran al finalizar su procesamiento
+        List<PalabraFlexion<?>> tarjetas = Stream.of(
+            consultaPalabrasService.listVerbosListos(criteriosVerbo),
+            consultaPalabrasService.listSustantivosListos(criteriosSustantivo),
+            consultaPalabrasService.listAdjetivosListos(criteriosAdjetivo)
+        )
+        .flatMap(List::stream)
         // Ordenar: reaprendizaje primero, luego por antigüedad
-        tarjetas.sort(Comparator
+        .sorted(Comparator
             .comparing((PalabraFlexion<?> f) -> !Boolean.TRUE.equals(f.getEnReaprendizaje()))
-            .thenComparing(PalabraFlexion::getProximaRevision));
+            .thenComparing(PalabraFlexion::getProximaRevision))
+        .collect(Collectors.toList());
 
-        // Mezclar aleatoriamente
+        // Mezclar aleatoriamente y limitar
         Collections.shuffle(tarjetas);
-
         return tarjetas.size() > limite ? tarjetas.subList(0, limite) : tarjetas;
-    }
-
-    /**
-     * Obtiene tarjetas nuevas (nunca estudiadas) para iniciar estudio.
-     * Solo incluye palabras completas y que cumplan criterios de estructuras activas.
-     *
-     * @param limite Máximo de tarjetas a devolver
-     * @return Lista de flexiones nuevas
-     */
-    public List<PalabraFlexion<?>> obtenerTarjetasNuevas(int limite) {
-        List<PalabraFlexion<?>> tarjetas = new ArrayList<>();
-
-        // Obtener verbos nuevos
-        Specification<VerboFlexion> specVerbo = estructuraFraseService.getSpecificationCombinadaPorTipo(VerboFlexion.class);
-        if (specVerbo != null) {
-            Specification<VerboFlexion> specVerboNueva = specVerbo
-                    .and(VerboFlexionSpecs.completaParaEstudio())
-                    .and(SrsSpecs.<VerboFlexion>nueva());
-            tarjetas.addAll(verboFlexionRepo.findAll(specVerboNueva));
-        }
-
-        // Obtener sustantivos nuevos
-        Specification<SustantivoFlexion> specSustantivo = estructuraFraseService.getSpecificationCombinadaPorTipo(SustantivoFlexion.class);
-        if (specSustantivo != null) {
-            Specification<SustantivoFlexion> specSustantivoNueva = specSustantivo
-                    .and(SustantivoFlexionSpecs.completaParaEstudio())
-                    .and(SrsSpecs.<SustantivoFlexion>nueva());
-            tarjetas.addAll(sustantivoFlexionRepo.findAll(specSustantivoNueva));
-        }
-
-        // Obtener adjetivos nuevos
-        Specification<AdjetivoFlexion> specAdjetivo = estructuraFraseService.getSpecificationCombinadaPorTipo(AdjetivoFlexion.class);
-        if (specAdjetivo != null) {
-            Specification<AdjetivoFlexion> specAdjetivoNueva = specAdjetivo
-                    .and(AdjetivoFlexionSpecs.completaParaEstudio())
-                    .and(SrsSpecs.<AdjetivoFlexion>nueva());
-            tarjetas.addAll(adjetivoFlexionRepo.findAll(specAdjetivoNueva));
-        }
-
-        Collections.shuffle(tarjetas);
-
-        return tarjetas.size() > limite ? tarjetas.subList(0, limite) : tarjetas;
-    }
-
-    /**
-     * Cuenta las tarjetas disponibles ahora para estudiar
-     */
-    public int contarTarjetasDisponibles() {
-        return obtenerTarjetasDisponibles(Integer.MAX_VALUE).size();
-    }
-
-    /**
-     * Cuenta las tarjetas nuevas disponibles
-     */
-    public int contarTarjetasNuevas() {
-        return obtenerTarjetasNuevas(Integer.MAX_VALUE).size();
     }
 
     /**
      * Obtiene estadísticas del sistema de estudio.
-     * <p>
-     * NOTA: Una tarjeta es "estudiada" si tiene totalRevisiones > 0.
-     *       Una tarjeta es "nueva" si proximaRevision == null O totalRevisiones == 0.
+     * Usa streamActivos para obtener TODAS las tarjetas activas (proximaRevision != null)
      */
     public EstadisticasDTO obtenerEstadisticas() {
-        // Recopilar todas las tarjetas elegibles según estructuras activas
-        List<PalabraFlexion<?>> todasElegibles = new ArrayList<>();
+        List<CriterioGramatical> criteriosVerbo = estructuraFraseService.getCriteriosGramaticalesPorTipo(VerboFlexion.class);
+        List<CriterioGramatical> criteriosSustantivo = estructuraFraseService.getCriteriosGramaticalesPorTipo(SustantivoFlexion.class);
+        List<CriterioGramatical> criteriosAdjetivo = estructuraFraseService.getCriteriosGramaticalesPorTipo(AdjetivoFlexion.class);
 
-        // Verbos elegibles
-        Specification<VerboFlexion> specVerbo = estructuraFraseService.getSpecificationCombinadaPorTipo(VerboFlexion.class);
-        if (specVerbo != null) {
-            Specification<VerboFlexion> specVerboCompleta = specVerbo
-                    .and(VerboFlexionSpecs.completaParaEstudio());
-            todasElegibles.addAll(verboFlexionRepo.findAll(specVerboCompleta));
-        }
+        // Obtener todas las tarjetas activas que cumplen criterios
+        // Importante: recolectar cada stream a lista antes de combinar
+        List<PalabraFlexion<?>> todasActivas = Stream.of(
+                consultaPalabrasService.listVerbosActivos(criteriosVerbo),
+                consultaPalabrasService.listSustantivosActivos(criteriosSustantivo),
+                consultaPalabrasService.listAdjetivosActivos(criteriosAdjetivo)
+        )
+        .flatMap(List::stream)
+        .collect(Collectors.toList());
 
-        // Sustantivos elegibles
-        Specification<SustantivoFlexion> specSustantivo = estructuraFraseService.getSpecificationCombinadaPorTipo(SustantivoFlexion.class);
-        if (specSustantivo != null) {
-            Specification<SustantivoFlexion> specSustantivoCompleta = specSustantivo
-                    .and(SustantivoFlexionSpecs.completaParaEstudio());
-            todasElegibles.addAll(sustantivoFlexionRepo.findAll(specSustantivoCompleta));
-        }
+        Instant ahora = Instant.now();
 
-        // Adjetivos elegibles
-        Specification<AdjetivoFlexion> specAdjetivo = estructuraFraseService.getSpecificationCombinadaPorTipo(AdjetivoFlexion.class);
-        if (specAdjetivo != null) {
-            Specification<AdjetivoFlexion> specAdjetivoCompleta = specAdjetivo
-                    .and(AdjetivoFlexionSpecs.completaParaEstudio());
-            todasElegibles.addAll(adjetivoFlexionRepo.findAll(specAdjetivoCompleta));
-        }
-
-        // Contadores
-        long totalTarjetas = todasElegibles.size();
-        long tarjetasEstudiadas = 0;
-        long tarjetasNuevas = 0;
+        long totalTarjetas = todasActivas.size();
+        long tarjetasDisponiblesAhora = 0;
         long tarjetasEnReaprendizaje = 0;
         long totalRevisiones = 0;
         long totalAciertos = 0;
 
-        for (PalabraFlexion<?> f : todasElegibles) {
+        for (PalabraFlexion<?> f : todasActivas) {
             int revisiones = Optional.ofNullable(f.getTotalRevisiones()).orElse(0);
             int aciertos = Optional.ofNullable(f.getTotalAciertos()).orElse(0);
 
             totalRevisiones += revisiones;
             totalAciertos += aciertos;
 
-            // Una tarjeta es "estudiada" si tiene al menos una revisión
-            if (revisiones > 0) {
-                tarjetasEstudiadas++;
-                if (Boolean.TRUE.equals(f.getEnReaprendizaje())) {
-                    tarjetasEnReaprendizaje++;
-                }
-            } else {
-                // Nunca ha sido revisada = tarjeta nueva
-                tarjetasNuevas++;
+            if (Boolean.TRUE.equals(f.getEnReaprendizaje())) {
+                tarjetasEnReaprendizaje++;
+            }
+
+            // Disponible ahora = proximaRevision <= ahora
+            if (!f.getProximaRevision().isAfter(ahora)) {
+                tarjetasDisponiblesAhora++;
             }
         }
 
@@ -291,9 +197,9 @@ public class RepeticionEspaciadaService {
 
         return EstadisticasDTO.builder()
             .totalTarjetas((int) totalTarjetas)
-            .tarjetasEstudiadas((int) tarjetasEstudiadas)
-            .tarjetasNuevas((int) tarjetasNuevas)
-            .tarjetasDisponiblesAhora(contarTarjetasDisponibles())
+            .tarjetasEstudiadas((int) totalTarjetas) // Todas activas han sido estudiadas al menos una vez
+            .tarjetasNuevas(0) // Ya no hay concepto de "nuevas" - todas las activas fueron inicializadas
+            .tarjetasDisponiblesAhora((int) tarjetasDisponiblesAhora)
             .tarjetasEnReaprendizaje((int) tarjetasEnReaprendizaje)
             .totalRevisiones((int) totalRevisiones)
             .totalAciertos((int) totalAciertos)
@@ -301,20 +207,4 @@ public class RepeticionEspaciadaService {
             .build();
     }
 
-    /**
-     * Inicializa los campos SRS para una tarjeta nueva.
-     * Se llama al completar una palabra en CompletarPalabrasController.
-     */
-    public void inicializarTarjeta(PalabraFlexion<?> flexion) {
-        flexion.setFactorFacilidad(variablesService.getFactorFacilidadInicial());
-        flexion.setIntervaloRepeticionSegundos(0L);
-        flexion.setVecesConsecutivasCorrectas(0);
-        flexion.setTotalRevisiones(0);
-        flexion.setTotalAciertos(0);
-        flexion.setEnReaprendizaje(false);
-        flexion.setProximaRevision(Instant.now()); // Disponible inmediatamente
-
-        guardarFlexion(flexion);
-    }
 }
-

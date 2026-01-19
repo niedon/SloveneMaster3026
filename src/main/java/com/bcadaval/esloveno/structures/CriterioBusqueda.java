@@ -1,66 +1,87 @@
 package com.bcadaval.esloveno.structures;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
+import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import lombok.Getter;
-import org.springframework.data.jpa.domain.Specification;
-
-import java.util.function.Predicate;
 
 /**
- * Criterio de búsqueda para un elemento de frase.
- * Encapsula tanto un Predicate (para validación en memoria)
- * como un Specification (para consultas JPA).
+ * Criterio de búsqueda unificado para un elemento de frase.
+ * Encapsula un CriterioGramatical para filtrado en memoria.
+ *
+ * Uso con builder fluido:
+ * <pre>
+ * CriterioBusqueda.de(VerboFlexion.class)
+ *     .con(CaracteristicaGramatical.FORMA_VERBAL, FormaVerbal.PRESENT)
+ *     .build()
+ * </pre>
  *
  * @param <T> Tipo de PalabraFlexion que busca
  */
 @Getter
-public class CriterioBusqueda<T extends PalabraFlexion> {
+public class CriterioBusqueda<T extends PalabraFlexion<?>> {
 
     /**
-     *  Clase del tipo de flexión que busca este criterio.
+     * Clase del tipo de flexión que busca este criterio.
      */
     private final Class<T> tipoFlexion;
-    /**
-     *  Predicado para validar si una palabra cumple el criterio en memoria.
-     */
-    private final Predicate<T> predicado;
-    /**
-     *  Specification para consultas JPA.
-     */
-    private final Specification<T> specification;
 
-    private CriterioBusqueda(Class<T> tipoFlexion, Predicate<T> predicado, Specification<T> specification) {
+    /**
+     * Criterio gramatical para filtrado en memoria.
+     */
+    private final CriterioGramatical criterioGramatical;
+
+    private CriterioBusqueda(Class<T> tipoFlexion, CriterioGramatical criterioGramatical) {
         this.tipoFlexion = tipoFlexion;
-        this.predicado = predicado;
-        this.specification = specification;
+        this.criterioGramatical = criterioGramatical;
     }
 
     /**
-     * Crea un criterio de búsqueda con predicado y specification.
+     * Inicia un builder fluido para crear un CriterioBusqueda.
      *
-     * @param tipoFlexion Clase del tipo de flexión (ej: SustantivoFlexion.class)
-     * @param predicado Predicado para validación en memoria
-     * @param specification Specification para consultas JPA
+     * @param tipoFlexion Clase del tipo de flexión
+     * @return Builder configurado
      */
-    public static <T extends PalabraFlexion> CriterioBusqueda<T> de(
-            Class<T> tipoFlexion,
-            Predicate<T> predicado,
-            Specification<T> specification) {
-        return new CriterioBusqueda<>(tipoFlexion, predicado, specification);
+    public static <T extends PalabraFlexion<?>> Builder<T> de(Class<T> tipoFlexion) {
+        return new Builder<>(tipoFlexion);
     }
 
     /**
      * Verifica si una PalabraFlexion cumple este criterio.
-     * Primero comprueba el tipo, luego aplica el predicado.
+     * Primero comprueba el tipo, luego aplica el criterio gramatical.
      *
      * @param palabra Palabra a verificar
      * @return true si cumple el criterio
      */
-    @SuppressWarnings("unchecked")
-    public boolean cumple(PalabraFlexion palabra) {
+    public boolean cumple(PalabraFlexion<?> palabra) {
         if (palabra == null) return false;
         if (!tipoFlexion.isInstance(palabra)) return false;
-        return predicado.test((T) palabra);
+        return criterioGramatical.cumple(palabra);
+    }
+
+    /**
+     * Builder fluido para CriterioBusqueda
+     */
+    public static class Builder<T extends PalabraFlexion<?>> {
+        private final Class<T> tipoFlexion;
+        private final CriterioGramatical.Builder<T> criterioBuilder;
+
+        private Builder(Class<T> tipoFlexion) {
+            this.tipoFlexion = tipoFlexion;
+            this.criterioBuilder = CriterioGramatical.de(tipoFlexion);
+        }
+
+        /**
+         * Añade un requisito de característica.
+         */
+        public Builder<T> con(CaracteristicaGramatical caracteristica, Object valor) {
+            this.criterioBuilder.con(caracteristica, valor);
+            return this;
+        }
+
+        public CriterioBusqueda<T> build() {
+            return new CriterioBusqueda<>(tipoFlexion, criterioBuilder.build());
+        }
     }
 }
+
 

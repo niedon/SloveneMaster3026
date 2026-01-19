@@ -7,9 +7,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+      - "5005:5005"
     environment:
       - XML_PATH=/data/xml
       - SPRING_DATASOURCE_URL=jdbc:sqlite:/data/esloveno.db
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     volumes:
       # Montar volumen para archivos XML
       - C:\Users\bcada\proyectos\esloveno\docker\xml:/data/xml

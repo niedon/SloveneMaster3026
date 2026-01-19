@@ -9,30 +9,30 @@ import com.bcadaval.esloveno.beans.base.PalabraFlexion;
  * Implementaciones singleton reutilizables permiten evitar repetición
  * de extractores comunes en las estructuras de frase.
  */
-public interface EstrategiaExtraccion {
+public interface EstrategiaExtraccion<T extends PalabraFlexion<?>> {
 
     /**
      * Extractor para modo ES_SL - Fila 1 (pregunta en español)
      * Ejemplo típico: getSignificado()
      */
-    String deEspanol(PalabraFlexion<?> palabra);
+    String deEspanol(T palabra);
 
     /**
      * Extractor para modo ES_SL - Fila 2 (respuesta en esloveno)
      * Ejemplo típico: getAcentuado() o getFlexion()
      */
-    String aEsloveno(PalabraFlexion<?> palabra);
+    String aEsloveno(T palabra);
 
     /**
      * Extractor para modo SL_ES - Fila 1 (pregunta en esloveno)
      * Ejemplo típico: getFlexion()
      */
-    String deEsloveno(PalabraFlexion<?> palabra);
+    String deEsloveno(T palabra);
 
     /**
      * Extractor para modo SL_ES - Fila 2 (respuesta en español)
      * Ejemplo típico: getSignificado()
      */
-    String aEspanol(PalabraFlexion<?> palabra);
+    String aEspanol(T palabra);
 }
 

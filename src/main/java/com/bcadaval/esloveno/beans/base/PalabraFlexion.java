@@ -2,6 +2,8 @@ package com.bcadaval.esloveno.beans.base;
 
 import java.time.Instant;
 
+import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
+
 /**
  * Interfaz base para las flexiones de palabras.
  * Incluye métodos para el Sistema de Repetición Espaciada (SRS).
@@ -22,6 +24,17 @@ public interface PalabraFlexion<T extends Palabra<?>> {
     String getFlexion();
 
     void setPalabraBase(T palabra);
+
+    /**
+     * Obtiene el valor de una característica gramatical.
+     * Cada implementación debe hacer switch exhaustivo sobre CaracteristicaGramatical.
+     *
+     * @param caracteristica La característica a obtener
+     * @return El valor de la característica, o null si no aplica a este tipo
+     */
+    default Object getCaracteristica(CaracteristicaGramatical caracteristica) {
+        return null;
+    }
 
     // =====================================================
     // Métodos del Sistema de Repetición Espaciada (SRS)

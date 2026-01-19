@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * Bean singleton gestionado por Spring.
  */
 @Component
-public class ExtraccionSlotEstandar implements EstrategiaExtraccion {
+public class ExtraccionSlotEstandar implements EstrategiaExtraccion<PalabraFlexion<?>> {
 
 
     @Override

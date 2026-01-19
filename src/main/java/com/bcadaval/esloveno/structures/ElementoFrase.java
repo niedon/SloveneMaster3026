@@ -3,6 +3,7 @@ package com.bcadaval.esloveno.structures;
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.structures.extractores.EstrategiaExtraccion;
 import lombok.Getter;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.function.Function;
 
@@ -18,7 +19,7 @@ import java.util.function.Function;
  * @param <T> Tipo de PalabraFlexion que maneja este elemento
  */
 @Getter
-public class ElementoFrase<T extends PalabraFlexion> {
+public class ElementoFrase<T extends PalabraFlexion<?>> {
 
     /**
      * Nombre identificador del elemento (ej.: "VERBO", "CD", "PRONOMBRE")
@@ -52,10 +53,10 @@ public class ElementoFrase<T extends PalabraFlexion> {
     /**
      * Extractores individuales (opcionales, sobreescriben estrategia).
      */
-    private final Function<PalabraFlexion, String> extractorDeEspanol;
-    private final Function<PalabraFlexion, String> extractorAEsloveno;
-    private final Function<PalabraFlexion, String> extractorDeEsloveno;
-    private final Function<PalabraFlexion, String> extractorAEspanol;
+    private final Function<PalabraFlexion<?>, String> extractorDeEspanol;
+    private final Function<PalabraFlexion<?>, String> extractorAEsloveno;
+    private final Function<PalabraFlexion<?>, String> extractorDeEsloveno;
+    private final Function<PalabraFlexion<?>, String> extractorAEspanol;
 
     // ============================================
     // Estado mutable (asignación de palabra)
@@ -64,7 +65,7 @@ public class ElementoFrase<T extends PalabraFlexion> {
     /**
      * Palabra asignada a este elemento (null si no asignado)
      */
-    private PalabraFlexion palabraAsignada;
+    private T palabraAsignada;
 
     /**
      * Índice de la palabra en la lista original (solo para slots)
@@ -116,7 +117,7 @@ public class ElementoFrase<T extends PalabraFlexion> {
      * @param indice Índice en la lista original (puede ser null para apoyos)
      */
     public void asignar(PalabraFlexion palabra, Integer indice) {
-        this.palabraAsignada = palabra;
+        this.palabraAsignada = (T)palabra;
         this.indiceEnLista = indice;
     }
 
@@ -196,20 +197,20 @@ public class ElementoFrase<T extends PalabraFlexion> {
     // Builder
     // ============================================
 
-    public static <T extends PalabraFlexion> Builder<T> builder() {
+    public static <T extends PalabraFlexion<?>> Builder<T> builder() {
         return new Builder<>();
     }
 
-    public static class Builder<T extends PalabraFlexion> {
+    public static class Builder<T extends PalabraFlexion<?>> {
         private String nombre;
         private CriterioBusqueda<T> criterioBusqueda;
         private Function<EstructuraFrase, T> generadorObjeto;
         private ElementoFrase<?> slotDependiente;
-        private EstrategiaExtraccion estrategiaExtraccion;
-        private Function<PalabraFlexion, String> extractorDeEspanol;
-        private Function<PalabraFlexion, String> extractorAEsloveno;
-        private Function<PalabraFlexion, String> extractorDeEsloveno;
-        private Function<PalabraFlexion, String> extractorAEspanol;
+        private EstrategiaExtraccion<T> estrategiaExtraccion;
+        private Function<PalabraFlexion<?>, String> extractorDeEspanol;
+        private Function<PalabraFlexion<?>, String> extractorAEsloveno;
+        private Function<PalabraFlexion<?>, String> extractorDeEsloveno;
+        private Function<PalabraFlexion<?>, String> extractorAEspanol;
 
         public Builder<T> nombre(String nombre) {
             this.nombre = nombre;
@@ -261,22 +262,22 @@ public class ElementoFrase<T extends PalabraFlexion> {
         }
 
         // Extractores individuales (sobreescriben estrategia)
-        public Builder<T> extractorDeEspanol(Function<PalabraFlexion, String> extractor) {
+        public Builder<T> extractorDeEspanol(Function<PalabraFlexion<?>, String> extractor) {
             this.extractorDeEspanol = extractor;
             return this;
         }
 
-        public Builder<T> extractorAEsloveno(Function<PalabraFlexion, String> extractor) {
+        public Builder<T> extractorAEsloveno(Function<PalabraFlexion<?>, String> extractor) {
             this.extractorAEsloveno = extractor;
             return this;
         }
 
-        public Builder<T> extractorDeEsloveno(Function<PalabraFlexion, String> extractor) {
+        public Builder<T> extractorDeEsloveno(Function<PalabraFlexion<?>, String> extractor) {
             this.extractorDeEsloveno = extractor;
             return this;
         }
 
-        public Builder<T> extractorAEspanol(Function<PalabraFlexion, String> extractor) {
+        public Builder<T> extractorAEspanol(Function<PalabraFlexion<?>, String> extractor) {
             this.extractorAEspanol = extractor;
             return this;
         }
@@ -301,13 +302,8 @@ public class ElementoFrase<T extends PalabraFlexion> {
             }
 
             // Verificar que tenga al menos una forma de extracción
-            boolean tieneExtraccion = estrategiaExtraccion != null
-                    || extractorDeEspanol != null
-                    || extractorAEsloveno != null
-                    || extractorDeEsloveno != null
-                    || extractorAEspanol != null;
-
-            if (!tieneExtraccion) {
+            if (ObjectUtils.allNull(estrategiaExtraccion, extractorDeEspanol, extractorAEsloveno,
+                    extractorDeEsloveno, extractorAEspanol)) {
                 throw new IllegalStateException(
                         "ElementoFrase '" + nombre + "' debe tener estrategia o extractores");
             }

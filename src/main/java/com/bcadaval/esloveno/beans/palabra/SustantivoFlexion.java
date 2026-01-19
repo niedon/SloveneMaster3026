@@ -3,6 +3,7 @@ package com.bcadaval.esloveno.beans.palabra;
 import java.time.Instant;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
+import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.Numero;
 import com.bcadaval.esloveno.config.InstantConverter;
@@ -132,6 +133,17 @@ public class SustantivoFlexion implements PalabraFlexion<Sustantivo> {
     @Override
     public void setPalabraBase(Sustantivo palabra) {
         this.sustantivoBase = palabra;
+    }
+
+    @Override
+    public Object getCaracteristica(CaracteristicaGramatical caracteristica) {
+        return switch (caracteristica) {
+            case CASO -> this.caso;
+            case NUMERO -> this.numero;
+            case GENERO -> this.sustantivoBase != null ? this.sustantivoBase.getGenero() : null;
+            // Características que no aplican a sustantivos
+            case GRADO, DEFINITUD, FORMA_VERBAL, PERSONA, TRANSITIVIDAD, TIPO_NUMERAL -> null;
+        };
     }
 
     @Override

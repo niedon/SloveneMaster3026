@@ -1,15 +1,20 @@
 package com.bcadaval.esloveno.structures;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.time.Instant;
+import java.util.*;
 
+import com.bcadaval.esloveno.services.palabra.NumeralService;
+import com.bcadaval.esloveno.services.palabra.PronombreService;
+import com.bcadaval.esloveno.services.palabra.sustantivo.SustantivoService;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
 import lombok.Setter;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
+import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 
@@ -38,6 +43,21 @@ import lombok.extern.log4j.Log4j2;
 @Component
 public abstract class EstructuraFrase {
 
+    @Autowired
+    protected PronombreService pronombreService;
+
+    @Autowired
+    protected NumeralService numeralService;
+
+    @Autowired
+    protected SustantivoService sustantivoService;
+
+    @Autowired
+    protected ExtraccionSlotEstandar extraccionSlotEstandar;
+
+    @Autowired
+    protected ExtraccionApoyoEstandar extraccionApoyoEstandar;
+
     /**
      * Lista ordenada de todos los elementos de la frase (slots + apoyos).
      * El orden determina cómo se muestra en la vista.
@@ -53,12 +73,6 @@ public abstract class EstructuraFrase {
      * Lista de apoyos (elementos con generador) para procesamiento posterior.
      */
     protected final List<ElementoFrase<?>> apoyos = new ArrayList<>();
-
-    /**
-     * Puntuación de la estructura para selección preferente (menor es mejor)
-     * */
-    @Setter
-    private BigDecimal puntuacion;
 
     /**
      * Constructor por defecto para Spring
@@ -93,27 +107,6 @@ public abstract class EstructuraFrase {
                 .toList();
     }
 
-    /**
-     * Obtiene la Specification combinada para un tipo específico de flexión.
-     * Combina todos los criterios del mismo tipo con OR.
-     *
-     * @param tipoFlexion Clase del tipo de flexión
-     * @return Specification combinada o null si no hay criterios de ese tipo
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends PalabraFlexion<?>> Specification<T> getSpecificationPorTipo(Class<T> tipoFlexion) {
-        List<Specification<T>> specs = slots.stream()
-                .map(ElementoFrase::getCriterioBusqueda)
-                .filter(c -> c.getTipoFlexion().equals(tipoFlexion))
-                .map(c -> (Specification<T>) c.getSpecification())
-                .toList();
-
-        if (specs.isEmpty()) return null;
-
-        return specs.stream()
-                .reduce(Specification::or)
-                .orElse(null);
-    }
 
     /**
      * Intenta asignar una palabra a algún slot vacío que coincida
@@ -140,14 +133,16 @@ public abstract class EstructuraFrase {
         return slots.stream().allMatch(ElementoFrase::estaAsignado);
     }
 
-    /**
-     * Obtiene los índices de las palabras usadas en esta estructura
-     */
-    public List<Integer> getIndicesUsados() {
-        return slots.stream()
+    public Instant calcularMediaInstant() {
+        return Instant.ofEpochMilli( (long) slots.stream()
                 .filter(ElementoFrase::estaAsignado)
-                .map(ElementoFrase::getIndiceEnLista)
-                .toList();
+                .map(ElementoFrase::getPalabraAsignada)
+                .filter(Objects::nonNull)
+                .map(PalabraFlexion::getProximaRevision)
+                .filter(Objects::nonNull)
+                .mapToLong(Instant::toEpochMilli)
+                .average()
+                .orElseGet(() -> Double.MIN_VALUE));
     }
 
     /**
@@ -227,14 +222,47 @@ public abstract class EstructuraFrase {
 
     /**
      * Conjunto de casos gramaticales que usa esta estructura.
-     * Se usa para calcular los casos activos derivados de las frases activas.
+     * Se calcula dinámicamente a partir de los criterios de los slots.
+     * Extrae los valores de CASO de los CriterioGramatical.
      */
-    public abstract Set<Caso> getCasosUsados();
+    public Set<Caso> getCasosUsados() {
+        Set<Caso> casos = new HashSet<>();
+        for (ElementoFrase<?> slot : slots) {
+            CriterioBusqueda<?> criterio = slot.getCriterioBusqueda();
+            if (criterio == null || criterio.getCriterioGramatical() == null) continue;
+
+            Object valorCaso = criterio.getCriterioGramatical()
+                    .getRequisitos()
+                    .get(CaracteristicaGramatical.CASO);
+
+            if (valorCaso instanceof Caso caso) {
+                casos.add(caso);
+            }
+        }
+        return casos;
+    }
 
     /**
      * Conjunto de formas verbales que usa esta estructura.
-     * Se usa para calcular las formas verbales activas derivadas de las frases activas.
+     * Se calcula dinámicamente a partir de los criterios de los slots.
+     * Extrae los valores de FORMA_VERBAL de los CriterioGramatical.
      */
-    public abstract Set<FormaVerbal> getFormasVerbalesUsadas();
+    public Set<FormaVerbal> getFormasVerbalesUsadas() {
+        Set<FormaVerbal> formas = new HashSet<>();
+        for (ElementoFrase<?> slot : slots) {
+            CriterioBusqueda<?> criterio = slot.getCriterioBusqueda();
+            if (criterio == null || criterio.getCriterioGramatical() == null) continue;
+
+            Object valorForma = criterio.getCriterioGramatical()
+                    .getRequisitos()
+                    .get(CaracteristicaGramatical.FORMA_VERBAL);
+
+            if (valorForma instanceof FormaVerbal forma) {
+                formas.add(forma);
+            }
+        }
+        return formas;
+    }
+
 
 }

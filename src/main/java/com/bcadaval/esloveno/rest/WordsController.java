@@ -43,19 +43,15 @@ public class WordsController {
 	 */
 	@GetMapping("/getWords")
 	public String getWords(Model model) {
-		// Contar tarjetas disponibles
-		int tarjetasDisponibles = repeticionEspaciadaService.contarTarjetasDisponibles();
-		int tarjetasNuevas = repeticionEspaciadaService.contarTarjetasNuevas();
 		int maxRevision = variablesService.getMaxTarjetasRevisionDia();
 
-		log.info("Tarjetas disponibles: {}, Nuevas: {}", tarjetasDisponibles, tarjetasNuevas);
-
-		// Pasar contador al modelo
-		model.addAttribute("tarjetasDisponibles", tarjetasDisponibles);
-		model.addAttribute("tarjetasNuevas", tarjetasNuevas);
-
-		// Obtener tarjetas para estudiar (ya ordenadas por prioridad SRS)
+		// Obtener tarjetas listas para estudiar (proximaRevision <= ahora)
 		List<PalabraFlexion<?>> tarjetas = repeticionEspaciadaService.obtenerTarjetasDisponibles(maxRevision);
+
+		log.info("Tarjetas disponibles: {}", tarjetas.size());
+
+		// Pasar contadores al modelo
+		model.addAttribute("tarjetasDisponibles", tarjetas.size());
 
 		List<DatoVisualizacion> datos;
 		if (tarjetas.isEmpty()) {
@@ -65,7 +61,6 @@ public class WordsController {
 			datos = construirFrase(tarjetas);
 		}
 
-		// Pasar al modelo
 		model.addAttribute("datos", datos);
 
 		return "estudioPalabras";
@@ -87,22 +82,22 @@ public class WordsController {
 			return new ArrayList<>();
 		}
 
-		// Inicializar contador de usos por índice (cuántas estructuras usan cada palabra)
-		List<Integer> usosPorIndice = new ArrayList<>(tarjetas.size());
-		for (int i = 0; i < tarjetas.size(); i++) {
-			usosPorIndice.add(0);
-		}
 
 		// Limpiar slots antes de usar (singleton)
 		estructuras.forEach(EstructuraFrase::limpiar);
 
 		// Intentar asignar palabras a todas las estructuras
+		tarjetas.forEach(palabra -> {
+			int index = tarjetas.indexOf(palabra);
+			estructuras.forEach(estructura -> {
+				estructura.intentarAsignar(palabra, index);
+			});
+		});
+
 		for (int i = 0; i < tarjetas.size(); i++) {
 			PalabraFlexion<?> palabra = tarjetas.get(i);
 			for (EstructuraFrase estructura : estructuras) {
-				if (estructura.intentarAsignar(palabra, i)) {
-					usosPorIndice.set(i, usosPorIndice.get(i) + 1);
-				}
+				estructura.intentarAsignar(palabra, i);
 			}
 		}
 
@@ -110,30 +105,18 @@ public class WordsController {
 		// Menor puntuación = mejor (prioriza palabras menos asignables)
 		EstructuraFrase mejorEstructura = estructuras.stream()
 				.filter(EstructuraFrase::estaCompleta)
-				.peek(estructura -> {
-					List<Integer> indices = estructura.getIndicesUsados();
-					if (!indices.isEmpty()) {
-						double mediaUsos = indices.stream()
-								.mapToInt(usosPorIndice::get)
-								.average()
-								.orElse(Double.MAX_VALUE);
-						estructura.setPuntuacion(BigDecimal.valueOf(mediaUsos));
-					} else {
-						estructura.setPuntuacion(BigDecimal.valueOf(Double.MAX_VALUE));
-					}
-				})
-				.min(Comparator.comparing(EstructuraFrase::getPuntuacion))
+				.min(Comparator.comparing(EstructuraFrase::calcularMediaInstant))
 				.orElse(null);
 
 		// Log de puntuaciones para debug
 		estructuras.stream()
 				.filter(EstructuraFrase::estaCompleta)
 				.forEach(el -> log.info("Estructura '{}': puntuación = {}",
-						el.getNombreMostrar(), el.getPuntuacion()));
+						el.getNombreMostrar(), el.calcularMediaInstant()));
 
 		if (mejorEstructura != null) {
 			log.info("Estructura seleccionada: '{}' con puntuación {}",
-					mejorEstructura.getNombreMostrar(), mejorEstructura.getPuntuacion());
+					mejorEstructura.getNombreMostrar(), mejorEstructura.calcularMediaInstant());
 			return mejorEstructura.construirDatosVisualizacion();
 		}
 

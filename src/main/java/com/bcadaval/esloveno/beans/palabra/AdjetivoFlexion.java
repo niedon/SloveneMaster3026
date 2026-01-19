@@ -3,6 +3,7 @@ package com.bcadaval.esloveno.beans.palabra;
 import java.time.Instant;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
+import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.config.InstantConverter;
 
@@ -18,6 +19,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
@@ -30,6 +32,7 @@ import lombok.experimental.Accessors;
 @Builder
 @Accessors(chain = true)
 @Entity
+@ToString
 public class AdjetivoFlexion implements PalabraFlexion<Adjetivo> {
 
     /**
@@ -140,9 +143,15 @@ public class AdjetivoFlexion implements PalabraFlexion<Adjetivo> {
     }
 
     @Override
-    public String toString() {
-        return String.format("AdjetivoFlexion[id=%d, principal='%s', flexion='%s', genero=%s, numero=%s, caso=%s, grado=%s, definitud=%s]",
-                id, principal, flexion, genero, numero, caso, grado, definitud);
+    public Object getCaracteristica(CaracteristicaGramatical caracteristica) {
+        return switch (caracteristica) {
+            case CASO -> this.caso;
+            case GENERO -> this.genero;
+            case NUMERO -> this.numero;
+            case GRADO -> this.grado;
+            case DEFINITUD -> this.definitud;
+            case FORMA_VERBAL, PERSONA, TRANSITIVIDAD, TIPO_NUMERAL -> null;
+        };
     }
 
 }
