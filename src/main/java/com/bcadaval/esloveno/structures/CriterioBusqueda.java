@@ -7,7 +7,7 @@ import lombok.Getter;
 /**
  * Criterio de búsqueda unificado para un elemento de frase.
  * Encapsula un CriterioGramatical para filtrado en memoria.
- *
+ * <p>
  * Uso con builder fluido:
  * <pre>
  * CriterioBusqueda.de(VerboFlexion.class)

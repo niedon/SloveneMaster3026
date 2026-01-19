@@ -14,6 +14,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
+import java.util.Objects;
+
 @SpringBootApplication
 @ComponentScan({"com.bcadaval"})
 @EntityScan("com.bcadaval")
@@ -36,7 +38,7 @@ public class Application extends SpringBootServletInitializer {
     @Bean
     DataSource dataSource() {
 	    final DriverManagerDataSource dataSource = new DriverManagerDataSource();
-	    dataSource.setDriverClassName(env.getProperty("spring.datasource.driver-class-name"));
+	    dataSource.setDriverClassName(Objects.requireNonNull(env.getProperty("spring.datasource.driver-class-name")));
 	    dataSource.setUrl(env.getProperty("spring.datasource.url"));
 	    dataSource.setUsername(env.getProperty("spring.datasource.username"));
 	    dataSource.setPassword(env.getProperty("spring.datasource.password"));

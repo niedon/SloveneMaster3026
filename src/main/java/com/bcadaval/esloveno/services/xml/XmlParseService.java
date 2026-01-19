@@ -2,7 +2,6 @@ package com.bcadaval.esloveno.services.xml;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -135,7 +134,6 @@ public class XmlParseService {
 					case ADJETIVO -> parseAdjetivo(doc, xPath, lema);
 					case PRONOMBRE -> parsePronombre(doc, xPath, lema);
 					case NUMERAL -> parseNumeral(doc, xPath, lema);
-					default -> throw new XmlParserException("Tipo de palabra no soportada: " + category);
 			};
         } catch (SAXException | IOException | ParserConfigurationException | XPathException e) {
             throw new XmlParserException("Error parseando XML: " + e.getMessage(), e);

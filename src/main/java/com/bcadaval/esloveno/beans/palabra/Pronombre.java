@@ -3,10 +3,7 @@ package com.bcadaval.esloveno.beans.palabra;
 import com.bcadaval.esloveno.beans.base.Palabra;
 import com.bcadaval.esloveno.beans.enums.TipoPronombre;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
@@ -15,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
+@ToString
 public class Pronombre implements Palabra<PronombreFlexion> {
 
 	@Id

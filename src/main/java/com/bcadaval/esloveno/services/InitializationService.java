@@ -225,8 +225,7 @@ public class InitializationService {
             }
         }
 
-        throw new IOException("Fallo después de " + MAX_RETRIES + " intentos: " +
-                (lastException != null ? lastException.getMessage() : "Error desconocido"));
+        throw new IOException("Fallo después de " + MAX_RETRIES + " intentos: " + lastException.getMessage());
     }
 
     private void downloadFile(Path destination) throws IOException {

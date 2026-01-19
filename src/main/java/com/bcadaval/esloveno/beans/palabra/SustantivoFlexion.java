@@ -16,10 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 /**
@@ -32,6 +29,7 @@ import lombok.experimental.Accessors;
 @Builder
 @Accessors(chain = true)
 @Entity
+@ToString
 public class SustantivoFlexion implements PalabraFlexion<Sustantivo> {
 
     /**
@@ -140,16 +138,10 @@ public class SustantivoFlexion implements PalabraFlexion<Sustantivo> {
         return switch (caracteristica) {
             case CASO -> this.caso;
             case NUMERO -> this.numero;
-            case GENERO -> this.sustantivoBase != null ? this.sustantivoBase.getGenero() : null;
+            case GENERO -> sustantivoBase.getGenero();
             // Características que no aplican a sustantivos
             case GRADO, DEFINITUD, FORMA_VERBAL, PERSONA, TRANSITIVIDAD, TIPO_NUMERAL -> null;
         };
-    }
-
-    @Override
-    public String toString() {
-        return String.format("SustantivoFlexion[id=%d, principal='%s', flexion='%s', numero=%s, caso=%s]",
-                id, principal, flexion, numero, caso);
     }
 
 }

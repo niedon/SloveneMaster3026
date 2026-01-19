@@ -1,15 +1,16 @@
 package com.bcadaval.esloveno.services.palabra;
 
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.Genero;
 import com.bcadaval.esloveno.beans.enums.Numero;
+import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.repo.NumeralFlexionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 import com.bcadaval.esloveno.repo.NumeralRepo;
@@ -24,46 +25,54 @@ public class NumeralService {
 	NumeralFlexionRepo numeralFlexionRepo;
 
 	/**
+	 * Devuelve un numeral que coincida con el adjetivo dado.
+	 */
+	public NumeralFlexion getNumeral(AdjetivoFlexion adjetivoFlexion) {
+		return getNumeral(
+				adjetivoFlexion.getNumero(),
+				adjetivoFlexion.getCaso(),
+				adjetivoFlexion.getGenero()
+		);
+	}
+
+	/**
 	 * Devuelve un numeral que coincida con el género, número y caso del sustantivo dado.
-	 * Si el género es null, busca cualquier género.
+	 */
+	public NumeralFlexion getNumeral(SustantivoFlexion sustantivoFlexion) {
+		return getNumeral(
+				sustantivoFlexion.getNumero(),
+				sustantivoFlexion.getCaso(),
+				sustantivoFlexion.getSustantivoBase().getGenero()
+		);
+	}
+
+	/**
+	 * Devuelve un numeral que coincida con el número, caso y género dados.
+	 * Lógica unificada que filtra en la base de datos y solo devuelve tarjetas inicializadas.
 	 * - Si numero es SINGULAR: principal debe ser "en"
 	 * - Si numero es DUAL: principal debe ser "dva"
 	 * - Si numero es PLURAL: principal debe ser distinto de "en" y "dva"
+	 *
+	 * @param numero Número gramatical requerido
+	 * @param caso Caso gramatical requerido
+	 * @param genero Género gramatical requerido (puede ser null)
+	 * @return NumeralFlexion que coincide, o null si no se encuentra
 	 */
-	public NumeralFlexion getNumeral(SustantivoFlexion sustantivoFlexion) {
-		// Primero intentar buscar con el género del sustantivo
-		Genero generoSustantivo = sustantivoFlexion.getSustantivoBase() != null
-				? sustantivoFlexion.getSustantivoBase().getGenero()
-				: null;
+	public NumeralFlexion getNumeral(Numero numero, Caso caso, Genero genero) {
+		// Primero intentar con género específico
+		List<NumeralFlexion> candidatos = numeralFlexionRepo.findByCasoAndNumeroAndGenero(caso, numero, genero);
 
-		// Determinar el principal basado en el número
-		Numero numero = sustantivoFlexion.getNumero();
-		Caso caso = sustantivoFlexion.getCaso();
-
-		// Obtener resultados con género específico
-		var resultados = numeralFlexionRepo.findAll(
-				Example.of(
-						NumeralFlexion.builder()
-							.numero(numero)
-							.caso(caso)
-							.genero(generoSustantivo)
-							.build())).stream()
-		.filter(nf -> filterByPrincipal(nf, numero))
-		.sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2));
-
-		var resultado = resultados.findAny();
-
-		// Si no hay con género específico, buscar sin género
-		return resultado.orElseGet(() -> numeralFlexionRepo.findAll(
-				Example.of(
-						NumeralFlexion.builder()
-							.numero(numero)
-							.caso(caso)
-							.build())).stream()
+		// Filtrar por principal según el número
+		List<NumeralFlexion> filtrados = candidatos.stream()
 				.filter(nf -> filterByPrincipal(nf, numero))
-				.sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
-				.findAny()
-				.orElse(null));
+				.toList();
+
+		if (filtrados.isEmpty()) {
+			return null;
+		}
+
+		// Devolver uno aleatorio
+		return filtrados.get(ThreadLocalRandom.current().nextInt(filtrados.size()));
 	}
 
 	/**
@@ -82,33 +91,6 @@ public class NumeralService {
 			case DUAL -> "dva".equals(nf.getPrincipal());
 			case PLURAL -> !"en".equals(nf.getPrincipal()) && !"dva".equals(nf.getPrincipal());
 		};
-	}
-
-	/**
-	 * Devuelve un numeral que coincida con el número, caso y género dados
-	 */
-	public NumeralFlexion getNumeral(Numero numero, Caso caso, Genero genero) {
-		return numeralFlexionRepo.findAll(
-				Example.of(
-						NumeralFlexion.builder()
-							.numero(numero)
-							.caso(caso)
-							.genero(genero)
-							.build())).stream()
-		.sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
-		.findAny()
-		.orElseGet(() ->
-			// Si no hay con género específico, buscar sin género
-			numeralFlexionRepo.findAll(
-					Example.of(
-							NumeralFlexion.builder()
-								.numero(numero)
-								.caso(caso)
-								.build())).stream()
-			.sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
-			.findAny()
-			.orElse(null)
-		);
 	}
 
 }

@@ -18,6 +18,7 @@ import java.time.Instant;
 @Builder
 @Entity
 @Accessors(chain = true)
+@ToString
 public class PronombreFlexion implements PalabraFlexion<Pronombre> {
 
     /**
@@ -129,12 +130,6 @@ public class PronombreFlexion implements PalabraFlexion<Pronombre> {
     @Override
     public void setPalabraBase(Pronombre palabra) {
         this.pronombreBase = palabra;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("PronombreFlexion[id=%d, principal='%s', flexion='%s', persona=%s, genero=%s, numero=%s, caso=%s, clitico=%s]",
-                id, principal, flexion, persona, genero, numero, caso, clitico);
     }
 
 }

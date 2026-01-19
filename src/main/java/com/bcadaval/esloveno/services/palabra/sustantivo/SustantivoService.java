@@ -6,7 +6,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -44,29 +43,23 @@ public class SustantivoService {
 	/**
 	 * Obtiene un sustantivo que coincida en caso, género y número con el adjetivo dado.
 	 * El género se obtiene del sustantivo base.
+	 * Solo devuelve sustantivos con tarjetas inicializadas (proximaRevision IS NOT NULL).
 	 *
 	 * @param adjetivoFlexion Adjetivo con el que debe concordar el sustantivo
 	 * @return SustantivoFlexion que concuerda con el adjetivo
 	 * @throws NoSuchElementException si no se encuentra ningún sustantivo que concuerde
 	 */
 	public SustantivoFlexion getSustantivo(AdjetivoFlexion adjetivoFlexion) throws NoSuchElementException {
-		// Buscar sustantivos que coincidan en caso y número
-		SustantivoFlexion ejemplo = SustantivoFlexion.builder()
-				.caso(adjetivoFlexion.getCaso())
-				.numero(adjetivoFlexion.getNumero())
-				.build();
-
-		List<SustantivoFlexion> candidatos = sustantivoFlexionRepo.findAll(Example.of(ejemplo));
-
-		// Filtrar por género (el género está en el sustantivo base)
-		List<SustantivoFlexion> coincidentes = candidatos.stream()
-				.filter(sf -> sf.getSustantivoBase() != null)
-				.filter(sf -> sf.getSustantivoBase().getGenero() == adjetivoFlexion.getGenero())
-				.toList();
+		// Buscar sustantivos que coincidan en caso, número y género (filtrando en BD)
+		List<SustantivoFlexion> coincidentes = sustantivoFlexionRepo.findByCasoAndNumeroAndGenero(
+				adjetivoFlexion.getCaso(),
+				adjetivoFlexion.getNumero(),
+				adjetivoFlexion.getGenero()
+		);
 
 		if (coincidentes.isEmpty()) {
 			throw new NoSuchElementException(
-					String.format("No hay sustantivos que coincidan con caso=%s, genero=%s, numero=%s",
+					String.format("No hay sustantivos inicializados que coincidan con caso=%s, genero=%s, numero=%s",
 							adjetivoFlexion.getCaso(), adjetivoFlexion.getGenero(), adjetivoFlexion.getNumero()));
 		}
 

@@ -12,7 +12,7 @@ import java.util.Objects;
  * Criterio de filtrado gramatical unificado.
  * Almacena requisitos de características gramaticales y verifica
  * si una PalabraFlexion los cumple usando la función getCaracteristica().
- *
+ * <p>
  * Uso:
  * <pre>
  * CriterioGramatical criterio = CriterioGramatical.de(SustantivoFlexion.class)

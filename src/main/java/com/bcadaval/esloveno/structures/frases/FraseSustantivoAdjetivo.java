@@ -4,10 +4,13 @@ import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.Grado;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
+import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
 import com.bcadaval.esloveno.structures.ElementoFrase;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -42,17 +45,26 @@ public class FraseSustantivoAdjetivo extends EstructuraFrase {
                         .con(CaracteristicaGramatical.CASO, Caso.NOMINATIVO)
                         .con(CaracteristicaGramatical.GRADO, Grado.POSITIVO)
                         .build())
-                .extractor(extraccionSlotEstandar)
+                .extractor(ExtraccionSlotEstandar.get())
+                .build();
+
+
+        // Definir apoyo de numeral (depende del adjetivo, debe depender en caso, género y número)
+        ElementoFrase<NumeralFlexion> numeral = ElementoFrase.<NumeralFlexion>builder()
+                .nombre("NUMERAL")
+                .generador(adjetivo, palabra -> numeralService.getNumeral(adjetivo.getPalabraAsignada()))
+                .extractor(ExtraccionApoyoEstandar.get())
                 .build();
 
         // Definir apoyo de sustantivo (depende del adjetivo, debe coincidir en caso, género y número)
         ElementoFrase<SustantivoFlexion> sustantivo = ElementoFrase.<SustantivoFlexion>builder()
                 .nombre("SUSTANTIVO")
                 .generador(adjetivo, palabra -> sustantivoService.getSustantivo(adjetivo.getPalabraAsignada()))
-                .extractor(extraccionApoyoEstandar)
+                .extractor(ExtraccionApoyoEstandar.get())
                 .build();
 
         // Agregar en orden de visualización (adjetivo antes del sustantivo en esloveno)
+        agregarElemento(numeral);
         agregarElemento(sustantivo);
         agregarElemento(adjetivo);
     }

@@ -18,10 +18,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 /**
@@ -34,6 +31,7 @@ import lombok.experimental.Accessors;
 @Builder
 @Accessors(chain = true)
 @Entity
+@ToString
 public class VerboFlexion implements PalabraFlexion<Verbo> {
 
     /**
@@ -158,10 +156,5 @@ public class VerboFlexion implements PalabraFlexion<Verbo> {
         };
     }
 
-    @Override
-    public String toString() {
-        return String.format("VerboFlexion[id=%d, principal='%s', flexion='%s', formaVerbal=%s, persona=%s, numero=%s, genero=%s]",
-                id, principal, flexion, formaVerbal, persona, numero, genero);
-    }
 }
 

@@ -7,6 +7,8 @@ import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
 import com.bcadaval.esloveno.structures.ElementoFrase;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -40,14 +42,14 @@ public class FraseSoloVerboPresente extends EstructuraFrase {
                 .criterio(CriterioBusqueda.de(VerboFlexion.class)
                         .con(CaracteristicaGramatical.FORMA_VERBAL, FormaVerbal.PRESENT)
                         .build())
-                .extractor(extraccionSlotEstandar)
+                .extractor(ExtraccionSlotEstandar.get())
                 .build();
 
         // Definir apoyo de pronombre (depende del verbo)
         ElementoFrase<PronombreFlexion> pronombre = ElementoFrase.<PronombreFlexion>builder()
                 .nombre("PRONOMBRE")
                 .generador(verbo, palabra -> pronombreService.getPronombre((VerboFlexion) palabra))
-                .extractor(extraccionApoyoEstandar)
+                .extractor(ExtraccionApoyoEstandar.get())
                 .extractorDeEsloveno(pf -> "")
                 .build();
 

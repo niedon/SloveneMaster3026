@@ -7,6 +7,8 @@ import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
 import com.bcadaval.esloveno.structures.ElementoFrase;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -40,14 +42,14 @@ public class FraseSoloSustantivoNominativo extends EstructuraFrase {
                 .criterio(CriterioBusqueda.de(SustantivoFlexion.class)
                         .con(CaracteristicaGramatical.CASO, Caso.NOMINATIVO)
                         .build())
-                .extractor(extraccionSlotEstandar)
+                .extractor(ExtraccionSlotEstandar.get())
                 .build();
 
         // Definir apoyo de número (depende del sustantivo)
         ElementoFrase<NumeralFlexion> numero = ElementoFrase.<NumeralFlexion>builder()
                 .nombre("NUMERO")
                 .generador(sustantivo, palabra -> numeralService.getNumeral((SustantivoFlexion) palabra))
-                .extractor(extraccionApoyoEstandar)
+                .extractor(ExtraccionApoyoEstandar.get())
                 .build();
 
         // Agregar en orden de visualización

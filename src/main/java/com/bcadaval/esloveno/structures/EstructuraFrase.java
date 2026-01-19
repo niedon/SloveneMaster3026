@@ -1,15 +1,14 @@
 package com.bcadaval.esloveno.structures;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.bcadaval.esloveno.services.palabra.NumeralService;
 import com.bcadaval.esloveno.services.palabra.PronombreService;
 import com.bcadaval.esloveno.services.palabra.sustantivo.SustantivoService;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,17 +61,17 @@ public abstract class EstructuraFrase {
      * Lista ordenada de todos los elementos de la frase (slots + apoyos).
      * El orden determina cómo se muestra en la vista.
      */
-    protected final List<ElementoFrase<?>> elementos = new ArrayList<>();
+    protected final List<ElementoFrase<? extends PalabraFlexion<?>>> elementos = new ArrayList<>();
 
     /**
      * Lista de slots (elementos con criterio de búsqueda) para búsqueda rápida.
      */
-    protected final List<ElementoFrase<?>> slots = new ArrayList<>();
+    protected final List<ElementoFrase<? extends PalabraFlexion<?>>> slots = new ArrayList<>();
 
     /**
      * Lista de apoyos (elementos con generador) para procesamiento posterior.
      */
-    protected final List<ElementoFrase<?>> apoyos = new ArrayList<>();
+    protected final List<ElementoFrase<? extends PalabraFlexion<?>>> apoyos = new ArrayList<>();
 
     /**
      * Constructor por defecto para Spring
@@ -86,7 +85,7 @@ public abstract class EstructuraFrase {
      *
      * @param elemento Elemento a añadir (slot o apoyo)
      */
-    protected void agregarElemento(ElementoFrase<?> elemento) {
+    protected void agregarElemento(ElementoFrase<? extends PalabraFlexion<?>> elemento) {
         elementos.add(elemento);
         if (elemento.esSlot()) {
             slots.add(elemento);
@@ -115,15 +114,24 @@ public abstract class EstructuraFrase {
      * @return true si se asignó a algún slot, false si no coincide con ninguno
      */
     public boolean intentarAsignar(PalabraFlexion<?> palabra, int indice) {
-        for (ElementoFrase<?> slot : slots) {
+        for (var slot : slots) {
             if (slot.coincide(palabra)) {
-                slot.asignar(palabra, indice);
+                asignarPalabraASlot(slot, palabra, indice);
                 log.debug("Asignado {} a slot '{}' en índice {}",
                         palabra.getClass().getSimpleName(), slot.getNombre(), indice);
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Helper para asignar palabra a slot con cast seguro.
+     * El cast es seguro porque coincide() ya validó la compatibilidad de tipos.
+     */
+    @SuppressWarnings("unchecked")
+    private <T extends PalabraFlexion<?>> void asignarPalabraASlot(ElementoFrase<T> slot, PalabraFlexion<?> palabra, int indice) {
+        slot.asignar((T) palabra, indice);
     }
 
     /**
@@ -142,7 +150,7 @@ public abstract class EstructuraFrase {
                 .filter(Objects::nonNull)
                 .mapToLong(Instant::toEpochMilli)
                 .average()
-                .orElseGet(() -> Double.MIN_VALUE));
+                .orElse(Double.MIN_VALUE));
     }
 
     /**
@@ -159,23 +167,24 @@ public abstract class EstructuraFrase {
         log.debug("Construyendo datos con modo: {}", modo);
 
         // Primero generar y asignar objetos de apoyo
-        for (ElementoFrase<?> apoyo : apoyos) {
-            if (apoyo.esApoyo()) {
-                PalabraFlexion objetoGenerado = apoyo.generarObjeto(this);
-                apoyo.asignar(objetoGenerado, null);
-            }
-        }
+        apoyos.stream()
+                .filter(ElementoFrase::esApoyo)
+                .forEach(this::generarYAsignarApoyo);
 
         // Construir datos de visualización en orden
-        List<DatoVisualizacion> datos = new ArrayList<>();
-        for (ElementoFrase<?> elemento : elementos) {
-            DatoVisualizacion dato = construirDato(elemento, modo);
-            if (dato != null) {
-                datos.add(dato);
-            }
-        }
+        return elementos.stream()
+                .map(el -> construirDato(el, modo))
+                .filter(Objects::nonNull)
+                .toList();
+    }
 
-        return datos;
+    /**
+     * Helper para capturar el tipo genérico y asignar apoyo correctamente.
+     * Resuelve el problema de type capture en el bucle for-each.
+     */
+    private <T extends PalabraFlexion<?>> void generarYAsignarApoyo(ElementoFrase<T> apoyo) {
+        T objetoGenerado = apoyo.generarObjeto(this);
+        apoyo.asignar(objetoGenerado, null);
     }
 
     /**
@@ -184,7 +193,7 @@ public abstract class EstructuraFrase {
     private DatoVisualizacion construirDato(ElementoFrase<?> elemento, ModoVisualizacion modo) {
         if (!elemento.estaAsignado()) return null;
 
-        PalabraFlexion palabra = elemento.getPalabraAsignada();
+        PalabraFlexion<?> palabra = elemento.getPalabraAsignada();
 
         return DatoVisualizacion.builder()
                 .textoFila1(elemento.getTextoFila1(modo))
@@ -248,20 +257,14 @@ public abstract class EstructuraFrase {
      * Extrae los valores de FORMA_VERBAL de los CriterioGramatical.
      */
     public Set<FormaVerbal> getFormasVerbalesUsadas() {
-        Set<FormaVerbal> formas = new HashSet<>();
-        for (ElementoFrase<?> slot : slots) {
-            CriterioBusqueda<?> criterio = slot.getCriterioBusqueda();
-            if (criterio == null || criterio.getCriterioGramatical() == null) continue;
-
-            Object valorForma = criterio.getCriterioGramatical()
-                    .getRequisitos()
-                    .get(CaracteristicaGramatical.FORMA_VERBAL);
-
-            if (valorForma instanceof FormaVerbal forma) {
-                formas.add(forma);
-            }
-        }
-        return formas;
+        return slots.stream()
+                .map(ElementoFrase::getCriterioBusqueda)
+                .filter(Objects::nonNull)
+                .filter(criterio -> criterio.getCriterioGramatical() != null)
+                .map(criterio -> criterio.getCriterioGramatical().getRequisitos().get(CaracteristicaGramatical.FORMA_VERBAL))
+                .filter(valor -> valor instanceof FormaVerbal)
+                .map(valor -> (FormaVerbal) valor)
+                .collect(Collectors.toSet());
     }
 
 

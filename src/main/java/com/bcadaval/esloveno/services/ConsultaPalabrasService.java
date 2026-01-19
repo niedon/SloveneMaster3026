@@ -18,12 +18,12 @@ import java.util.stream.Stream;
 
 /**
  * Servicio unificado de consulta de palabras para estudio.
- *
+ * <p>
  * Estrategia:
  * - Una tarjeta está ACTIVA si proximaRevision != null (se inicializa al completarla)
  * - Una tarjeta está LISTA PARA ESTUDIAR si proximaRevision <= ahora
  * - El filtrado gramatical se aplica en memoria con CriterioGramatical
- *
+ * <p>
  * IMPORTANTE: Todos los métodos son @Transactional(readOnly = true) para permitir
  * el consumo de streams desde JPA sin cerrar la conexión.
  */

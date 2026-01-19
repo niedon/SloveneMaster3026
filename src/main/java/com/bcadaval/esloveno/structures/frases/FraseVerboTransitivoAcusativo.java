@@ -11,6 +11,8 @@ import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
 import com.bcadaval.esloveno.structures.ElementoFrase;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -47,7 +49,7 @@ public class FraseVerboTransitivoAcusativo extends EstructuraFrase {
                         .con(CaracteristicaGramatical.FORMA_VERBAL, FormaVerbal.PRESENT)
                         .con(CaracteristicaGramatical.TRANSITIVIDAD, Transitividad.TRANSITIVO)
                         .build())
-                .extractor(extraccionSlotEstandar)
+                .extractor(ExtraccionSlotEstandar.get())
                 .build();
 
         // Definir slot de sustantivo en acusativo
@@ -56,21 +58,21 @@ public class FraseVerboTransitivoAcusativo extends EstructuraFrase {
                 .criterio(CriterioBusqueda.de(SustantivoFlexion.class)
                         .con(CaracteristicaGramatical.CASO, Caso.ACUSATIVO)
                         .build())
-                .extractor(extraccionSlotEstandar)
+                .extractor(ExtraccionSlotEstandar.get())
                 .build();
 
         // Definir apoyo de pronombre (depende del verbo)
         ElementoFrase<PronombreFlexion> pronombre = ElementoFrase.<PronombreFlexion>builder()
                 .nombre("PRONOMBRE")
                 .generador(verbo, palabra -> pronombreService.getPronombre((VerboFlexion) palabra))
-                .extractor(extraccionApoyoEstandar)
+                .extractor(ExtraccionApoyoEstandar.get())
                 .build();
 
         // Definir apoyo de número (depende del CD)
         ElementoFrase<NumeralFlexion> numero = ElementoFrase.<NumeralFlexion>builder()
                 .nombre("NUMERO")
                 .generador(cd, palabra -> numeralService.getNumeral((SustantivoFlexion) palabra))
-                .extractor(extraccionApoyoEstandar)
+                .extractor(ExtraccionApoyoEstandar.get())
                 .build();
 
         // Agregar en orden de visualización

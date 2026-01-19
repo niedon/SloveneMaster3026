@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
 import com.bcadaval.esloveno.structures.CriterioGramatical;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -174,23 +173,8 @@ public class EstructuraFraseService {
     /**
      * DTO para la configuración de estructuras
      */
-    @Getter
-    public static class EstructuraFraseConfigDTO {
-        private final String identificador;
-        private final String nombreMostrar;
-        private final Boolean activa;
-        private final Set<Caso> casosUsados;
-        private final Set<FormaVerbal> formasVerbalesUsadas;
-
-        public EstructuraFraseConfigDTO(String identificador, String nombreMostrar,
-                                        Boolean activa, Set<Caso> casosUsados,
-                                        Set<FormaVerbal> formasVerbalesUsadas) {
-            this.identificador = identificador;
-            this.nombreMostrar = nombreMostrar;
-            this.activa = activa;
-            this.casosUsados = casosUsados;
-            this.formasVerbalesUsadas = formasVerbalesUsadas;
-        }
+    public record EstructuraFraseConfigDTO(String identificador, String nombreMostrar, Boolean activa,
+                                           Set<Caso> casosUsados, Set<FormaVerbal> formasVerbalesUsadas) {
 
     }
 }

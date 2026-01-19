@@ -52,7 +52,7 @@ public class DatosInicialesService {
     private static final List<String> NUMERALES_INICIALES = List.of("en", "dva", "trije");
     private static final List<String> VERBOS_INICIALES = List.of("gledati");
     private static final List<String> ADJETIVOS_INICIALES = List.of("velik");
-    private static final List<String> SUSTANTIVOS_INICIALES = List.of("pes");
+    private static final List<String> SUSTANTIVOS_INICIALES = List.of("pes", "hiša", "drevo");
 
     /**
      * Verifica si la base de datos tiene datos y, si no, carga las palabras iniciales.

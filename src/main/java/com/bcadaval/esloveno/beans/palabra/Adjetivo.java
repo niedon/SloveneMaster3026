@@ -8,10 +8,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Transient;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 /**
@@ -25,6 +22,7 @@ import lombok.experimental.Accessors;
 @Builder
 @Entity
 @Accessors(chain = true)
+@ToString
 public class Adjetivo implements Palabra<AdjetivoFlexion> {
 	
 	@Id

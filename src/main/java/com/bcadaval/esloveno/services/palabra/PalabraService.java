@@ -1,28 +1,13 @@
 package com.bcadaval.esloveno.services.palabra;
 
+import com.bcadaval.esloveno.beans.base.Palabra;
+import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.TipoPalabra;
+import com.bcadaval.esloveno.repo.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-
-import com.bcadaval.esloveno.beans.base.Palabra;
-import com.bcadaval.esloveno.beans.base.PalabraFlexion;
-import com.bcadaval.esloveno.beans.palabra.Adjetivo;
-import com.bcadaval.esloveno.beans.palabra.Numeral;
-import com.bcadaval.esloveno.beans.palabra.Pronombre;
-import com.bcadaval.esloveno.beans.palabra.Sustantivo;
-import com.bcadaval.esloveno.beans.palabra.Verbo;
-import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
-import com.bcadaval.esloveno.repo.AdjetivoRepo;
-import com.bcadaval.esloveno.repo.NumeralFlexionRepo;
-import com.bcadaval.esloveno.repo.NumeralRepo;
-import com.bcadaval.esloveno.repo.PronombreFlexionRepo;
-import com.bcadaval.esloveno.repo.PronombreRepo;
-import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
-import com.bcadaval.esloveno.repo.SustantivoRepo;
-import com.bcadaval.esloveno.repo.VerboFlexionRepo;
-import com.bcadaval.esloveno.repo.VerboRepo;
 
 @Log4j2
 @Service
@@ -61,7 +46,6 @@ public class PalabraService {
 			case ADJETIVO -> adjetivoRepo;
 			case PRONOMBRE -> pronombreRepo;
 			case NUMERAL -> numeralRepo;
-			default -> throw new IllegalArgumentException("Clase no soportada: " + palabra.getClass().getSimpleName());
 		};
 	}
 
@@ -73,7 +57,6 @@ public class PalabraService {
             case ADJETIVO -> adjetivoFlexionRepo;
             case PRONOMBRE -> pronombreFlexionRepo;
             case NUMERAL -> numeralFlexionRepo;
-			default -> throw new IllegalArgumentException("Clase no soportada: " + palabra.getClass().getSimpleName());
         };
 
 	}

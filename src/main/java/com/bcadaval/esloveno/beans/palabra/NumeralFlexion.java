@@ -6,10 +6,7 @@ import com.bcadaval.esloveno.beans.enums.Genero;
 import com.bcadaval.esloveno.beans.enums.Numero;
 import com.bcadaval.esloveno.config.InstantConverter;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.time.Instant;
@@ -20,6 +17,7 @@ import java.time.Instant;
 @Builder
 @Accessors(chain = true)
 @Entity
+@ToString
 public class NumeralFlexion implements PalabraFlexion<Numeral> {
 
     /**
@@ -123,12 +121,6 @@ public class NumeralFlexion implements PalabraFlexion<Numeral> {
     @Override
     public void setPalabraBase(Numeral palabra) {
         this.numeralBase = palabra;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("NumeralFlexion[id=%d, principal='%s', flexion='%s', genero=%s, numero=%s, caso=%s]",
-                id, principal, flexion, genero, numero, caso);
     }
 
 }
