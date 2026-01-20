@@ -173,9 +173,25 @@ public class EstructuraFraseService {
     /**
      * DTO para la configuración de estructuras
      */
-    public record EstructuraFraseConfigDTO(String identificador, String nombreMostrar, Boolean activa,
+    @SuppressWarnings("unused")
+    public record EstructuraFraseConfigDTO(String identificador, String nombreMostrar, boolean activa,
                                            Set<Caso> casosUsados, Set<FormaVerbal> formasVerbalesUsadas) {
 
+        public String getIdentificador() {
+            return identificador;
+        }
+        public String getNombreMostrar() {
+            return nombreMostrar;
+        }
+        public boolean isActiva() {
+            return activa;
+        }
+        public Set<Caso> getCasosUsados() {
+            return casosUsados;
+        }
+        public Set<FormaVerbal> getFormasVerbalesUsadas() {
+            return formasVerbalesUsadas;
+        }
     }
 }
 

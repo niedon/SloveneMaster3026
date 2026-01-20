@@ -77,29 +77,15 @@ public class WordsController {
 		// Obtener solo las estructuras activas
 		List<EstructuraFrase> estructuras = estructuraFraseService.getEstructurasActivas();
 
-		if (estructuras.isEmpty()) {
-			log.warn("No hay estructuras de frase activas");
-			return new ArrayList<>();
-		}
-
-
 		// Limpiar slots antes de usar (singleton)
 		estructuras.forEach(EstructuraFrase::limpiar);
 
 		// Intentar asignar palabras a todas las estructuras
 		tarjetas.forEach(palabra -> {
-			int index = tarjetas.indexOf(palabra);
 			estructuras.forEach(estructura -> {
-				estructura.intentarAsignar(palabra, index);
+				estructura.intentarAsignar(palabra);
 			});
 		});
-
-		for (int i = 0; i < tarjetas.size(); i++) {
-			PalabraFlexion<?> palabra = tarjetas.get(i);
-			for (EstructuraFrase estructura : estructuras) {
-				estructura.intentarAsignar(palabra, i);
-			}
-		}
 
 		// Calcular puntuación para estructuras completas (media de usos de sus palabras)
 		// Menor puntuación = mejor (prioriza palabras menos asignables)

@@ -110,28 +110,17 @@ public abstract class EstructuraFrase {
     /**
      * Intenta asignar una palabra a algún slot vacío que coincida
      * @param palabra Palabra a intentar asignar
-     * @param indice Índice de la palabra en la lista original
      * @return true si se asignó a algún slot, false si no coincide con ninguno
      */
-    public boolean intentarAsignar(PalabraFlexion<?> palabra, int indice) {
+    public boolean intentarAsignar(PalabraFlexion<?> palabra) {
         for (var slot : slots) {
             if (slot.coincide(palabra)) {
-                asignarPalabraASlot(slot, palabra, indice);
-                log.debug("Asignado {} a slot '{}' en índice {}",
-                        palabra.getClass().getSimpleName(), slot.getNombre(), indice);
+                slot.asignar(palabra);
+                log.debug("Asignado {} a slot '{}'", palabra.getClass().getSimpleName(), slot.getNombre());
                 return true;
             }
         }
         return false;
-    }
-
-    /**
-     * Helper para asignar palabra a slot con cast seguro.
-     * El cast es seguro porque coincide() ya validó la compatibilidad de tipos.
-     */
-    @SuppressWarnings("unchecked")
-    private <T extends PalabraFlexion<?>> void asignarPalabraASlot(ElementoFrase<T> slot, PalabraFlexion<?> palabra, int indice) {
-        slot.asignar((T) palabra, indice);
     }
 
     /**
@@ -184,7 +173,7 @@ public abstract class EstructuraFrase {
      */
     private <T extends PalabraFlexion<?>> void generarYAsignarApoyo(ElementoFrase<T> apoyo) {
         T objetoGenerado = apoyo.generarObjeto(this);
-        apoyo.asignar(objetoGenerado, null);
+        apoyo.asignar(objetoGenerado);
     }
 
     /**

@@ -8,7 +8,7 @@ import java.util.List;
  *
  * @param <E> Clase que representa la flexión de la palabra.
  */
-public interface Palabra<E> {
+public interface Palabra<E extends PalabraFlexion<?>> {
 
     /**
      * Obtiene la lista de flexiones asociadas a la palabra.

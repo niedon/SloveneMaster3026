@@ -65,7 +65,7 @@ public class FraseSustantivoAdjetivo extends EstructuraFrase {
 
         // Agregar en orden de visualización (adjetivo antes del sustantivo en esloveno)
         agregarElemento(numeral);
-        agregarElemento(sustantivo);
         agregarElemento(adjetivo);
+        agregarElemento(sustantivo);
     }
 }

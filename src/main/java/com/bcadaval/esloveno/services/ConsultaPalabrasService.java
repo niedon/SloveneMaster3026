@@ -47,9 +47,9 @@ public class ConsultaPalabrasService {
      * Filtra en memoria: criterios gramaticales
      */
     private Stream<VerboFlexion> streamVerbosListos(List<CriterioGramatical> criterios) {
+        if(criterios.isEmpty()) return Stream.empty();
         Instant ahora = Instant.now();
         return verboFlexionRepo.streamListosParaEstudiar(ahora)
-                .filter(vf -> vf.getSignificado() != null)/*perogrullo*/
                 .filter(vf -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(vf)));
     }
 
@@ -61,10 +61,9 @@ public class ConsultaPalabrasService {
      * Obtiene un Stream de sustantivos listos para estudiar.
      */
     private Stream<SustantivoFlexion> streamSustantivosListos(List<CriterioGramatical> criterios) {
+        if(criterios.isEmpty()) return Stream.empty();
         Instant ahora = Instant.now();
-
         return sustantivoFlexionRepo.streamListosParaEstudiar(ahora)
-                .filter(sf -> sf.getSignificado() != null)/*perogrullo*/
                 .filter(sf -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(sf)));
     }
 
@@ -76,10 +75,9 @@ public class ConsultaPalabrasService {
      * Obtiene un Stream de adjetivos listos para estudiar.
      */
     private Stream<AdjetivoFlexion> streamAdjetivosListos(List<CriterioGramatical> criterios) {
+        if(criterios.isEmpty()) return Stream.empty();
         Instant ahora = Instant.now();
-
         return adjetivoFlexionRepo.streamListosParaEstudiar(ahora)
-                .filter(af -> af.getSignificado() != null)/*perogrullo*/
                 .filter(af -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(af)));
     }
 
@@ -92,8 +90,8 @@ public class ConsultaPalabrasService {
      * Solo filtra por proximaRevision != null
      */
     private Stream<VerboFlexion> streamVerbosActivos(List<CriterioGramatical> criterios) {
+        if(criterios.isEmpty()) return Stream.empty();
         return verboFlexionRepo.streamActivos()
-                .filter(vf -> vf.getSignificado() != null)/*perogrullo*/
                 .filter(vf -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(vf)));
     }
 
@@ -105,8 +103,8 @@ public class ConsultaPalabrasService {
      * Obtiene un Stream de TODOS los sustantivos activos (para estadísticas).
      */
     private Stream<SustantivoFlexion> streamSustantivosActivos(List<CriterioGramatical> criterios) {
+        if(criterios.isEmpty()) return Stream.empty();
         return sustantivoFlexionRepo.streamActivos()
-                .filter(sf -> sf.getSignificado() != null)/*perogrullo*/
                 .filter(sf -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(sf)));
     }
 
@@ -118,8 +116,8 @@ public class ConsultaPalabrasService {
      * Obtiene un Stream de TODOS los adjetivos activos (para estadísticas).
      */
     private Stream<AdjetivoFlexion> streamAdjetivosActivos(List<CriterioGramatical> criterios) {
+        if(criterios.isEmpty()) return Stream.empty();
         return adjetivoFlexionRepo.streamActivos()
-                .filter(af -> af.getSignificado() != null)/*perogrullo*/
                 .filter(af -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(af)));
     }
 

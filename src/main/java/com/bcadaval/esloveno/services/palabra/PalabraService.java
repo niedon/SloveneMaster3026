@@ -3,6 +3,7 @@ package com.bcadaval.esloveno.services.palabra;
 import com.bcadaval.esloveno.beans.base.Palabra;
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.TipoPalabra;
+import com.bcadaval.esloveno.beans.palabra.*;
 import com.bcadaval.esloveno.repo.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,18 +39,8 @@ public class PalabraService {
 	@Autowired
 	private NumeralFlexionRepo numeralFlexionRepo;
 
-	/** Devuelve el repositorio correspondiente según la clase de la palabra */
-	private JpaRepository getRepository(Palabra<?> palabra) {
-		return switch (TipoPalabra.fromClass(palabra.getClass())){
-			case SUSTANTIVO -> sustantivoRepo;
-			case VERBO -> verboRepo;
-			case ADJETIVO -> adjetivoRepo;
-			case PRONOMBRE -> pronombreRepo;
-			case NUMERAL -> numeralRepo;
-		};
-	}
-
 	/** Devuelve el repositorio de flexiones correspondiente según la clase de la palabra */
+	@SuppressWarnings("rawtypes")
 	private JpaRepository getFlexionRepository(Palabra<?> palabra) {
 		return switch (TipoPalabra.fromClass(palabra.getClass())){
             case SUSTANTIVO -> sustantivoFlexionRepo;
@@ -62,9 +53,23 @@ public class PalabraService {
 	}
 
 	/** Guarda una palabra y sus flexiones asociadas */
+	@SuppressWarnings("rawtypes")
 	public Palabra<?> saveWordAndConjugations(Palabra<?> palabra) {
 		log.debug("Guardando palabra {} con {} flexiones", palabra.getPrincipal(), palabra.getListaFlexiones().size());
-		Palabra palabraGuardada = (Palabra<?>) getRepository(palabra).save(palabra);
+
+		Palabra<?> palabraGuardada = switch(palabra){
+			case Sustantivo p -> sustantivoRepo.save(p);
+			case Verbo p -> verboRepo.save(p);
+			case Adjetivo p -> adjetivoRepo.save(p);
+			case Pronombre p -> pronombreRepo.save(p);
+			case Numeral p -> numeralRepo.save(p);
+			default -> throw new IllegalArgumentException("Tipo de palabra no soportado: " + palabra.getClass());
+		};
+
+//		palabra.getListaFlexiones()
+//				.stream()
+//				.map(p -> (PalabraFlexion) p)
+//				.forEach(p -> p.setPalabraBase(palabraGuardada));
 
 		// Asignar la referencia a la palabra base en cada flexión
 		for (Object flexion : palabra.getListaFlexiones()) {

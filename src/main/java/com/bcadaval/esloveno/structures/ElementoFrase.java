@@ -2,6 +2,7 @@ package com.bcadaval.esloveno.structures;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.structures.extractores.EstrategiaExtraccion;
+import com.bcadaval.esloveno.structures.extractores.ExtraccionNull;
 import lombok.Getter;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -67,11 +68,6 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
      */
     private T palabraAsignada;
 
-    /**
-     * Índice de la palabra en la lista original (solo para slots)
-     */
-    private Integer indiceEnLista;
-
     private ElementoFrase(Builder<T> builder) {
         this.nombre = builder.nombre;
         this.criterioBusqueda = builder.criterioBusqueda;
@@ -114,11 +110,9 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
      * Asigna una palabra al elemento.
      *
      * @param palabra Palabra a asignar
-     * @param indice Índice en la lista original (puede ser null para apoyos)
      */
-    public void asignar(T palabra, Integer indice) {
-        this.palabraAsignada = palabra;
-        this.indiceEnLista = indice;
+    public void asignar(PalabraFlexion<?> palabra) {
+        this.palabraAsignada = (T) palabra;
     }
 
     /**
@@ -162,28 +156,19 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
 
     // Métodos privados para resolver extractor (individual > estrategia)
     private String getDeEspanol(T p) {
-        if (extractorDeEspanol != null) return extractorDeEspanol.apply(p);
-//        if (estrategiaExtraccion != null) return estrategiaExtraccion.deEspanol(p);
-        if (estrategiaExtraccion != null) return estrategiaExtraccion.deEspanol().apply(p);
-        return "";
+        return ObjectUtils.firstNonNull(extractorDeEspanol.apply(p), estrategiaExtraccion.deEspanol().apply(p), "");
     }
 
     private String getAEsloveno(T p) {
-        if (extractorAEsloveno != null) return extractorAEsloveno.apply(p);
-        if (estrategiaExtraccion != null) return estrategiaExtraccion.aEsloveno().apply(p);
-        return "";
+        return ObjectUtils.firstNonNull(extractorAEsloveno.apply(p), estrategiaExtraccion.aEsloveno().apply(p), "");
     }
 
     private String getDeEsloveno(T p) {
-        if (extractorDeEsloveno != null) return extractorDeEsloveno.apply(p);
-        if (estrategiaExtraccion != null) return estrategiaExtraccion.deEsloveno().apply(p);
-        return "";
+        return ObjectUtils.firstNonNull(extractorDeEsloveno.apply(p), estrategiaExtraccion.deEsloveno().apply(p), "");
     }
 
     private String getAEspanol(T p) {
-        if (extractorAEspanol != null) return extractorAEspanol.apply(p);
-        if (estrategiaExtraccion != null) return estrategiaExtraccion.aEspanol().apply(p);
-        return "";
+        return ObjectUtils.firstNonNull(extractorAEspanol.apply(p), estrategiaExtraccion.aEspanol().apply(p), "");
     }
 
     /**
@@ -191,7 +176,6 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
      */
     public void limpiar() {
         this.palabraAsignada = null;
-        this.indiceEnLista = null;
     }
 
     // ============================================
@@ -308,6 +292,12 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
                 throw new IllegalStateException(
                         "ElementoFrase '" + nombre + "' debe tener estrategia o extractores");
             }
+
+            if (estrategiaExtraccion == null) estrategiaExtraccion = ExtraccionNull.get();
+            if (extractorDeEspanol == null) extractorDeEspanol = p -> null;
+            if (extractorAEsloveno == null) extractorAEsloveno = p -> null;
+            if (extractorDeEsloveno == null) extractorDeEsloveno = p -> null;
+            if (extractorAEspanol == null) extractorAEspanol = p -> null;
 
             return new ElementoFrase<>(this);
         }
