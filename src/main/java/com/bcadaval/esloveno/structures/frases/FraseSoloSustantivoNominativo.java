@@ -50,6 +50,7 @@ public class FraseSoloSustantivoNominativo extends EstructuraFrase {
                 .nombre("NUMERO")
                 .generador(sustantivo, palabra -> numeralService.getNumeral((SustantivoFlexion) palabra))
                 .extractor(ExtraccionApoyoEstandar.get())
+                .extractorDeEspanol(p -> "nº")
                 .build();
 
         // Agregar en orden de visualización
