@@ -12,14 +12,16 @@ import lombok.Getter;
 @Getter
 public enum Genero {
 	
-	MASCULINO("M", "masculine"), FEMENINO("F", "feminine"), NEUTRO("N", "neuter");
+	MASCULINO("M", "masculine", "♂️"), FEMENINO("F", "feminine", "♀️"), NEUTRO("N", "neuter", "⭕");
 	
 	private final String code;
 	private final String xmlCode;
+	private final String emoji;
 	
-	Genero(String code, String xmlCode) {
+	Genero(String code, String xmlCode, String emoji) {
 		this.code = code;
 		this.xmlCode = xmlCode;
+		this.emoji = emoji;
 	}
 
     public static Genero fromCode(String code) {
