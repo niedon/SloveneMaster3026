@@ -43,6 +43,8 @@ public class FraseSoloSustantivoNominativo extends EstructuraFrase {
                         .con(CaracteristicaGramatical.CASO, Caso.NOMINATIVO)
                         .build())
                 .extractor(ExtraccionSlotEstandar.get())
+                .extractorAEsloveno(p ->
+                        String.format("(%s) %s", p.getSustantivoBase().getGenero().getCode(), p.getAcentuado()))
                 .build();
 
         // Definir apoyo de número (depende del sustantivo)
@@ -58,4 +60,3 @@ public class FraseSoloSustantivoNominativo extends EstructuraFrase {
         agregarElemento(sustantivo);
     }
 }
-
