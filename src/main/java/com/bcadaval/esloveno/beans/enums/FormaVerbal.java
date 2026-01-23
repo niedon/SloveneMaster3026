@@ -12,6 +12,7 @@ import lombok.Getter;
  * SUPINE: Forma supina (gledat)
  * PARTICIPLE: Participio (gledal, gledala, etc.)
  * PRESENT: Presente (gledam, gledaš, etc.)
+ * FUTURE: Futuro (bom gledal, boš gledala, etc.)
  * IMPERATIVE: Imperativo (glej, glejte, etc.)
  */
 @Getter
@@ -20,6 +21,7 @@ public enum FormaVerbal {
     SUPINE("S", "supine"),
     PARTICIPLE("P", "participle"),
     PRESENT("R", "present"),
+    FUTURE("f", "future"),
     IMPERATIVE("M", "imperative");
 
     private final String code;

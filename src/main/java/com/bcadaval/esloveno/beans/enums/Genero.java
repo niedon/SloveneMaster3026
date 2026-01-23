@@ -12,7 +12,9 @@ import lombok.Getter;
 @Getter
 public enum Genero {
 	
-	MASCULINO("M", "masculine", "♂️"), FEMENINO("F", "feminine", "♀️"), NEUTRO("N", "neuter", "⭕");
+	MASCULINO("M", "masculine", "♂️"),
+	FEMENINO("F", "feminine", "♀️"),
+	NEUTRO("N", "neuter", "\uD83D\uDC64");
 	
 	private final String code;
 	private final String xmlCode;

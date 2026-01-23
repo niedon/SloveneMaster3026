@@ -45,6 +45,8 @@ public class FraseSoloSustantivoNominativo extends EstructuraFrase {
                 .extractor(ExtraccionSlotEstandar.get())
                 .extractorAEsloveno(p ->
                         String.format("(%s) %s", p.getSustantivoBase().getGenero().getEmoji(), p.getAcentuado()))
+                .extractorAEspanol(p ->
+                        String.format("(%s) %s", p.getSustantivoBase().getGenero().getEmoji(), p.getSignificado()))
                 .build();
 
         // Definir apoyo de número (depende del sustantivo)

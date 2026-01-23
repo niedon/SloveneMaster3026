@@ -43,6 +43,10 @@ public class FraseSoloVerboPresente extends EstructuraFrase {
                         .con(CaracteristicaGramatical.FORMA_VERBAL, FormaVerbal.PRESENT)
                         .build())
                 .extractor(ExtraccionSlotEstandar.get())
+                .extractorAEsloveno(p ->
+                        String.format("(%s) %s", p.getVerboBase().getAspecto().getEmoji(), p.getAcentuado()))
+                .extractorAEspanol(p ->
+                        String.format("(%s) %s", p.getVerboBase().getAspecto().getEmoji(), p.getSignificado()))
                 .build();
 
         // Definir apoyo de pronombre (depende del verbo)

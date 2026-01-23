@@ -15,14 +15,18 @@ import lombok.Getter;
 @Getter
 public enum Aspecto {
 
-	PERFECTIVO("P", "perfective"), IMPERFECTIVO("I", "progressive"), AMBIPREFECTIVO("*", "biaspectual");
+	PERFECTIVO("P", "perfective", "⏸️"),
+	IMPERFECTIVO("I", "progressive", "▶️"),
+	AMBIPREFECTIVO("*", "biaspectual", "⏯️");
 
 	private final String code;
 	private final String xmlCode;
+	private final String emoji;
 
-	Aspecto(String code, String xmlCode) {
+	Aspecto(String code, String xmlCode, String emoji) {
 		this.code = code;
 		this.xmlCode = xmlCode;
+		this.emoji = emoji;
 	}
 
     public static Aspecto fromCode(String code) {
