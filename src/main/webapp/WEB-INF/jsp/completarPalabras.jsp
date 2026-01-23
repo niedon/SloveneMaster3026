@@ -188,7 +188,7 @@
                         <option value="">Seleccione...</option>
                         <option value="TRANSITIVO">Transitivo</option>
                         <option value="INTRANSITIVO">Intransitivo</option>
-                        <option value="DITRANSITIVO">Ditransitivo</option>
+                        <option value="AMBITRANSITIVO">Ambitransitivo</option>
                     </select>
                 </div>
 
