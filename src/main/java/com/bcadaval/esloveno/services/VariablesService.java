@@ -32,7 +32,7 @@ public class VariablesService {
     public static final String PENALIZACION_FALLO = "PENALIZACION_FALLO";
     public static final String MAX_TARJETAS_NUEVAS_DIA = "MAX_TARJETAS_NUEVAS_DIA";
     public static final String MAX_TARJETAS_REVISION_DIA = "MAX_TARJETAS_REVISION_DIA";
-    public static final String CASOS_HABILITADOS = "CASOS_HABILITADOS";
+    public static final String MEZCLAR_TARJETAS = "MEZCLAR_TARJETAS";
 
     /**
      * Obtiene todas las variables de configuración
@@ -120,54 +120,11 @@ public class VariablesService {
                 .orElse(100);
     }
 
-    /**
-     * Obtiene los casos habilitados para el estudio
-     * @return Lista de Caso habilitados
-     */
-    public List<Caso> getCasosHabilitados() {
-        String casosStr = variablesRepo.findByClave(CASOS_HABILITADOS)
-                .map(Variable::getValor)
-                .orElse("1,4"); // NOMINATIVO y ACUSATIVO por defecto
-
-        return Arrays.stream(casosStr.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(Caso::fromCode)
-                .collect(Collectors.toList());
+    public Boolean getMezclarTarjetas() {
+        return variablesRepo.findByClave(MEZCLAR_TARJETAS)
+                .map(Variable::getValorAsBoolean)
+                .orElse(true);
     }
 
-    /**
-     * Obtiene los códigos de casos habilitados como String
-     */
-    public String getCasosHabilitadosString() {
-        return variablesRepo.findByClave(CASOS_HABILITADOS)
-                .map(Variable::getValor)
-                .orElse("1,4");
-    }
-
-    /**
-     * Guarda los casos habilitados
-     * @param casos Lista de códigos de casos separados por coma
-     */
-    public void setCasosHabilitados(String casos) {
-        Variable variable = variablesRepo.findByClave(CASOS_HABILITADOS)
-                .orElse(Variable.builder()
-                        .clave(CASOS_HABILITADOS)
-                        .tipo("STRING")
-                        .descripcion("Códigos de casos activos")
-                        .build());
-        variable.setValor(casos);
-        variablesRepo.save(variable);
-    }
-
-    /**
-     * Verifica si un caso está habilitado para el estudio
-     */
-    public boolean isCasoHabilitado(Caso caso) {
-        if (caso == null) {
-            return true; // Si no tiene caso (ej: verbos), siempre habilitado
-        }
-        return getCasosHabilitados().contains(caso);
-    }
 }
 

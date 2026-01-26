@@ -71,7 +71,8 @@ public class ConfiguracionController {
             @RequestParam(required = false) String factorFacilidadInicial,
             @RequestParam(required = false) String penalizacionFallo,
             @RequestParam(required = false) String maxTarjetasNuevas,
-            @RequestParam(required = false) String maxTarjetasRevision) {
+            @RequestParam(required = false) String maxTarjetasRevision,
+            @RequestParam(required = false) String mezclarTarjetas) {
 
         log.info("Guardando configuración");
 
@@ -99,6 +100,9 @@ public class ConfiguracionController {
             }
             if (maxTarjetasRevision != null) {
                 actualizarVariable(VariablesService.MAX_TARJETAS_REVISION_DIA, maxTarjetasRevision, "INTEGER");
+            }
+            if (mezclarTarjetas != null) {
+                actualizarVariable(VariablesService.MEZCLAR_TARJETAS, mezclarTarjetas, "BOOLEAN");
             }
 
             log.info("Configuración guardada correctamente");

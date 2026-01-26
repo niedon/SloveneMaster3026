@@ -61,5 +61,12 @@ public class Variable {
     public Double getValorAsDouble() {
         return valor != null ? Double.parseDouble(valor) : null;
     }
+
+    /**
+     * Obtiene el valor como Boolean
+     */
+    public Boolean getValorAsBoolean() {
+        return valor != null ? Boolean.parseBoolean(valor) : null;
+    }
 }
 

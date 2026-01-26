@@ -145,7 +145,9 @@ public class RepeticionEspaciadaService {
         .collect(Collectors.toList());
 
         // Mezclar aleatoriamente y limitar
-        Collections.shuffle(tarjetas);
+        if(variablesService.getMezclarTarjetas()) {
+            Collections.shuffle(tarjetas);
+        }
         return tarjetas.size() > limite ? tarjetas.subList(0, limite) : tarjetas;
     }
 

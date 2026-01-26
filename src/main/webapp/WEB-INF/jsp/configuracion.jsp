@@ -224,6 +224,22 @@
                 </div>
             </div>
 
+            <!-- Sección miscelánea -->
+            <div class="config-section">
+                <h2>🔀 Miscelánea</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="mezclarTarjetas">
+                            <input type="checkbox" id="mezclarTarjetas" name="mezclarTarjetas"
+                                   <c:if test="${variablesMap['MEZCLAR_TARJETAS'] != null && variablesMap['MEZCLAR_TARJETAS'].valor == 'true'}">checked</c:if>
+                                   style="width: auto; margin-right: 10px;">
+                            Mezclar tarjetas
+                        </label>
+                        <div class="help-text">Presenta las tarjetas en orden aleatorio</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Sección de estructuras de frase -->
             <div class="config-section">
                 <h2>📝 Estructuras de Frase</h2>
@@ -359,6 +375,9 @@
             formData.append('penalizacionFallo', document.getElementById('penalizacionFallo').value);
             formData.append('maxTarjetasNuevas', document.getElementById('maxTarjetasNuevas').value);
             formData.append('maxTarjetasRevision', document.getElementById('maxTarjetasRevision').value);
+
+            // Variables misceláneas
+            formData.append('mezclarTarjetas', document.getElementById('mezclarTarjetas').checked);
 
             // Guardar configuración de variables
             fetch('/api/guardarConfiguracion', {
