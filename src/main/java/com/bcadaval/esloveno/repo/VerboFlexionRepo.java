@@ -27,9 +27,9 @@ public interface VerboFlexionRepo extends JpaRepository<VerboFlexion, Integer> {
 	Stream<VerboFlexion> streamActivos();
 
 	/**
-	 * Encuentra flexiones por el principal (verbo base)
+	 * Encuentra flexiones por el sloleksId (verbo base)
 	 */
-	List<VerboFlexion> findByPrincipal(String principal);
+	List<VerboFlexion> findBySloleksId(String sloleksId);
 
 
 }

@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface PronombreFlexionRepo extends JpaRepository<PronombreFlexion, Integer>, QueryByExampleExecutor<PronombreFlexion> {
 
-    List<PronombreFlexion> findByPrincipal(String principal);
+    List<PronombreFlexion> findBySloleksId(String sloleksId);
 
     List<PronombreFlexion> findBySignificadoIsNull();
 }

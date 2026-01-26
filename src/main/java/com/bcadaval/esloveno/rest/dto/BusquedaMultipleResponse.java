@@ -62,6 +62,11 @@ public class BusquedaMultipleResponse {
         private String tipoEspanol;
 
         /**
+         * ID de Sloleks
+         */
+        private String sloleksId;
+
+        /**
          * Si el tipo está soportado para guardar
          */
         private boolean soportado;

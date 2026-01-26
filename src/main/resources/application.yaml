@@ -43,3 +43,4 @@ logging:
       springframework:
         boot:
          autoconfigure: ERROR
+        web: INFO  # Desactivar logs DEBUG de requests HTTP

@@ -27,16 +27,14 @@ import lombok.experimental.Accessors;
 public class Sustantivo implements Palabra<SustantivoFlexion> {
 	
 	@Id
+	private String sloleksId;
+
 	private String principal;
-	
-	@Column
-	private String acentuado;
 	
 	private Genero genero;
 	
 	private Boolean animado;
 	
-	private String sloleksId;
 	private String sloleksKey;
 	
 	private String significado;

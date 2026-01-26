@@ -4,15 +4,21 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -36,6 +42,9 @@ public class InitializationService {
     @Lazy
     @Autowired
     private DatosInicialesService datosInicialesService;
+
+    @Autowired
+    private DataSource dataSource;
 
     public enum InitStatus {
         PENDING, IN_PROGRESS, COMPLETED, ERROR
@@ -140,10 +149,18 @@ public class InitializationService {
             // Cargar datos iniciales si la BD está vacía
             message.set("Verificando datos iniciales...");
             progress.set(90);
-            datosInicialesService.cargarDatosInicialesSiNecesario(
+            boolean datosInicalesCargados = datosInicialesService.cargarDatosInicialesSiNecesario(
                 progress::set,      // Callback para actualizar el progreso
                 message::set        // Callback para actualizar el mensaje
             );
+
+            // Si se cargaron datos iniciales, ejecutar script de actualización de pronombres
+            if (datosInicalesCargados) {
+                message.set("Actualizando significados de pronombres...");
+                progress.set(95);
+                ejecutarScriptUpdatePronombres();
+                log.info("Script updatePronombres.sql ejecutado exitosamente");
+            }
 
             status.set(InitStatus.COMPLETED);
             message.set("¡Inicialización completada!");
@@ -318,6 +335,57 @@ public class InitializationService {
 
         if (extractedCount == 0) {
             throw new IOException("No se encontraron archivos XML en el ZIP");
+        }
+    }
+
+    /**
+     * Ejecuta el script updatePronombres.sql sobre la base de datos.
+     * Esta función solo debe llamarse después de haber cargado los datos iniciales.
+     */
+    private void ejecutarScriptUpdatePronombres() throws IOException {
+        log.info("Ejecutando script updatePronombres.sql...");
+
+        try {
+            // Leer el script desde el classpath
+            ClassPathResource scriptResource = new ClassPathResource("updatePronombres.sql");
+            String scriptContent;
+
+            try (InputStream is = scriptResource.getInputStream();
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                scriptContent = reader.lines()
+                    .filter(line -> !line.trim().isEmpty() && !line.trim().startsWith("--"))
+                    .reduce((a, b) -> a + "\n" + b)
+                    .orElse("");
+            }
+
+            if (scriptContent.isEmpty()) {
+                log.warn("El script updatePronombres.sql está vacío");
+                return;
+            }
+
+            // Ejecutar cada sentencia SQL
+            try (Connection conn = dataSource.getConnection();
+                 Statement stmt = conn.createStatement()) {
+
+                // Dividir por líneas y ejecutar cada UPDATE
+                String[] statements = scriptContent.split("\n");
+                int executedCount = 0;
+
+                for (String sql : statements) {
+                    String trimmedSql = sql.trim();
+                    if (!trimmedSql.isEmpty()) {
+                        log.debug("Ejecutando: {}", trimmedSql);
+                        stmt.executeUpdate(trimmedSql);
+                        executedCount++;
+                    }
+                }
+
+                log.info("Script updatePronombres.sql ejecutado: {} sentencias", executedCount);
+            }
+
+        } catch (Exception e) {
+            log.error("Error ejecutando script updatePronombres.sql", e);
+            throw new IOException("Error ejecutando script updatePronombres.sql: " + e.getMessage(), e);
         }
     }
 

@@ -27,7 +27,7 @@ public interface AdjetivoFlexionRepo extends JpaRepository<AdjetivoFlexion, Inte
 	Stream<AdjetivoFlexion> streamActivos();
 
 	/**
-	 * Encuentra flexiones por el principal (adjetivo base)
+	 * Encuentra flexiones por el sloleksId (adjetivo base)
 	 */
-	List<AdjetivoFlexion> findByPrincipal(String principal);
+	List<AdjetivoFlexion> findBySloleksId(String sloleksId);
 }

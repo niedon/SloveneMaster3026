@@ -27,7 +27,9 @@ public class NumeralFlexion implements PalabraFlexion<Numeral> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "PRINCIPAL", insertable = false, updatable = false)
+    @Column(name = "SLOLEKS_ID", insertable = false, updatable = false)
+    private String sloleksId;
+
     private String principal;
 
     private Genero genero;
@@ -107,11 +109,11 @@ public class NumeralFlexion implements PalabraFlexion<Numeral> {
     // =====================================================
 
     /**
-     * Referencia a la palabra base (sustantivo en forma principal)
-     * Usa PRINCIPAL como clave foránea
+     * Referencia a la palabra base (numeral en forma principal)
+     * Usa SLOLEKS_ID como clave foránea
      */
     @ManyToOne
-    @JoinColumn(name = "PRINCIPAL", nullable = false)
+    @JoinColumn(name = "SLOLEKS_ID", nullable = false)
     private Numeral numeralBase;
 
     public String getSignificado() {

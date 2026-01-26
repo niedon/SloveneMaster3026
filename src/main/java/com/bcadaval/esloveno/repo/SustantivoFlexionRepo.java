@@ -30,9 +30,9 @@ public interface SustantivoFlexionRepo extends JpaRepository<SustantivoFlexion, 
 	Stream<SustantivoFlexion> streamActivos();
 
 	/**
-	 * Encuentra flexiones por el principal (sustantivo base)
+	 * Encuentra flexiones por el sloleksId (sustantivo base)
 	 */
-	List<SustantivoFlexion> findByPrincipal(String principal);
+	List<SustantivoFlexion> findBySloleksId(String sloleksId);
 
 	/**
 	 * Busca sustantivos que coincidan en caso, número y género.
@@ -45,7 +45,7 @@ public interface SustantivoFlexionRepo extends JpaRepository<SustantivoFlexion, 
 	 * @return Lista de flexiones que coinciden con los criterios
 	 */
 	@Query("SELECT sf FROM SustantivoFlexion sf " +
-			"INNER JOIN Sustantivo s ON sf.principal = s.principal " +
+			"INNER JOIN Sustantivo s ON sf.sloleksId = s.sloleksId " +
 			"WHERE sf.caso = :caso " +
 			"AND sf.numero = :numero " +
 			"AND s.genero = :genero " +

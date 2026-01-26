@@ -42,6 +42,12 @@
             font-size: 1.3em;
             font-weight: bold;
         }
+        .result-sloleks-id {
+            font-size: 0.75em;
+            color: #888;
+            margin-top: 2px;
+            font-family: monospace;
+        }
         .result-tipo {
             color: #666;
             margin-left: 10px;
@@ -223,9 +229,10 @@
 
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'result-info';
-                infoDiv.innerHTML = '<span class="result-lema">' + resultado.lema + '</span>' +
+                infoDiv.innerHTML = '<div><span class="result-lema">' + resultado.lema + '</span>' +
                     '<span class="result-tipo-badge ' + (resultado.soportado ? 'supported' : 'not-supported') + '">' +
-                    resultado.tipoEspanol + '</span>';
+                    resultado.tipoEspanol + '</span></div>' +
+                    '<div class="result-sloleks-id">' + resultado.sloleksId + '</div>';
 
                 div.appendChild(infoDiv);
 

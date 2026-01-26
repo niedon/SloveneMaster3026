@@ -83,6 +83,7 @@ public class ScrapController {
 						.lema(r.getLema())
 						.tipo(r.getTipo())
 						.tipoEspanol(r.getTipoEspanol())
+						.sloleksId(r.getSloleksId())
 						.soportado(r.isSoportado())
 						.indice(i)
 						.build());

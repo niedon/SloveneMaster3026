@@ -11,6 +11,13 @@ import java.util.List;
 public interface Palabra<E extends PalabraFlexion<?>> {
 
     /**
+     * Obtiene el identificador único de Sloleks.
+     *
+     * @return El sloleksId de la palabra.
+     */
+    String getSloleksId();
+
+    /**
      * Obtiene la lista de flexiones asociadas a la palabra.
      *
      * @return Lista de flexiones de la palabra.

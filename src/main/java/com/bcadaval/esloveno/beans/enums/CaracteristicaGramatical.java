@@ -25,6 +25,7 @@ public enum CaracteristicaGramatical {
     FORMA_VERBAL,
     PERSONA,
     TRANSITIVIDAD,
+    NEGATIVO,
 
     // Características de numerales
     TIPO_NUMERAL

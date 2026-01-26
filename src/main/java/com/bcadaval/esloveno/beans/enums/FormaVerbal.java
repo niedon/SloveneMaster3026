@@ -14,6 +14,7 @@ import lombok.Getter;
  * PRESENT: Presente (gledam, gledaš, etc.)
  * FUTURE: Futuro (bom gledal, boš gledala, etc.)
  * IMPERATIVE: Imperativo (glej, glejte, etc.)
+ * CONDITIONAL: Condicional (gledal bi, gledala bi, etc.)
  */
 @Getter
 public enum FormaVerbal {
@@ -22,7 +23,8 @@ public enum FormaVerbal {
     PARTICIPLE("P", "participle"),
     PRESENT("R", "present"),
     FUTURE("f", "future"),
-    IMPERATIVE("M", "imperative");
+    IMPERATIVE("M", "imperative"),
+    CONDITIONAL("C", "conditional");
 
     private final String code;
     private final String xmlCode;

@@ -86,10 +86,11 @@ public class NumeralService {
 			return false;
 		}
 
+		String principal = nf.getPrincipal();
 		return switch (numero) {
-			case SINGULAR -> "en".equals(nf.getPrincipal());
-			case DUAL -> "dva".equals(nf.getPrincipal());
-			case PLURAL -> !"en".equals(nf.getPrincipal()) && !"dva".equals(nf.getPrincipal());
+			case SINGULAR -> "en".equals(principal);
+			case DUAL -> "dva".equals(principal);
+			case PLURAL -> !"en".equals(principal) && !"dva".equals(principal);
 		};
 	}
 

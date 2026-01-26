@@ -16,15 +16,13 @@ import java.util.List;
 public class Pronombre implements Palabra<PronombreFlexion> {
 
 	@Id
-	private String principal;
+	private String sloleksId;
 
-	@Column
-	private String acentuado;
+	private String principal;
 
 	@Enumerated(EnumType.STRING)
 	private TipoPronombre tipoPronombre;
 
-	private String sloleksId;
 	private String sloleksKey;
 
 	private String significado;

@@ -38,6 +38,9 @@ logging:
   level:
     root: INFO
     com.bcadaval.esloveno: DEBUG
+    org:
+      springframework:
+        web: INFO  # Desactivar logs DEBUG de requests HTTP
 
 
 

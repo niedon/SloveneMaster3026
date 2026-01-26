@@ -24,16 +24,16 @@ public class VerbosService {
 		return verboRepo.findAll();
 	}
 	
-	public Verbo findById(String principal) throws VerboNotFoundException {
-		return verboRepo.findById(principal).orElseThrow(VerboNotFoundException::new);
+	public Verbo findById(String sloleksId) throws VerboNotFoundException {
+		return verboRepo.findById(sloleksId).orElseThrow(VerboNotFoundException::new);
 	}
 	
-	public boolean verbHasConjugations(String verb) {
-		return verboRepo.findById(verb).isPresent() && verboFlexionRepo.count(Example.of(VerboFlexion.builder().principal(verb).build())) > 8;
+	public boolean verbHasConjugations(String sloleksId) {
+		return verboRepo.findById(sloleksId).isPresent() && verboFlexionRepo.count(Example.of(VerboFlexion.builder().sloleksId(sloleksId).build())) > 8;
 	}
 	
 	public List<VerboFlexion> saveConjugations(List<VerboFlexion> conjugations) throws VerboNotFoundException {
-		verboRepo.findById(conjugations.getFirst().getPrincipal()).orElseThrow(VerboNotFoundException::new);
+		verboRepo.findById(conjugations.getFirst().getSloleksId()).orElseThrow(VerboNotFoundException::new);
 		return verboFlexionRepo.saveAll(conjugations);
 	}
 }

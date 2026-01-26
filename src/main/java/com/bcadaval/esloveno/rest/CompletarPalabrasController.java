@@ -99,33 +99,33 @@ public class CompletarPalabrasController {
         Stream.of(TipoPalabra.values()).map(tipoPalabra -> switch (tipoPalabra) {
             case SUSTANTIVO -> sustantivoRepo.findBySignificadoIsNullOrAnimadoIsNull().stream()
                 .map(sustantivo -> PalabraIncompletaDTO.builder()
-                    .id(sustantivo.getPrincipal())
+                    .id(sustantivo.getSloleksId())
                     .palabra(sustantivo.getPrincipal())
                     .tipo(TipoPalabra.SUSTANTIVO.getXmlCode())
                     .significado(sustantivo.getSignificado())
                     .animado(sustantivo.getAnimado()));
             case VERBO -> verboRepo.findBySignificadoIsNullOrTransitividadIsNull().stream()
                 .map(verbo -> PalabraIncompletaDTO.builder()
-                    .id(verbo.getPrincipal())
+                    .id(verbo.getSloleksId())
                     .palabra(verbo.getPrincipal())
                     .tipo(TipoPalabra.VERBO.getXmlCode())
                     .significado(verbo.getSignificado())
                     .transitividad(verbo.getTransitividad() != null ? verbo.getTransitividad().name() : null));
             case ADJETIVO -> adjetivoRepo.findBySignificadoIsNull().stream()
                 .map(adjetivo -> PalabraIncompletaDTO.builder()
-                    .id(adjetivo.getPrincipal())
+                    .id(adjetivo.getSloleksId())
                     .palabra(adjetivo.getPrincipal())
                     .tipo(TipoPalabra.ADJETIVO.getXmlCode())
                     .significado(adjetivo.getSignificado()));
             case PRONOMBRE -> pronombreFlexionRepo.findBySignificadoIsNull().stream()
                 .map(pronombreFlexion -> PalabraIncompletaDTO.builder()
                     .id(pronombreFlexion.getId().toString())
-                    .palabra(pronombreFlexion.getPrincipal())
+                    .palabra(pronombreFlexion.getFlexion())
                     .tipo(TipoPalabra.PRONOMBRE.getXmlCode())
                     .significado(pronombreFlexion.getSignificado()));
             case NUMERAL -> numeralRepo.findBySignificadoIsNull().stream()
                 .map(numeral -> PalabraIncompletaDTO.builder()
-                    .id(numeral.getPrincipal())
+                    .id(numeral.getSloleksId())
                     .palabra(numeral.getPrincipal())
                     .tipo(TipoPalabra.NUMERAL.getXmlCode())
                     .significado(numeral.getSignificado()));
@@ -184,11 +184,11 @@ public class CompletarPalabrasController {
             Double factorInicial = variablesService.getFactorFacilidadInicial();
 
             List<? extends PalabraFlexion<?>> lista = switch (TipoPalabra.valueOf(tipo)) {
-                case SUSTANTIVO -> sustantivoFlexionRepo.findByPrincipal(id);
-                case VERBO -> verboFlexionRepo.findByPrincipal(id);
-                case ADJETIVO -> adjetivoFlexionRepo.findByPrincipal(id);
+                case SUSTANTIVO -> sustantivoFlexionRepo.findBySloleksId(id);
+                case VERBO -> verboFlexionRepo.findBySloleksId(id);
+                case ADJETIVO -> adjetivoFlexionRepo.findBySloleksId(id);
                 case PRONOMBRE -> pronombreFlexionRepo.findById(Integer.valueOf(id)).stream().toList();
-                case NUMERAL -> numeralFlexionRepo.findByPrincipal(id);
+                case NUMERAL -> numeralFlexionRepo.findBySloleksId(id);
             };
             lista.forEach(flexion -> inicializarCamposSrs(flexion, ahora, factorInicial));
             switch (TipoPalabra.valueOf(tipo)) {

@@ -17,7 +17,8 @@ public enum Aspecto {
 
 	PERFECTIVO("P", "perfective", "⏸️"),
 	IMPERFECTIVO("I", "progressive", "▶️"),
-	AMBIPREFECTIVO("*", "biaspectual", "⏯️");
+	AMBIPREFECTIVO("*", "biaspectual", "⏯️"),
+	NULL("", "null", "❓");
 
 	private final String code;
 	private final String xmlCode;
@@ -30,7 +31,7 @@ public enum Aspecto {
 	}
 
     public static Aspecto fromCode(String code) {
-		if (code == null || code.isBlank()) return null;
+		if (code == null || code.isBlank()) return NULL;
 		return switch (code) {
 		case "I", "progressive" -> Aspecto.IMPERFECTIVO;
 		case "P", "perfective" -> Aspecto.PERFECTIVO;

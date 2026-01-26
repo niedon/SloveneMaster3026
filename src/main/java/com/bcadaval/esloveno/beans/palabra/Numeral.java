@@ -20,12 +20,10 @@ import java.util.List;
 public class Numeral implements Palabra<NumeralFlexion> {
 
     @Id
+    private String sloleksId;
+
     private String principal;
 
-    @Column
-    private String acentuado;
-
-    private String sloleksId;
     private String sloleksKey;
 
     private String significado;

@@ -41,6 +41,7 @@ public class FraseSoloVerboPresente extends EstructuraFrase {
                 .nombre("VERBO")
                 .criterio(CriterioBusqueda.de(VerboFlexion.class)
                         .con(CaracteristicaGramatical.FORMA_VERBAL, FormaVerbal.PRESENT)
+                        .con(CaracteristicaGramatical.NEGATIVO, false)
                         .build())
                 .extractor(ExtraccionSlotEstandar.get())
                 .extractorDeEspanol(p ->

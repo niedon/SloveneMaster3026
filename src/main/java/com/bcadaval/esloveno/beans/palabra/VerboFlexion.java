@@ -41,7 +41,9 @@ public class VerboFlexion implements PalabraFlexion<Verbo> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "PRINCIPAL", insertable = false, updatable = false)
+    @Column(name = "SLOLEKS_ID", insertable = false, updatable = false)
+    private String sloleksId;
+
     private String principal;
 
     /** Forma verbal (infinitive, supine, participle, present, imperative) */
@@ -55,6 +57,8 @@ public class VerboFlexion implements PalabraFlexion<Verbo> {
 
     /** Género (solo aplica para participios) */
     private Genero genero;
+
+    private Boolean negativo;
 
     private String flexion;
 
@@ -128,10 +132,10 @@ public class VerboFlexion implements PalabraFlexion<Verbo> {
 
     /**
      * Referencia a la palabra base (verbo en infinitivo)
-     * Usa PRINCIPAL como clave foránea
+     * Usa SLOLEKS_ID como clave foránea
      */
     @ManyToOne
-    @JoinColumn(name = "PRINCIPAL", nullable = false)
+    @JoinColumn(name = "SLOLEKS_ID", nullable = false)
     private Verbo verboBase;
 
     public String getSignificado() {
@@ -151,6 +155,7 @@ public class VerboFlexion implements PalabraFlexion<Verbo> {
             case NUMERO -> this.numero;
             case GENERO -> this.genero;
             case TRANSITIVIDAD -> verboBase.getTransitividad();
+            case NEGATIVO -> this.negativo;
             // Características que no aplican a verbos
             case CASO, GRADO, DEFINITUD, TIPO_NUMERAL -> null;
         };

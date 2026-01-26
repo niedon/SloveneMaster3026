@@ -13,7 +13,7 @@ import java.util.List;
 
 public interface NumeralFlexionRepo extends JpaRepository<NumeralFlexion, Integer>, QueryByExampleExecutor<NumeralFlexion> {
 
-    List<NumeralFlexion> findByPrincipal(String principal);
+    List<NumeralFlexion> findBySloleksId(String sloleksId);
 
     /**
      * Busca numerales que coincidan en caso y número, opcionalmente filtrando por género.

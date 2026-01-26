@@ -75,6 +75,7 @@ public class XmlParseService {
 	private static final String XPATH_VFORM = "grammarFeatureList/grammarFeature[@name='vform']/text()";
 	private static final String XPATH_CLITIC = "grammarFeatureList/grammarFeature[@name='clitic']/text()";
 	private static final String XPATH_DEFINITENESS = "grammarFeatureList/grammarFeature[@name='definiteness']/text()";
+	private static final String XPATH_NEGATIVE = "grammarFeatureList/grammarFeature[@name='negative']/text()";
 
 	// XPaths para head
 	private static final String XPATH_SLOLEKS_ID = "/entry/head/lexicalUnit/@sloleksId";
@@ -99,6 +100,7 @@ public class XmlParseService {
         private String tipo;
         private String tipoEspanol;
         private boolean soportado;
+        private String sloleksId;
         private String xmlContent;
     }
 
@@ -146,15 +148,17 @@ public class XmlParseService {
 
     private Sustantivo parseSustantivo(Document doc, XPath xPath, String principal) throws XPathException {
         NodeList wordForms = (NodeList) xPath.compile(XPATH_WORDFORMS).evaluate(doc, XPathConstants.NODESET);
+        String sloleksId = getXPathValue(doc, xPath, XPATH_SLOLEKS_ID);
         return Sustantivo.builder()
                 .principal(principal)
                 .genero(Genero.fromCode(getXPathValue(doc, xPath, XPATH_HEAD_GENDER)))
-                .sloleksId(getXPathValue(doc, xPath, XPATH_SLOLEKS_ID))
+                .sloleksId(sloleksId)
                 .sloleksKey(getXPathValue(doc, xPath, XPATH_SLOLEKS_KEY))
                 .listaFlexiones(
 						IntStream.range(0, wordForms.getLength())
 						.mapToObj(wordForms::item)
 						.map(wordForm -> SustantivoFlexion.builder()
+								.sloleksId(sloleksId)
 								.principal(principal)
 								.flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
 								.acentuado(getNodeXPathValue(wordForm, xPath, XPATH_ACENTUADO))
@@ -171,14 +175,16 @@ public class XmlParseService {
 
     private Verbo parseVerbo(Document doc, XPath xPath, String principal) throws XPathException {
         NodeList wordForms = (NodeList) xPath.compile(XPATH_WORDFORMS).evaluate(doc, XPathConstants.NODESET);
+        String sloleksId = getXPathValue(doc, xPath, XPATH_SLOLEKS_ID);
         return Verbo.builder()
                 .principal(principal)
-                .sloleksId(getXPathValue(doc, xPath, XPATH_SLOLEKS_ID))
+                .sloleksId(sloleksId)
                 .sloleksKey(getXPathValue(doc, xPath, XPATH_SLOLEKS_KEY))
                 .aspecto(Aspecto.fromCode(getXPathValue(doc, xPath, XPATH_HEAD_ASPECT)))
                 .listaFlexiones(IntStream.range(0, wordForms.getLength())
 						.mapToObj(wordForms::item)
 						.map(wordForm -> VerboFlexion.builder()
+								.sloleksId(sloleksId)
 								.principal(principal)
 								.flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
 								.acentuado(getNodeXPathValue(wordForm, xPath, XPATH_ACENTUADO))
@@ -188,6 +194,7 @@ public class XmlParseService {
 								.persona(Persona.fromCode(getNodeXPathValue(wordForm, xPath, XPATH_PERSON)))
 								.numero(Numero.fromCode(getNodeXPathValue(wordForm, xPath, XPATH_NUMBER)))
 								.genero(Genero.fromCode(getNodeXPathValue(wordForm, xPath, XPATH_GENDER)))
+                                .negativo(parseYesNoBoolean(getNodeXPathValue(wordForm, xPath, XPATH_NEGATIVE), false))
 								.build())
 						.filter(Objects::nonNull)
 						.filter(flexion -> StringUtils.isNotBlank(flexion.getFlexion()))
@@ -197,13 +204,15 @@ public class XmlParseService {
 
     private Adjetivo parseAdjetivo(Document doc, XPath xPath, String principal) throws XPathException {
         NodeList wordForms = (NodeList) xPath.compile(XPATH_WORDFORMS).evaluate(doc, XPathConstants.NODESET);
+        String sloleksId = getXPathValue(doc, xPath, XPATH_SLOLEKS_ID);
         return Adjetivo.builder()
                 .principal(principal)
-                .sloleksId(getXPathValue(doc, xPath, XPATH_SLOLEKS_ID))
+                .sloleksId(sloleksId)
                 .sloleksKey(getXPathValue(doc, xPath, XPATH_SLOLEKS_KEY))
                 .listaFlexiones(IntStream.range(0, wordForms.getLength())
 						.mapToObj(wordForms::item)
 						.map(wordForm -> AdjetivoFlexion.builder()
+								.sloleksId(sloleksId)
 								.principal(principal)
 								.flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
 								.acentuado(getNodeXPathValue(wordForm, xPath, XPATH_ACENTUADO))
@@ -229,14 +238,16 @@ public class XmlParseService {
 
     private Pronombre parsePronombre(Document doc, XPath xPath, String principal) throws XPathException {
         NodeList wordForms = (NodeList) xPath.compile(XPATH_WORDFORMS).evaluate(doc, XPathConstants.NODESET);
+        String sloleksId = getXPathValue(doc, xPath, XPATH_SLOLEKS_ID);
         return Pronombre.builder()
                 .principal(principal)
                 .tipoPronombre(TipoPronombre.fromCode(getXPathValue(doc, xPath, XPATH_HEAD_TYPE)))
-                .sloleksId(getXPathValue(doc, xPath, XPATH_SLOLEKS_ID))
+                .sloleksId(sloleksId)
                 .sloleksKey(getXPathValue(doc, xPath, XPATH_SLOLEKS_KEY))
                 .listaFlexiones(IntStream.range(0, wordForms.getLength())
 						.mapToObj(wordForms::item)
 						.map(wordForm -> PronombreFlexion.builder()
+								.sloleksId(sloleksId)
 								.principal(principal)
 								.flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
 								.acentuado(getNodeXPathValue(wordForm, xPath, XPATH_ACENTUADO))
@@ -256,13 +267,15 @@ public class XmlParseService {
 
     private Numeral parseNumeral(Document doc, XPath xPath, String principal) throws XPathException {
         NodeList wordForms = (NodeList) xPath.compile(XPATH_WORDFORMS).evaluate(doc, XPathConstants.NODESET);
+        String sloleksId = getXPathValue(doc, xPath, XPATH_SLOLEKS_ID);
         return Numeral.builder()
                 .principal(principal)
-                .sloleksId(getXPathValue(doc, xPath, XPATH_SLOLEKS_ID))
+                .sloleksId(sloleksId)
                 .sloleksKey(getXPathValue(doc, xPath, XPATH_SLOLEKS_KEY))
                 .listaFlexiones(IntStream.range(0, wordForms.getLength())
 						.mapToObj(wordForms::item)
 						.map(wordForm -> NumeralFlexion.builder()
+								.sloleksId(sloleksId)
 								.principal(principal)
 								.flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
 								.acentuado(getNodeXPathValue(wordForm, xPath, XPATH_ACENTUADO))
@@ -331,44 +344,58 @@ public class XmlParseService {
         };
     }
 
+    private Boolean parseYesNoBoolean(String value, Boolean defaultValue) {
+        Boolean result = parseYesNoBoolean(value);
+        return result != null ? result : defaultValue;
+    }
+
+
     /**
      * Busca TODAS las entradas con el lema dado en los XMLs
      */
     private List<ResultadoBusqueda> getAllXmlStrings(String word) throws IOException {
-        List<ResultadoBusqueda> resultados = new ArrayList<>();
-        VTDGen vtdGenerator = new VTDGen();
+        // Usar parallel stream para procesar múltiples archivos simultáneamente
+        try (var stream = Files.walk(Paths.get(xmlPath), 5)) {
+            return stream
+                    .filter(p -> p.toFile().isFile())
+                    .parallel() // Procesamiento paralelo
+                    .flatMap(p -> {
+                        log.debug("Buscando en archivo {}", p);
+                        List<ResultadoBusqueda> resultadosArchivo = new ArrayList<>();
 
-        Files.walk(Paths.get(xmlPath), 5)
-                .filter(p -> p.toFile().isFile())
-                .forEach(p -> {
-                    log.debug("Buscando en archivo {}", p);
-                    try {
-                        vtdGenerator.setDoc(Files.readAllBytes(p));
-                        vtdGenerator.parse(true);
-                        VTDNav vtdNavigator = vtdGenerator.getNav();
-                        AutoPilot autoPilot = new AutoPilot(vtdNavigator);
-                        autoPilot.selectXPath("/lexicon/entry[head/headword/lemma = '" + word + "']");
+                        // Cada thread tiene su propio VTDGen para evitar problemas de concurrencia
+                        VTDGen vtdGenerator = new VTDGen();
 
-                        while (autoPilot.evalXPath() != -1) {
-                            long l = vtdNavigator.getContentFragment();
-                            String xmlContent = "<entry>" + vtdNavigator.toString((int) l, (int) (l >> 32)) + "</entry>";
+                        try {
+                            vtdGenerator.setDoc(Files.readAllBytes(p));
+                            vtdGenerator.parse(true);
+                            VTDNav vtdNavigator = vtdGenerator.getNav();
+                            AutoPilot autoPilot = new AutoPilot(vtdNavigator);
+                            autoPilot.selectXPath("/lexicon/entry[head/headword/lemma = '" + word + "']");
 
-                            String tipo = extractCategory(xmlContent);
-                            log.debug("Categoría extraída: {}", tipo);
-                            resultados.add(ResultadoBusqueda.builder()
-                                    .lema(word)
-                                    .tipo(tipo)
-                                    .tipoEspanol(traducirTipo(tipo))
-                                    .soportado(TipoPalabra.fromXmlCode(tipo) != null)
-                                    .xmlContent(xmlContent)
-                                    .build());
+                            while (autoPilot.evalXPath() != -1) {
+                                long l = vtdNavigator.getContentFragment();
+                                String xmlContent = "<entry>" + vtdNavigator.toString((int) l, (int) (l >> 32)) + "</entry>";
+
+                                String tipo = extractCategory(xmlContent);
+                                log.debug("Categoría extraída: {}", tipo);
+                                resultadosArchivo.add(ResultadoBusqueda.builder()
+                                        .lema(word)
+                                        .tipo(tipo)
+                                        .tipoEspanol(traducirTipo(tipo))
+                                        .soportado(TipoPalabra.fromXmlCode(tipo) != null)
+                                        .sloleksId(extraerSloleksId(xmlContent))
+                                        .xmlContent(xmlContent)
+                                        .build());
+                            }
+                        } catch (IOException | VTDException e) {
+                            log.warn("Error reading the file {}", p, e);
                         }
-                    } catch (IOException | VTDException e) {
-                        log.warn("Error reading the file {}", p, e);
-                    }
-                });
 
-        return resultados;
+                        return resultadosArchivo.stream();
+                    })
+                    .toList();
+        }
     }
 
     /**
@@ -382,6 +409,17 @@ public class XmlParseService {
         } catch (Exception e) {
             log.warn("No se pudo extraer categoría: {}", e.getMessage());
             return "unknown";
+        }
+    }
+
+    private String extraerSloleksId(String xml) {
+        try {
+            Document doc = parseXmlString(xml);
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            return getXPathValue(doc, xPath, "/entry/head/lexicalUnit/@sloleksId");
+        } catch (Exception e) {
+            log.warn("No se pudo extraer Sloleks ID: {}", e.getMessage());
+            return null;
         }
     }
 

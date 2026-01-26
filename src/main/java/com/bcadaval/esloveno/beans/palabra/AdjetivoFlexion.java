@@ -42,7 +42,9 @@ public class AdjetivoFlexion implements PalabraFlexion<Adjetivo> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "PRINCIPAL", insertable = false, updatable = false)
+    @Column(name = "SLOLEKS_ID", insertable = false, updatable = false)
+    private String sloleksId;
+
     private String principal;
 
     private Genero genero;
@@ -127,10 +129,10 @@ public class AdjetivoFlexion implements PalabraFlexion<Adjetivo> {
 
     /**
      * Referencia a la palabra base (adjetivo en forma principal)
-     * Usa PRINCIPAL como clave foránea
+     * Usa SLOLEKS_ID como clave foránea
      */
     @ManyToOne
-    @JoinColumn(name = "PRINCIPAL", nullable = false)
+    @JoinColumn(name = "SLOLEKS_ID", nullable = false)
     private Adjetivo adjetivoBase;
 
     public String getSignificado() {
@@ -150,7 +152,7 @@ public class AdjetivoFlexion implements PalabraFlexion<Adjetivo> {
             case NUMERO -> this.numero;
             case GRADO -> this.grado;
             case DEFINITUD -> this.definitud;
-            case FORMA_VERBAL, PERSONA, TRANSITIVIDAD, TIPO_NUMERAL -> null;
+            case FORMA_VERBAL, PERSONA, TRANSITIVIDAD, TIPO_NUMERAL, NEGATIVO -> null;
         };
     }
 

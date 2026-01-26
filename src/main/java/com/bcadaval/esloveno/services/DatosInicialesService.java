@@ -57,10 +57,12 @@ public class DatosInicialesService {
     /**
      * Verifica si la base de datos tiene datos y, si no, carga las palabras iniciales.
      * Esta función debe llamarse después de que la BD y los XMLs estén listos.
+     *
+     * @return true si se cargaron datos iniciales (BD recién creada), false si ya existían datos
      */
     @Transactional
-    public void cargarDatosInicialesSiNecesario() {
-        cargarDatosInicialesSiNecesario(null, null);
+    public boolean cargarDatosInicialesSiNecesario() {
+        return cargarDatosInicialesSiNecesario(null, null);
     }
 
     /**
@@ -69,16 +71,17 @@ public class DatosInicialesService {
      *
      * @param progressCallback Callback para actualizar el progreso (0-100)
      * @param messageCallback Callback para actualizar el mensaje
+     * @return true si se cargaron datos iniciales (BD recién creada), false si ya existían datos
      */
     @Transactional
-    public void cargarDatosInicialesSiNecesario(
+    public boolean cargarDatosInicialesSiNecesario(
             java.util.function.IntConsumer progressCallback,
             java.util.function.Consumer<String> messageCallback) {
 
         // Verificar primero si ya hay datos (optimización)
         if (hayDatosEnBD()) {
             log.debug("La base de datos ya tiene datos, omitiendo carga inicial");
-            return;
+            return false;
         }
 
         log.info("Base de datos vacía detectada, cargando palabras iniciales...");
@@ -168,6 +171,7 @@ public class DatosInicialesService {
         }
 
         log.info("Carga de datos iniciales completada: {} palabras cargadas, {} errores", cargadas, errores);
+        return true; // Se cargaron los datos iniciales
     }
 
     /**

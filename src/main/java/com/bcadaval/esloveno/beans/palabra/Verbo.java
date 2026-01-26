@@ -29,10 +29,9 @@ import lombok.experimental.Accessors;
 public class Verbo implements Palabra<VerboFlexion> {
 
 	@Id
-	private String principal;
+	private String sloleksId;
 
-	@Column
-	private String acentuado;
+	private String principal;
 
 	@Column
 	private Transitividad transitividad;
@@ -43,7 +42,6 @@ public class Verbo implements Palabra<VerboFlexion> {
 	
 	private String significado;
 
-	private String sloleksId;
 	private String sloleksKey;
 
 	@Transient

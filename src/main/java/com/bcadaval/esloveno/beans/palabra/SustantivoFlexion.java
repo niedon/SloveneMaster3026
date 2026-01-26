@@ -39,7 +39,9 @@ public class SustantivoFlexion implements PalabraFlexion<Sustantivo> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "PRINCIPAL", insertable = false, updatable = false)
+    @Column(name = "SLOLEKS_ID", insertable = false, updatable = false)
+    private String sloleksId;
+
     private String principal;
 
     private Numero numero;
@@ -118,10 +120,10 @@ public class SustantivoFlexion implements PalabraFlexion<Sustantivo> {
 
     /**
      * Referencia a la palabra base (sustantivo en forma principal)
-     * Usa PRINCIPAL como clave foránea
+     * Usa SLOLEKS_ID como clave foránea
      */
     @ManyToOne
-    @JoinColumn(name = "PRINCIPAL", nullable = false)
+    @JoinColumn(name = "SLOLEKS_ID", nullable = false)
     private Sustantivo sustantivoBase;
 
     public String getSignificado() {
@@ -140,7 +142,7 @@ public class SustantivoFlexion implements PalabraFlexion<Sustantivo> {
             case NUMERO -> this.numero;
             case GENERO -> sustantivoBase.getGenero();
             // Características que no aplican a sustantivos
-            case GRADO, DEFINITUD, FORMA_VERBAL, PERSONA, TRANSITIVIDAD, TIPO_NUMERAL -> null;
+            case GRADO, DEFINITUD, FORMA_VERBAL, PERSONA, TRANSITIVIDAD, TIPO_NUMERAL, NEGATIVO -> null;
         };
     }
 

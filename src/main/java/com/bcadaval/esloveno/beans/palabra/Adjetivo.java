@@ -26,12 +26,10 @@ import lombok.experimental.Accessors;
 public class Adjetivo implements Palabra<AdjetivoFlexion> {
 	
 	@Id
-	private String principal;
-	
-	@Column
-	private String acentuado;
-
 	private String sloleksId;
+
+	private String principal;
+
 	private String sloleksKey;
 	
 	private String significado;
