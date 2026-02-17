@@ -42,31 +42,51 @@ public class Variable {
     private String descripcion;
 
     /**
-     * Obtiene el valor como Integer
+     * Obtiene el valor como Integer.
+     * @return valor como Integer, o null si es null o no es parseable
      */
     public Integer getValorAsInteger() {
-        return valor != null ? Integer.parseInt(valor) : null;
+        if (valor == null || valor.isBlank()) return null;
+        try {
+            return Integer.parseInt(valor.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
-     * Obtiene el valor como Long
+     * Obtiene el valor como Long.
+     * @return valor como Long, o null si es null o no es parseable
      */
     public Long getValorAsLong() {
-        return valor != null ? Long.parseLong(valor) : null;
+        if (valor == null || valor.isBlank()) return null;
+        try {
+            return Long.parseLong(valor.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
-     * Obtiene el valor como Double
+     * Obtiene el valor como Double.
+     * @return valor como Double, o null si es null o no es parseable
      */
     public Double getValorAsDouble() {
-        return valor != null ? Double.parseDouble(valor) : null;
+        if (valor == null || valor.isBlank()) return null;
+        try {
+            return Double.parseDouble(valor.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
-     * Obtiene el valor como Boolean
+     * Obtiene el valor como Boolean.
+     * @return true si valor es "true" (ignora mayúsculas), false en otro caso, null si valor es null
      */
     public Boolean getValorAsBoolean() {
-        return valor != null ? Boolean.parseBoolean(valor) : null;
+        if (valor == null) return null;
+        return Boolean.parseBoolean(valor.trim());
     }
 }
 

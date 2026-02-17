@@ -131,8 +131,12 @@ public class RespuestasController {
 
 			log.info("=== FIN PROCESAMIENTO ===\n");
 
+		} catch (NumberFormatException e) {
+			log.error("Error parseando ID de palabra: {}", e.getMessage());
+			// Continuar para no perder la sesión del usuario
 		} catch (Exception e) {
 			log.error("Error procesando respuestas: {}", e.getMessage(), e);
+			// Continuar para no perder la sesión del usuario
 		}
 
 		// Redirigir de vuelta al formulario

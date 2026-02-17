@@ -50,7 +50,7 @@ public class ConsultaPalabrasService {
         if(criterios.isEmpty()) return Stream.empty();
         Instant ahora = Instant.now();
         return verboFlexionRepo.streamListosParaEstudiar(ahora)
-                .filter(vf -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(vf)));
+                .filter(vf -> criterios.stream().anyMatch(c -> c.cumple(vf)));
     }
 
     public List<VerboFlexion> listVerbosListos(List<CriterioGramatical> criterios) {
@@ -64,7 +64,7 @@ public class ConsultaPalabrasService {
         if(criterios.isEmpty()) return Stream.empty();
         Instant ahora = Instant.now();
         return sustantivoFlexionRepo.streamListosParaEstudiar(ahora)
-                .filter(sf -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(sf)));
+                .filter(sf -> criterios.stream().anyMatch(c -> c.cumple(sf)));
     }
 
     public List<SustantivoFlexion> listSustantivosListos(List<CriterioGramatical> criterios) {
@@ -78,7 +78,7 @@ public class ConsultaPalabrasService {
         if(criterios.isEmpty()) return Stream.empty();
         Instant ahora = Instant.now();
         return adjetivoFlexionRepo.streamListosParaEstudiar(ahora)
-                .filter(af -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(af)));
+                .filter(af -> criterios.stream().anyMatch(c -> c.cumple(af)));
     }
 
     public List<AdjetivoFlexion> listAdjetivosListos(List<CriterioGramatical> criterios) {
@@ -92,7 +92,7 @@ public class ConsultaPalabrasService {
     private Stream<VerboFlexion> streamVerbosActivos(List<CriterioGramatical> criterios) {
         if(criterios.isEmpty()) return Stream.empty();
         return verboFlexionRepo.streamActivos()
-                .filter(vf -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(vf)));
+                .filter(vf -> criterios.stream().anyMatch(c -> c.cumple(vf)));
     }
 
     public List<VerboFlexion> listVerbosActivos(List<CriterioGramatical> criterios) {
@@ -105,7 +105,7 @@ public class ConsultaPalabrasService {
     private Stream<SustantivoFlexion> streamSustantivosActivos(List<CriterioGramatical> criterios) {
         if(criterios.isEmpty()) return Stream.empty();
         return sustantivoFlexionRepo.streamActivos()
-                .filter(sf -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(sf)));
+                .filter(sf -> criterios.stream().anyMatch(c -> c.cumple(sf)));
     }
 
     public List<SustantivoFlexion> listSustantivosActivos(List<CriterioGramatical> criterios) {
@@ -118,7 +118,7 @@ public class ConsultaPalabrasService {
     private Stream<AdjetivoFlexion> streamAdjetivosActivos(List<CriterioGramatical> criterios) {
         if(criterios.isEmpty()) return Stream.empty();
         return adjetivoFlexionRepo.streamActivos()
-                .filter(af -> criterios.isEmpty() || criterios.stream().anyMatch(c -> c.cumple(af)));
+                .filter(af -> criterios.stream().anyMatch(c -> c.cumple(af)));
     }
 
     public List<AdjetivoFlexion> listAdjetivosActivos(List<CriterioGramatical> criterios) {

@@ -35,6 +35,10 @@
             background: #ffebee;
             border-color: #f44336;
         }
+        .result-item.already-exists {
+            background: #e3f2fd;
+            border-color: #1976d2;
+        }
         .result-info {
             flex-grow: 1;
         }
@@ -225,7 +229,15 @@
             resultsList.innerHTML = '';
             resultadosFiltrados.forEach(resultado => {
                 const div = document.createElement('div');
-                div.className = 'result-item ' + (resultado.soportado ? 'supported' : 'not-supported');
+
+                // Determinar la clase CSS según el estado
+                if (resultado.yaExiste) {
+                    div.className = 'result-item already-exists';
+                } else if (resultado.soportado) {
+                    div.className = 'result-item supported';
+                } else {
+                    div.className = 'result-item not-supported';
+                }
 
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'result-info';
@@ -236,7 +248,13 @@
 
                 div.appendChild(infoDiv);
 
-                if (resultado.soportado) {
+                if (resultado.yaExiste) {
+                    // Palabra ya existe en la base de datos
+                    const span = document.createElement('span');
+                    span.style.color = '#1976d2';
+                    span.innerHTML = '✅ Ya añadida';
+                    div.appendChild(span);
+                } else if (resultado.soportado) {
                     const btn = document.createElement('button');
                     btn.className = 'btn-add';
                     btn.innerHTML = '➕ Añadir';

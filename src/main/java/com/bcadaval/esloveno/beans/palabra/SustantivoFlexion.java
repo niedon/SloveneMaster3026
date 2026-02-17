@@ -140,7 +140,7 @@ public class SustantivoFlexion implements PalabraFlexion<Sustantivo> {
         return switch (caracteristica) {
             case CASO -> this.caso;
             case NUMERO -> this.numero;
-            case GENERO -> sustantivoBase.getGenero();
+            case GENERO -> sustantivoBase != null ? sustantivoBase.getGenero() : null;
             // Características que no aplican a sustantivos
             case GRADO, DEFINITUD, FORMA_VERBAL, PERSONA, TRANSITIVIDAD, TIPO_NUMERAL, NEGATIVO -> null;
         };

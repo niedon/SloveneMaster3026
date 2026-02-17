@@ -10,20 +10,19 @@ import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
-import com.bcadaval.esloveno.repo.PronombreRepo;
 
 @Service
 public class PronombreService {
-	
-	@Autowired
-	PronombreRepo pronombreRepo;
 
 	@Autowired
 	PronombreFlexionRepo pronombreFlexionRepo;
 
 	/** Devuelve un pronombre que coincide con la persona y número del verbo dado */
 	public PronombreFlexion getPronombre(VerboFlexion verboFlexion) {
-		return pronombreFlexionRepo.findAll(
+		if (verboFlexion == null || verboFlexion.getPersona() == null || verboFlexion.getNumero() == null) {
+			return null;
+		}
+		var candidatos = pronombreFlexionRepo.findAll(
 				Example.of(
 						PronombreFlexion.builder()
 							.persona(verboFlexion.getPersona())
@@ -31,9 +30,13 @@ public class PronombreService {
 							.caso(Caso.NOMINATIVO)
 							.build())).stream()
 		.filter(p -> !Boolean.TRUE.equals(p.getClitico())) // Excluir formas clíticas
-		.sorted((o1, o2) -> ThreadLocalRandom.current().nextInt(-1, 2))
-		.findAny()
-		.orElseThrow();
+		.toList();
+
+		if (candidatos.isEmpty()) {
+			return null;
+		}
+		// Seleccionar uno aleatorio
+		return candidatos.get(ThreadLocalRandom.current().nextInt(candidatos.size()));
 	}
 
 }

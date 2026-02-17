@@ -9,7 +9,7 @@ import java.util.function.Function;
  * Extracción estándar para elementos de apoyo (pronombres, numerales, etc.).
  * <p>
  * Patrón:
- * - ES→SL: significado → flexion
+ * - ES→SL: significado → flexion (sin acentuación para elementos de apoyo)
  * - SL→ES: flexion → significado
  * <p>
  * Bean singleton gestionado por Spring.
@@ -33,7 +33,7 @@ public class ExtraccionApoyoEstandar implements EstrategiaExtraccion<PalabraFlex
 
     @Override
     public Function<PalabraFlexion<?>, String> aEsloveno() {
-        return PalabraFlexion::getAcentuado;
+        return PalabraFlexion::getFlexion; // Apoyo usa flexion, no acentuado
     }
 
     @Override

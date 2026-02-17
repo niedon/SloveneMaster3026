@@ -72,6 +72,11 @@ public class BusquedaMultipleResponse {
         private boolean soportado;
 
         /**
+         * Si la palabra ya existe en la base de datos
+         */
+        private boolean yaExiste;
+
+        /**
          * Índice del resultado para identificarlo al guardar
          */
         private int indice;

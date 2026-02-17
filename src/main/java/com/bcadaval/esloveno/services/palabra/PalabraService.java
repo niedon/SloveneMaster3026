@@ -9,6 +9,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Log4j2
 @Service
@@ -52,8 +53,9 @@ public class PalabraService {
 
 	}
 
-	/** Guarda una palabra y sus flexiones asociadas */
+	/** Guarda una palabra y sus flexiones asociadas de forma transaccional */
 	@SuppressWarnings("rawtypes")
+	@Transactional
 	public Palabra<?> saveWordAndConjugations(Palabra<?> palabra) {
 		log.debug("Guardando palabra {} con {} flexiones", palabra.getPrincipal(), palabra.getListaFlexiones().size());
 
@@ -66,11 +68,6 @@ public class PalabraService {
 			default -> throw new IllegalArgumentException("Tipo de palabra no soportado: " + palabra.getClass());
 		};
 
-//		palabra.getListaFlexiones()
-//				.stream()
-//				.map(p -> (PalabraFlexion) p)
-//				.forEach(p -> p.setPalabraBase(palabraGuardada));
-
 		// Asignar la referencia a la palabra base en cada flexión
 		for (Object flexion : palabra.getListaFlexiones()) {
 			if (flexion instanceof PalabraFlexion pf) {
@@ -81,6 +78,25 @@ public class PalabraService {
 		getFlexionRepository(palabra).saveAll(palabra.getListaFlexiones());
 
 		return palabraGuardada;
+	}
+
+	/**
+	 * Verifica si una palabra ya existe en la base de datos por su sloleksId
+	 * @param sloleksId ID de Sloleks de la palabra
+	 * @param tipoPalabra Tipo de palabra (para saber en qué tabla buscar)
+	 * @return true si la palabra ya existe
+	 */
+	public boolean existsBySloleksId(String sloleksId, TipoPalabra tipoPalabra) {
+		if (sloleksId == null || tipoPalabra == null) {
+			return false;
+		}
+		return switch (tipoPalabra) {
+			case SUSTANTIVO -> sustantivoRepo.existsById(sloleksId);
+			case VERBO -> verboRepo.existsById(sloleksId);
+			case ADJETIVO -> adjetivoRepo.existsById(sloleksId);
+			case PRONOMBRE -> pronombreRepo.existsById(sloleksId);
+			case NUMERAL -> numeralRepo.existsById(sloleksId);
+		};
 	}
 
 }

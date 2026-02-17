@@ -36,6 +36,15 @@ import lombok.extern.log4j.Log4j2;
  * - Inyección automática de dependencias
  * - Auto-registro en base de datos
  * - Activación/desactivación dinámica
+ * <p>
+ * <strong>ADVERTENCIA DE CONCURRENCIA:</strong> Esta clase es un singleton de Spring
+ * pero contiene estado mutable (palabraAsignada en ElementoFrase).
+ * La función {@link #limpiar()} debe llamarse SIEMPRE antes de reutilizar la estructura.
+ * En un entorno con múltiples usuarios concurrentes, considerar:
+ * - Usar @Scope("prototype") en las implementaciones
+ * - O crear copias de las estructuras antes de asignar palabras
+ * - O sincronizar el acceso a nivel de controlador
+ * Actualmente es seguro para uso monousuario.
  */
 @Log4j2
 @Getter

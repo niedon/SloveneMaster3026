@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.bcadaval.esloveno.beans.enums.TipoPalabra;
 import com.bcadaval.esloveno.beans.palabra.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -35,7 +36,14 @@ public class ScrapController {
 	@Autowired
 	private XmlParseService xmlParseService;
 
-	/** Cache temporal para almacenar resultados de búsqueda pendientes de guardar */
+	/**
+	 * Cache temporal para almacenar resultados de búsqueda pendientes de guardar.
+	 * <p>
+	 * NOTA: Esta cache no tiene expiración automática. Para un sistema de producción
+	 * con múltiples usuarios, considerar usar Caffeine o Guava Cache con TTL.
+	 * Actualmente se limpia al guardar y tiene un límite de 100 sesiones.
+	 */
+	private static final int MAX_CACHE_SIZE = 100;
 	private final ConcurrentHashMap<String, List<ResultadoBusqueda>> resultadosCache = new ConcurrentHashMap<>();
 	private final AtomicInteger sessionCounter = new AtomicInteger(0);
 
@@ -73,18 +81,31 @@ public class ScrapController {
 
 			// Guardar en cache para poder guardar después
 			String sessionId = String.valueOf(sessionCounter.incrementAndGet());
+
+			// Limpiar cache si supera el límite
+			if (resultadosCache.size() >= MAX_CACHE_SIZE) {
+				log.warn("Cache de resultados llena ({} sesiones), limpiando entradas antiguas", resultadosCache.size());
+				resultadosCache.clear();
+			}
+
 			resultadosCache.put(sessionId, resultados);
 
 			// Construir lista de items
 			List<BusquedaMultipleResponse.ResultadoItem> items = new ArrayList<>();
 			for (int i = 0; i < resultados.size(); i++) {
 				ResultadoBusqueda r = resultados.get(i);
+
+				// Verificar si la palabra ya existe en la base de datos
+				TipoPalabra tipoPalabra = TipoPalabra.fromXmlCode(r.getTipo());
+				boolean yaExiste = tipoPalabra != null && palabraService.existsBySloleksId(r.getSloleksId(), tipoPalabra);
+
 				items.add(BusquedaMultipleResponse.ResultadoItem.builder()
 						.lema(r.getLema())
 						.tipo(r.getTipo())
 						.tipoEspanol(r.getTipoEspanol())
 						.sloleksId(r.getSloleksId())
 						.soportado(r.isSoportado())
+						.yaExiste(yaExiste)
 						.indice(i)
 						.build());
 			}

@@ -189,8 +189,9 @@ public class RepeticionEspaciadaService {
                 tarjetasEnReaprendizaje++;
             }
 
-            // Disponible ahora = proximaRevision <= ahora
-            if (!f.getProximaRevision().isAfter(ahora)) {
+            // Disponible ahora = proximaRevision != null AND proximaRevision <= ahora
+            Instant proxima = f.getProximaRevision();
+            if (proxima != null && !proxima.isAfter(ahora)) {
                 tarjetasDisponiblesAhora++;
             }
         }

@@ -1,6 +1,5 @@
 package com.bcadaval.esloveno.rest;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;

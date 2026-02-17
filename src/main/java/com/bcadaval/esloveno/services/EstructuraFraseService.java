@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
 import com.bcadaval.esloveno.structures.CriterioGramatical;
+import com.bcadaval.esloveno.structures.ExcluirDeFrases;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,33 @@ public class EstructuraFraseService {
     private final AtomicBoolean estructurasRegistradas = new AtomicBoolean(false);
 
     /**
+     * Filtra las estructuras que no deben ser registradas o mostradas.
+     * Excluye las estructuras marcadas con @ExcluirDeFrases.
+     *
+     * @return Lista de estructuras válidas para uso en la aplicación
+     */
+    private List<EstructuraFrase> getEstructurasValidas() {
+        List<EstructuraFrase> excluidas = todasLasEstructuras.stream()
+            .filter(e -> e.getClass().isAnnotationPresent(ExcluirDeFrases.class))
+            .toList();
+
+        if (!excluidas.isEmpty()) {
+            log.debug("Estructuras excluidas del registro: {}",
+                excluidas.stream()
+                    .map(e -> {
+                        ExcluirDeFrases anotacion = e.getClass().getAnnotation(ExcluirDeFrases.class);
+                        String razon = anotacion.razon().isEmpty() ? "sin razón especificada" : anotacion.razon();
+                        return e.getIdentificador() + " (" + razon + ")";
+                    })
+                    .toList());
+        }
+
+        return todasLasEstructuras.stream()
+            .filter(e -> !e.getClass().isAnnotationPresent(ExcluirDeFrases.class))
+            .toList();
+    }
+
+    /**
      * Registra automáticamente las estructuras nuevas en BD como activas.
      * Se ejecuta de forma lazy cuando la BD está disponible.
      */
@@ -57,7 +85,7 @@ public class EstructuraFraseService {
                 .map(EstructuraFraseConfig::getIdentificador)
                 .collect(Collectors.toSet());
 
-            List<EstructuraFraseConfig> nuevas = todasLasEstructuras.stream()
+            List<EstructuraFraseConfig> nuevas = getEstructurasValidas().stream()
                 .filter(e -> !existentesEnBD.contains(e.getIdentificador()))
                 .map(e -> EstructuraFraseConfig.builder()
                     .identificador(e.getIdentificador())
@@ -87,7 +115,7 @@ public class EstructuraFraseService {
             .map(EstructuraFraseConfig::getIdentificador)
             .collect(Collectors.toSet());
 
-        return todasLasEstructuras.stream()
+        return getEstructurasValidas().stream()
             .filter(e -> activasEnBD.contains(e.getIdentificador()))
             .toList();
     }
@@ -146,7 +174,7 @@ public class EstructuraFraseService {
                 EstructuraFraseConfig::getActiva
             ));
 
-        return todasLasEstructuras.stream()
+        return getEstructurasValidas().stream()
             .map(e -> new EstructuraFraseConfigDTO(
                 e.getIdentificador(),
                 e.getNombreMostrar(),
@@ -171,7 +199,10 @@ public class EstructuraFraseService {
     }
 
     /**
-     * DTO para la configuración de estructuras
+     * DTO para la configuración de estructuras.
+     * <p>
+     * Los getters explícitos son necesarios para compatibilidad con JSP/EL,
+     * que espera convención JavaBean (getX/isX) en vez de los accessors de record.
      */
     @SuppressWarnings("unused")
     public record EstructuraFraseConfigDTO(String identificador, String nombreMostrar, boolean activa,

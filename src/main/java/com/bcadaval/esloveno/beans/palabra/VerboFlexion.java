@@ -154,7 +154,7 @@ public class VerboFlexion implements PalabraFlexion<Verbo> {
             case PERSONA -> this.persona;
             case NUMERO -> this.numero;
             case GENERO -> this.genero;
-            case TRANSITIVIDAD -> verboBase.getTransitividad();
+            case TRANSITIVIDAD -> verboBase != null ? verboBase.getTransitividad() : null;
             case NEGATIVO -> this.negativo;
             // Características que no aplican a verbos
             case CASO, GRADO, DEFINITUD, TIPO_NUMERAL -> null;
