@@ -63,6 +63,32 @@ public class RepeticionEspaciadaService {
     }
 
     /**
+     * Calcula el próximo intervalo en segundos que se aplicaría a una flexión si se responde.
+     * Esta función NO modifica la flexión, solo calcula de forma predictiva.
+     *
+     * @param flexion La flexión a evaluar
+     * @param recordo Si la respuesta sería correcta (true) o incorrecta (false)
+     * @return El intervalo en segundos hasta la próxima revisión
+     */
+    public long calcularProximoIntervalo(PalabraFlexion<?> flexion, boolean recordo) {
+        double factorFacilidad = Optional.ofNullable(flexion.getFactorFacilidad())
+            .orElse(variablesService.getFactorFacilidadInicial());
+        long intervaloSegundos = Optional.ofNullable(flexion.getIntervaloRepeticionSegundos()).orElse(0L);
+        int vecesCorrectas = Optional.ofNullable(flexion.getVecesConsecutivasCorrectas()).orElse(0);
+
+        if (recordo) {
+            vecesCorrectas++;
+            return switch (vecesCorrectas) {
+                case 1 -> variablesService.getIntervaloInicialSegundos();
+                case 2 -> variablesService.getIntervaloSegundaSegundos();
+                default -> (long) (intervaloSegundos * factorFacilidad);
+            };
+        } else {
+            return variablesService.getIntervaloReaprendizajeSegundos();
+        }
+    }
+
+    /**
      * Guarda una flexión en su repositorio correspondiente
      */
     private void guardarFlexion(PalabraFlexion<?> flexion) {

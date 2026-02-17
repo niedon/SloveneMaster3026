@@ -61,9 +61,15 @@
                                     <button type="button" class="btn-arriba btn-success" id="btn_arriba_${status.index}"
                                             onclick="setResponse(${status.index})"
                                             <c:if test="${dato.id == null}">style='visibility:hidden' disabled</c:if>>👍</button>
-
                                 </div>
+
+                                <!-- Contenedor para mostrar el intervalo -->
                                 <c:if test="${dato.id != null}">
+                                    <div id="intervalo_${status.index}" class="intervalo-texto" style="display:none; margin-top: 8px; font-size: 0.85em; color: #666;">
+                                        <span id="intervalo_texto_${status.index}"></span>
+                                    </div>
+                                    <input type="hidden" id="intervalo_arriba_${status.index}" value="${dato.intervaloArriba}">
+                                    <input type="hidden" id="intervalo_abajo_${status.index}" value="${dato.intervaloAbajo}">
                                     <input type="hidden" name="tipo_${status.index}" value="${dato.tipo.codigo}">
                                     <input type="hidden" name="id_${status.index}" value="${dato.id}">
                                     <input type="hidden" id="valor_${status.index}" name="valor_${status.index}" value="" class="valor-input">
@@ -111,6 +117,24 @@
             } else if (respuesta === 'abajo') {
                 btnAbajo.classList.add('selected');
                 btnArriba.classList.remove('selected');
+            }
+
+            // Mostrar el intervalo correspondiente
+            const intervaloContainer = document.getElementById('intervalo_' + index);
+            const intervaloTexto = document.getElementById('intervalo_texto_' + index);
+            const intervaloArriba = document.getElementById('intervalo_arriba_' + index);
+            const intervaloAbajo = document.getElementById('intervalo_abajo_' + index);
+
+            if (intervaloContainer && intervaloTexto && intervaloArriba && intervaloAbajo) {
+                if (respuesta === 'arriba' && intervaloArriba.value) {
+                    intervaloTexto.textContent = '⏰ Próxima revisión: ' + intervaloArriba.value;
+                    intervaloContainer.style.display = 'block';
+                } else if (respuesta === 'abajo' && intervaloAbajo.value) {
+                    intervaloTexto.textContent = '⏰ Próxima revisión: ' + intervaloAbajo.value;
+                    intervaloContainer.style.display = 'block';
+                } else {
+                    intervaloContainer.style.display = 'none';
+                }
             }
 
             const detailsRow = document.getElementById('row-details');

@@ -10,6 +10,7 @@ import com.bcadaval.esloveno.services.palabra.sustantivo.SustantivoService;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
@@ -65,6 +66,10 @@ public abstract class EstructuraFrase {
 
     @Autowired
     protected ExtraccionApoyoEstandar extraccionApoyoEstandar;
+
+    @Lazy
+    @Autowired
+    protected com.bcadaval.esloveno.services.RepeticionEspaciadaService repeticionEspaciadaService;
 
     /**
      * Lista ordenada de todos los elementos de la frase (slots + apoyos).
@@ -193,11 +198,28 @@ public abstract class EstructuraFrase {
 
         PalabraFlexion<?> palabra = elemento.getPalabraAsignada();
 
+        // Calcular intervalos si es un slot (tiene SRS)
+        String intervaloArriba = null;
+        String intervaloAbajo = null;
+
+        if (elemento.esSlot() && repeticionEspaciadaService != null) {
+            try {
+                long segundosArriba = repeticionEspaciadaService.calcularProximoIntervalo(palabra, true);
+                long segundosAbajo = repeticionEspaciadaService.calcularProximoIntervalo(palabra, false);
+                intervaloArriba = DatoVisualizacion.formatearIntervalo(segundosArriba);
+                intervaloAbajo = DatoVisualizacion.formatearIntervalo(segundosAbajo);
+            } catch (Exception e) {
+                log.warn("Error calculando intervalos para {}: {}", palabra.getFlexion(), e.getMessage());
+            }
+        }
+
         return DatoVisualizacion.builder()
                 .textoFila1(elemento.getTextoFila1(modo))
                 .textoFila2(elemento.getTextoFila2(modo))
                 .id(elemento.esSlot() ? palabra.getId() : null)
                 .tipo(elemento.esSlot() ? FraseTipoPalabra.fromObject(palabra) : null)
+                .intervaloArriba(intervaloArriba)
+                .intervaloAbajo(intervaloAbajo)
                 .build();
     }
 
