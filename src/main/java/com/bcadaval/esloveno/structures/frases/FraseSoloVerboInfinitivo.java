@@ -3,11 +3,13 @@ package com.bcadaval.esloveno.structures.frases;
 import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
+import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
+import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.ElementoFrase;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
-import com.bcadaval.esloveno.structures.ExcluirDeFrases;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
+import com.bcadaval.esloveno.structures.extractores.ExtractorVerbo;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -31,7 +33,7 @@ import org.springframework.stereotype.Component;
  * 1. VERBO (slot): VerboFlexion con forma INFINITIVE
  */
 @Component
-@ExcluirDeFrases(razon = "Estructura excluida temporalmente")
+@DificultadFrase(NivelDificultad.PRINCIPIANTE)
 public class FraseSoloVerboInfinitivo extends EstructuraFrase {
 
     @Getter
@@ -51,11 +53,7 @@ public class FraseSoloVerboInfinitivo extends EstructuraFrase {
                 .criterio(CriterioBusqueda.de(VerboFlexion.class)
                         .con(CaracteristicaGramatical.FORMA_VERBAL, FormaVerbal.INFINITIVE)
                         .build())
-                .extractor(ExtraccionSlotEstandar.get())
-                .extractorDeEspanol(p ->
-                        String.format("(%s) %s", p.getVerboBase().getAspecto().getEmoji(), p.getSignificado()))
-                .extractorAEspanol(p ->
-                        String.format("(%s) %s", p.getVerboBase().getAspecto().getEmoji(), p.getSignificado()))
+                .extractor(ExtractorVerbo.get())
                 .build();
 
         // Agregar elemento (solo el verbo, sin apoyo)

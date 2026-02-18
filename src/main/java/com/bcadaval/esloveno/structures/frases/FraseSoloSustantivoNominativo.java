@@ -2,13 +2,17 @@ package com.bcadaval.esloveno.structures.frases;
 
 import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.Caso;
+import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
+import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.ElementoFrase;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
+import com.bcadaval.esloveno.structures.extractores.ExtractorNumero;
+import com.bcadaval.esloveno.structures.extractores.ExtractorSustantivo;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Component;
  * 2. SUSTANTIVO (slot): SustantivoFlexion con caso NOMINATIVO
  */
 @Component
+@DificultadFrase(NivelDificultad.PRINCIPIANTE)
 public class FraseSoloSustantivoNominativo extends EstructuraFrase {
 
     @Getter
@@ -42,19 +47,14 @@ public class FraseSoloSustantivoNominativo extends EstructuraFrase {
                 .criterio(CriterioBusqueda.de(SustantivoFlexion.class)
                         .con(CaracteristicaGramatical.CASO, Caso.NOMINATIVO)
                         .build())
-                .extractor(ExtraccionSlotEstandar.get())
-                .extractorAEsloveno(p ->
-                        String.format("(%s) %s", p.getSustantivoBase().getGenero().getEmoji(), p.getAcentuado()))
-                .extractorAEspanol(p ->
-                        String.format("(%s) %s", p.getSustantivoBase().getGenero().getEmoji(), p.getSignificado()))
+                .extractor(ExtractorSustantivo.get())
                 .build();
 
         // Definir apoyo de número (depende del sustantivo)
         ElementoFrase<NumeralFlexion> numero = ElementoFrase.<NumeralFlexion>builder()
                 .nombre("NUMERO")
                 .generador(sustantivo, palabra -> numeralService.getNumeral((SustantivoFlexion) palabra))
-                .extractor(ExtraccionApoyoEstandar.get())
-                .extractorDeEsloveno(p -> "nº")
+                .extractor(ExtractorNumero.get())
                 .build();
 
         // Agregar en orden de visualización

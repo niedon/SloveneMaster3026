@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.bcadaval.esloveno.beans.EstructuraFraseConfig;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
+import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.repo.EstructuraFraseConfigRepo;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
 
@@ -163,7 +164,8 @@ public class EstructuraFraseService {
 
     /**
      * Obtiene todas las estructuras para la pantalla de configuración.
-     * Incluye el nombre para mostrar y el estado activo/inactivo.
+     * Incluye el nombre para mostrar, el estado activo/inactivo y la dificultad.
+     * Ordenadas por nivel de dificultad.
      */
     public List<EstructuraFraseConfigDTO> getTodasParaConfiguracion() {
         autoRegistrarEstructurasIfNeeded();
@@ -180,9 +182,28 @@ public class EstructuraFraseService {
                 e.getNombreMostrar(),
                 estadoBD.getOrDefault(e.getIdentificador(), true),
                 e.getCasosUsados(),
-                e.getFormasVerbalesUsadas()
+                e.getFormasVerbalesUsadas(),
+                e.getDificultad()
             ))
+            .sorted(Comparator.comparingInt(dto -> dto.dificultad().getOrden()))
             .toList();
+    }
+
+    /**
+     * Obtiene las estructuras agrupadas por nivel de dificultad.
+     * Solo devuelve los niveles que tienen al menos una estructura.
+     * Los niveles están ordenados por su orden numérico.
+     */
+    public Map<NivelDificultad, List<EstructuraFraseConfigDTO>> getEstructurasAgrupadasPorDificultad() {
+        List<EstructuraFraseConfigDTO> todas = getTodasParaConfiguracion();
+
+        // Agrupar por dificultad manteniendo el orden del enum
+        return todas.stream()
+            .collect(Collectors.groupingBy(
+                EstructuraFraseConfigDTO::dificultad,
+                () -> new TreeMap<>(Comparator.comparingInt(NivelDificultad::getOrden)),
+                Collectors.toList()
+            ));
     }
 
     /**
@@ -206,7 +227,8 @@ public class EstructuraFraseService {
      */
     @SuppressWarnings("unused")
     public record EstructuraFraseConfigDTO(String identificador, String nombreMostrar, boolean activa,
-                                           Set<Caso> casosUsados, Set<FormaVerbal> formasVerbalesUsadas) {
+                                           Set<Caso> casosUsados, Set<FormaVerbal> formasVerbalesUsadas,
+                                           NivelDificultad dificultad) {
 
         public String getIdentificador() {
             return identificador;
@@ -222,6 +244,9 @@ public class EstructuraFraseService {
         }
         public Set<FormaVerbal> getFormasVerbalesUsadas() {
             return formasVerbalesUsadas;
+        }
+        public NivelDificultad getDificultad() {
+            return dificultad;
         }
     }
 }

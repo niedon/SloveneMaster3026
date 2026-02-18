@@ -5,25 +5,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 
-/**
- * Extracción estándar para elementos de apoyo (pronombres, numerales, etc.).
- * <p>
- * Patrón:
- * - ES→SL: significado → flexion (sin acentuación para elementos de apoyo)
- * - SL→ES: flexion → significado
- * <p>
- * Bean singleton gestionado por Spring.
- */
 @Component
-public class ExtraccionApoyoEstandar implements EstrategiaExtraccion<PalabraFlexion<?>> {
-
-    /**
-     * Función estática para obtener una instancia tipada a un tipo específico.
-     * Seguro porque todos los extractores trabajan con métodos de PalabraFlexion.
-     */
+public class ExtractorNumero implements EstrategiaExtraccion<PalabraFlexion<?>> {
     @SuppressWarnings("unchecked")
     public static <T extends PalabraFlexion<?>> EstrategiaExtraccion<T> get() {
-        return (EstrategiaExtraccion<T>) new ExtraccionApoyoEstandar();
+        return (EstrategiaExtraccion<T>) new ExtractorNumero();
     }
 
     @Override
@@ -38,7 +24,7 @@ public class ExtraccionApoyoEstandar implements EstrategiaExtraccion<PalabraFlex
 
     @Override
     public Function<PalabraFlexion<?>, String> deEsloveno() {
-        return PalabraFlexion::getFlexion;
+        return p -> "nº";
     }
 
     @Override
@@ -46,4 +32,3 @@ public class ExtraccionApoyoEstandar implements EstrategiaExtraccion<PalabraFlex
         return PalabraFlexion::getSignificado;
     }
 }
-

@@ -3,16 +3,17 @@ package com.bcadaval.esloveno.structures.frases;
 import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
+import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.enums.Transitividad;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
+import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.ElementoFrase;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
-import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
-import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
+import com.bcadaval.esloveno.structures.extractores.*;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Component;
  * 4. CD (slot): SustantivoFlexion con caso ACUSATIVO
  */
 @Component
+@DificultadFrase(NivelDificultad.ELEMENTAL)
 public class FraseVerboTransitivoAcusativo extends EstructuraFrase {
 
     @Getter
@@ -48,8 +50,9 @@ public class FraseVerboTransitivoAcusativo extends EstructuraFrase {
                 .criterio(CriterioBusqueda.de(VerboFlexion.class)
                         .con(CaracteristicaGramatical.FORMA_VERBAL, FormaVerbal.PRESENT)
                         .con(CaracteristicaGramatical.TRANSITIVIDAD, Transitividad.TRANSITIVO)
+                        .con(CaracteristicaGramatical.NEGATIVO, false)
                         .build())
-                .extractor(ExtraccionSlotEstandar.get())
+                .extractor(ExtractorVerbo.get())
                 .build();
 
         // Definir slot de sustantivo en acusativo
@@ -58,21 +61,21 @@ public class FraseVerboTransitivoAcusativo extends EstructuraFrase {
                 .criterio(CriterioBusqueda.de(SustantivoFlexion.class)
                         .con(CaracteristicaGramatical.CASO, Caso.ACUSATIVO)
                         .build())
-                .extractor(ExtraccionSlotEstandar.get())
+                .extractor(ExtractorSustantivo.get())
                 .build();
 
         // Definir apoyo de pronombre (depende del verbo)
         ElementoFrase<PronombreFlexion> pronombre = ElementoFrase.<PronombreFlexion>builder()
                 .nombre("PRONOMBRE")
                 .generador(verbo, palabra -> pronombreService.getPronombre((VerboFlexion) palabra))
-                .extractor(ExtraccionApoyoEstandar.get())
+                .extractor(ExtractorPronombre.get())
                 .build();
 
         // Definir apoyo de número (depende del CD)
         ElementoFrase<NumeralFlexion> numero = ElementoFrase.<NumeralFlexion>builder()
                 .nombre("NUMERO")
                 .generador(cd, palabra -> numeralService.getNumeral((SustantivoFlexion) palabra))
-                .extractor(ExtraccionApoyoEstandar.get())
+                .extractor(ExtractorNumero.get())
                 .build();
 
         // Agregar en orden de visualización

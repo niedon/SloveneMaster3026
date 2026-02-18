@@ -2,13 +2,17 @@ package com.bcadaval.esloveno.structures.frases;
 
 import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
+import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
+import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.ElementoFrase;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
+import com.bcadaval.esloveno.structures.extractores.ExtractorPronombre;
+import com.bcadaval.esloveno.structures.extractores.ExtractorVerbo;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Component;
  * 2. VERBO (slot): VerboFlexion con forma PRESENT
  */
 @Component
+@DificultadFrase(NivelDificultad.PRINCIPIANTE)
 public class FraseSoloVerboPresente extends EstructuraFrase {
 
     @Getter
@@ -43,19 +48,14 @@ public class FraseSoloVerboPresente extends EstructuraFrase {
                         .con(CaracteristicaGramatical.FORMA_VERBAL, FormaVerbal.PRESENT)
                         .con(CaracteristicaGramatical.NEGATIVO, false)
                         .build())
-                .extractor(ExtraccionSlotEstandar.get())
-                .extractorDeEspanol(p ->
-                        String.format("(%s) %s", p.getVerboBase().getAspecto().getEmoji(), p.getSignificado()))
-                .extractorAEspanol(p ->
-                        String.format("(%s) %s", p.getVerboBase().getAspecto().getEmoji(), p.getSignificado()))
+                .extractor(ExtractorVerbo.get())
                 .build();
 
         // Definir apoyo de pronombre (depende del verbo)
         ElementoFrase<PronombreFlexion> pronombre = ElementoFrase.<PronombreFlexion>builder()
                 .nombre("PRONOMBRE")
                 .generador(verbo, palabra -> pronombreService.getPronombre((VerboFlexion) palabra))
-                .extractor(ExtraccionApoyoEstandar.get())
-                .extractorDeEsloveno(pf -> "")
+                .extractor(ExtractorPronombre.get())
                 .build();
 
         // Agregar en orden de visualización

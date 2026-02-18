@@ -244,21 +244,30 @@
             <div class="config-section">
                 <h2>📝 Estructuras de Frase</h2>
                 <p>Activa o desactiva las estructuras de frase que deseas estudiar.</p>
-                <div class="casos-grid">
-                    <c:forEach var="estructura" items="${estructuras}">
-                        <div class="caso-item <c:if test='${estructura.activa}'>selected</c:if>"
-                             onclick="toggleEstructuraLocal('${estructura.identificador}', this)"
-                             data-identificador="${estructura.identificador}"
-                             data-casos="<c:forEach var='caso' items='${estructura.casosUsados}' varStatus='st'>${caso.name()}<c:if test='${!st.last}'>,</c:if></c:forEach>"
-                             data-formas-verbales="<c:forEach var='fv' items='${estructura.formasVerbalesUsadas}' varStatus='st'>${fv.name()}<c:if test='${!st.last}'>,</c:if></c:forEach>">
-                            <input type="checkbox" id="est_${estructura.identificador}"
-                                   name="estructuras"
-                                   value="${estructura.identificador}"
-                                   <c:if test="${estructura.activa}">checked</c:if>>
-                            <label for="est_${estructura.identificador}">${estructura.nombreMostrar}</label>
+
+                <c:forEach var="entry" items="${estructurasPorDificultad}">
+                    <div class="dificultad-section" style="margin-bottom: 25px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.1em; border-left: 4px solid #667eea; padding-left: 10px;">
+                            ${entry.key.titulo}
+                            <span style="font-weight: normal; font-size: 0.85em; color: #6c757d; margin-left: 10px;">${entry.key.descripcion}</span>
+                        </h3>
+                        <div class="casos-grid">
+                            <c:forEach var="estructura" items="${entry.value}">
+                                <div class="caso-item <c:if test='${estructura.activa}'>selected</c:if>"
+                                     onclick="toggleEstructuraLocal('${estructura.identificador}', this)"
+                                     data-identificador="${estructura.identificador}"
+                                     data-casos="<c:forEach var='caso' items='${estructura.casosUsados}' varStatus='st'>${caso.name()}<c:if test='${!st.last}'>,</c:if></c:forEach>"
+                                     data-formas-verbales="<c:forEach var='fv' items='${estructura.formasVerbalesUsadas}' varStatus='st'>${fv.name()}<c:if test='${!st.last}'>,</c:if></c:forEach>">
+                                    <input type="checkbox" id="est_${estructura.identificador}"
+                                           name="estructuras"
+                                           value="${estructura.identificador}"
+                                           <c:if test="${estructura.activa}">checked</c:if>>
+                                    <label for="est_${estructura.identificador}">${estructura.nombreMostrar}</label>
+                                </div>
+                            </c:forEach>
                         </div>
-                    </c:forEach>
-                </div>
+                    </div>
+                </c:forEach>
                 <div style="margin-top: 15px; padding: 15px; background: #e7f3ff; border-radius: 10px;">
                     <div style="margin-bottom: 10px;">
                         <strong>📌 Casos activos:</strong> <span id="casosActivosDisplay">

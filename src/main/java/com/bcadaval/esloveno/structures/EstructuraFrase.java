@@ -17,6 +17,7 @@ import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
+import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -285,6 +286,18 @@ public abstract class EstructuraFrase {
                 .filter(valor -> valor instanceof FormaVerbal)
                 .map(valor -> (FormaVerbal) valor)
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Obtiene el nivel de dificultad de esta estructura.
+     * Si no tiene la anotación @DificultadFrase, devuelve PRINCIPIANTE por defecto.
+     */
+    public NivelDificultad getDificultad() {
+        DificultadFrase anotacion = this.getClass().getAnnotation(DificultadFrase.class);
+        if(anotacion == null) {
+            log.warn("La estructura '{}' no tiene anotación @DificultadFrase, asignando dificultad por defecto PRINCIPIANTE", getNombre());
+        }
+        return anotacion != null ? anotacion.value() : NivelDificultad.PRINCIPIANTE;
     }
 
 

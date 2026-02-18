@@ -3,10 +3,12 @@ package com.bcadaval.esloveno.structures.frases;
 import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.Grado;
+import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.structures.CriterioBusqueda;
+import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.ElementoFrase;
 import com.bcadaval.esloveno.structures.EstructuraFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Component;
  * 2. SUSTANTIVO (apoyo): SustantivoFlexion que coincide en caso, género y número con el adjetivo
  */
 @Component
+@DificultadFrase(NivelDificultad.ELEMENTAL)
 public class FraseSustantivoAdjetivo extends EstructuraFrase {
 
     @Getter

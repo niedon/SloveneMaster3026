@@ -46,8 +46,11 @@ public class ConfiguracionController {
 
         model.addAttribute("variablesMap", variablesMap);
 
-        // Estructuras de frase para activar/desactivar
-        model.addAttribute("estructuras", estructuraFraseService.getTodasParaConfiguracion());
+//        // Estructuras de frase para activar/desactivar (lista plana, para compatibilidad)
+//        model.addAttribute("estructuras", estructuraFraseService.getTodasParaConfiguracion());
+
+        // Estructuras de frase agrupadas por nivel de dificultad
+        model.addAttribute("estructurasPorDificultad", estructuraFraseService.getEstructurasAgrupadasPorDificultad());
 
         // Casos activos derivados de las estructuras activas (solo para mostrar info)
         model.addAttribute("casosActivos", estructuraFraseService.getCasosActivos());
