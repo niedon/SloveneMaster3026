@@ -8,101 +8,6 @@
     <title>Añadir Palabras - Esloveno</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
     <%@ include file="head-favicon.jsp" %>
-    <style>
-        .results-container {
-            margin-top: 20px;
-        }
-        .results-counter {
-            font-size: 1.2em;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f0f0f0;
-            border-radius: 5px;
-        }
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-        }
-        .result-item.supported {
-            background: #e8f5e9;
-            border-color: #4caf50;
-        }
-        .result-item.not-supported {
-            background: #ffebee;
-            border-color: #f44336;
-        }
-        .result-item.already-exists {
-            background: #e3f2fd;
-            border-color: #1976d2;
-        }
-        .result-info {
-            flex-grow: 1;
-        }
-        .result-lema {
-            font-size: 1.3em;
-            font-weight: bold;
-        }
-        .result-sloleks-id {
-            font-size: 0.75em;
-            color: #888;
-            margin-top: 2px;
-            font-family: monospace;
-        }
-        .result-tipo {
-            color: #666;
-            margin-left: 10px;
-        }
-        .result-tipo-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 15px;
-            font-size: 0.85em;
-            margin-left: 10px;
-        }
-        .result-tipo-badge.supported {
-            background: #4caf50;
-            color: white;
-        }
-        .result-tipo-badge.not-supported {
-            background: #f44336;
-            color: white;
-        }
-        .btn-add {
-            background: #4caf50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-        }
-        .btn-add:hover {
-            background: #45a049;
-        }
-        .btn-add:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        .no-results {
-            text-align: center;
-            padding: 30px;
-            color: #666;
-        }
-        .filter-container {
-            margin: 15px 0;
-        }
-        .filter-container select {
-            padding: 8px 15px;
-            font-size: 1em;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-    </style>
 </head>
 <body>
     <c:set var="pageTitle" value="📚 Añadir Palabras" scope="request"/>
@@ -142,16 +47,16 @@
 
         <div class="status-container" id="statusContainer">
             <!-- Loading spinner -->
-            <div class="loading-container" id="loadingContainer" style="display: none;">
+            <div class="loading-container hidden" id="loadingContainer">
                 <div class="spinner"></div>
                 <div class="loading-text">Buscando...</div>
             </div>
 
             <!-- Mensaje de error -->
-            <div class="message" id="messageBox" style="display: none;"></div>
+            <div class="message hidden" id="messageBox"></div>
 
             <!-- Resultados -->
-            <div class="results-container" id="resultsContainer" style="display: none;">
+            <div class="results-container hidden" id="resultsContainer">
                 <div class="results-counter" id="resultsCounter"></div>
                 <div id="resultsList"></div>
             </div>
@@ -186,16 +91,16 @@
 
             // Limpiar resultados anteriores
             limpiarResultados();
-            loadingContainer.style.display = 'block';
+            loadingContainer.classList.remove('hidden');
 
             fetch('/api/buscarTodas?word=' + encodeURIComponent(palabra))
                 .then(response => response.json())
                 .then(data => {
-                    loadingContainer.style.display = 'none';
+                    loadingContainer.classList.add('hidden');
                     procesarResultados(data);
                 })
                 .catch(error => {
-                    loadingContainer.style.display = 'none';
+                    loadingContainer.classList.add('hidden');
                     mostrarMensaje('Error al buscar: ' + error.message, 'error');
                 });
         }
@@ -252,7 +157,7 @@
                 if (resultado.yaExiste) {
                     // Palabra ya existe en la base de datos
                     const span = document.createElement('span');
-                    span.style.color = '#1976d2';
+                    span.className = 'result-status-exists';
                     span.innerHTML = '✅ Ya añadida';
                     div.appendChild(span);
                 } else if (resultado.soportado) {
@@ -263,7 +168,7 @@
                     div.appendChild(btn);
                 } else {
                     const span = document.createElement('span');
-                    span.style.color = '#999';
+                    span.className = 'result-status-unsupported';
                     span.innerHTML = '❌ No soportado';
                     div.appendChild(span);
                 }
@@ -271,7 +176,7 @@
                 resultsList.appendChild(div);
             });
 
-            resultsContainer.style.display = 'block';
+            resultsContainer.classList.remove('hidden');
         }
 
         function guardarPalabra(indice, button) {
@@ -306,8 +211,8 @@
         }
 
         function limpiarResultados() {
-            messageBox.style.display = 'none';
-            resultsContainer.style.display = 'none';
+            messageBox.classList.add('hidden');
+            resultsContainer.classList.add('hidden');
             resultsList.innerHTML = '';
         }
 
@@ -321,7 +226,6 @@
         function mostrarMensaje(mensaje, tipo) {
             messageBox.innerHTML = mensaje;
             messageBox.className = 'message ' + tipo;
-            messageBox.style.display = 'block';
         }
     </script>
 </body>

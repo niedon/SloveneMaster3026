@@ -9,106 +9,11 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
     <%@ include file="head-favicon.jsp" %>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .stat-card h3 {
-            margin: 0 0 10px 0;
-            font-size: 14px;
-            text-transform: uppercase;
-            opacity: 0.9;
-        }
-
-        .stat-card .value {
-            font-size: 36px;
-            font-weight: bold;
-            margin: 0;
-        }
-
-        .stat-card.success {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        }
-
-        .stat-card.warning {
-            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
-        }
-
-        .stat-card.info {
-            background: linear-gradient(135deg, #17a2b8 0%, #6610f2 100%);
-        }
-
-        .charts-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-top: 30px;
-        }
-
-        .chart-box {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .chart-box h3 {
-            margin: 0 0 20px 0;
-            color: #333;
-            font-size: 18px;
-            text-align: center;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 250px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        .nav-links a {
-            color: #667eea;
-            text-decoration: none;
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .tasa-aciertos {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-top: 5px;
-        }
-    </style>
 </head>
 <body>
     <c:set var="pageTitle" value="📊 Estadísticas" scope="request"/>
     <%@ include file="navbar.jsp" %>
-    <div class="container" style="max-width: 1200px;">
+    <div class="container container-extra-wide">
 
 
         <!-- Tarjetas de estadísticas -->

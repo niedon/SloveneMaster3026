@@ -36,17 +36,17 @@
                                 <strong><c:out value="${dato.textoFila2}" /></strong>
                                 <br/>
                                 <div class="button-container">
-                                    <button type="button" class="btn-abajo btn-danger" id="btn_abajo_${status.index}"
+                                    <button type="button" class="btn-abajo btn-danger<c:if test='${dato.id == null}'> btn-invisible</c:if>" id="btn_abajo_${status.index}"
                                             onclick="setResponse(${status.index})"
-                                            <c:if test="${dato.id == null}">style='visibility:hidden' disabled</c:if>>👎</button>
-                                    <button type="button" class="btn-arriba btn-success" id="btn_arriba_${status.index}"
+                                            <c:if test="${dato.id == null}">disabled</c:if>>👎</button>
+                                    <button type="button" class="btn-arriba btn-success<c:if test='${dato.id == null}'> btn-invisible</c:if>" id="btn_arriba_${status.index}"
                                             onclick="setResponse(${status.index})"
-                                            <c:if test="${dato.id == null}">style='visibility:hidden' disabled</c:if>>👍</button>
+                                            <c:if test="${dato.id == null}">disabled</c:if>>👍</button>
                                 </div>
 
                                 <!-- Contenedor para mostrar el intervalo -->
                                 <c:if test="${dato.id != null}">
-                                    <div id="intervalo_${status.index}" class="intervalo-texto" style="display:none; margin-top: 8px; font-size: 0.85em; color: #666;">
+                                    <div id="intervalo_${status.index}" class="intervalo-texto">
                                         <span id="intervalo_texto_${status.index}"></span>
                                     </div>
                                     <input type="hidden" id="intervalo_arriba_${status.index}" value="${dato.intervaloArriba}">
@@ -125,12 +125,12 @@
             if (intervaloContainer && intervaloTexto && intervaloArriba && intervaloAbajo) {
                 if (respuesta === 'arriba' && intervaloArriba.value) {
                     intervaloTexto.textContent = '⏰ Próx: ' + intervaloArriba.value;
-                    intervaloContainer.style.display = 'block';
+                    intervaloContainer.classList.add('intervalo-visible');
                 } else if (respuesta === 'abajo' && intervaloAbajo.value) {
                     intervaloTexto.textContent = '⏰ Próx: ' + intervaloAbajo.value;
-                    intervaloContainer.style.display = 'block';
+                    intervaloContainer.classList.add('intervalo-visible');
                 } else {
-                    intervaloContainer.style.display = 'none';
+                    intervaloContainer.classList.remove('intervalo-visible');
                 }
             }
 

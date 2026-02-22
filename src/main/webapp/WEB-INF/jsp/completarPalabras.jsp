@@ -9,140 +9,6 @@
     <title>Completar Palabras - Esloveno</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
     <%@ include file="head-favicon.jsp" %>
-    <style>
-        .search-container {
-            margin-bottom: 30px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            box-sizing: border-box;
-        }
-
-        .palabras-list {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            margin-bottom: 30px;
-        }
-
-        .palabra-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .palabra-item:hover {
-            background-color: #f8f9fa;
-        }
-
-        .palabra-item:last-child {
-            border-bottom: none;
-        }
-
-        .palabra-item.selected {
-            background-color: #e7f3ff;
-            border-left: 4px solid #667eea;
-        }
-
-        .palabra-text {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .palabra-tipo {
-            font-size: 14px;
-            color: #666;
-            background-color: #f0f0f0;
-            padding: 4px 12px;
-            border-radius: 12px;
-        }
-
-        .form-container {
-            display: none;
-            background-color: #f8f9fa;
-            padding: 30px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-
-        .form-container.visible {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-group input[type="text"],
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-
-        .form-group input[type="text"]:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .empty-state h3 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .palabra-count {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 16px;
-            color: #666;
-        }
-    </style>
 </head>
 <body>
     <c:set var="pageTitle" value="📝 Completar Palabras" scope="request"/>
@@ -166,7 +32,7 @@
 
         <!-- Lista de palabras incompletas -->
         <div class="palabras-list" id="palabrasList">
-            <div class="spinner" style="display: block;"></div>
+            <div class="spinner spinner-active"></div>
         </div>
 
         <!-- Formulario de edición -->
@@ -183,7 +49,7 @@
                 </div>
 
                 <!-- Campo Transitividad (solo verbos) -->
-                <div class="form-group" id="transitividadGroup" style="display: none;">
+                <div class="form-group hidden" id="transitividadGroup">
                     <label for="transitividad">Transitividad *</label>
                     <select id="transitividad" name="transitividad">
                         <option value="">Seleccione...</option>
@@ -194,7 +60,7 @@
                 </div>
 
                 <!-- Campo Animado (solo sustantivos) -->
-                <div class="form-group checkbox-group" id="animadoGroup" style="display: none;">
+                <div class="form-group checkbox-group hidden" id="animadoGroup">
                     <input type="checkbox" id="animado" name="animado">
                     <label for="animado">Es animado</label>
                 </div>
@@ -348,19 +214,19 @@
             const animadoCheck = document.getElementById('animado');
 
             if (tipoEnum === ENUM_VERBO) {
-                transitividadGroup.style.display = 'block';
-                animadoGroup.style.display = 'none';
+                transitividadGroup.classList.remove('hidden');
+                animadoGroup.classList.add('hidden');
                 transitividadSelect.value = palabra.transitividad || '';
                 transitividadSelect.required = true;
             } else if (tipoEnum === ENUM_SUSTANTIVO) {
-                transitividadGroup.style.display = 'none';
-                animadoGroup.style.display = 'flex';
+                transitividadGroup.classList.add('hidden');
+                animadoGroup.classList.remove('hidden');
                 transitividadSelect.required = false;
                 animadoCheck.checked = palabra.animado === true;
             } else {
                 // Para adjetivos, pronombres y numerales solo mostrar significado
-                transitividadGroup.style.display = 'none';
-                animadoGroup.style.display = 'none';
+                transitividadGroup.classList.add('hidden');
+                animadoGroup.classList.add('hidden');
                 transitividadSelect.required = false;
             }
 
@@ -424,10 +290,9 @@
             const messageBox = document.getElementById('messageBox');
             messageBox.textContent = texto;
             messageBox.className = 'message ' + tipo;
-            messageBox.style.display = 'block';
 
             setTimeout(() => {
-                messageBox.style.display = 'none';
+                messageBox.classList.add('hidden');
             }, 5000);
         }
     </script>

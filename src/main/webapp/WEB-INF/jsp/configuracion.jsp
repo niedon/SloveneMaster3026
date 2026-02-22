@@ -8,137 +8,11 @@
     <title>Configuración - Esloveno</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
     <%@ include file="head-favicon.jsp" %>
-    <style>
-        .config-section {
-            margin-bottom: 40px;
-        }
-
-        .config-section h2 {
-            color: #667eea;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-
-        .config-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .config-item {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .config-item label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #333;
-        }
-
-        .config-item input[type="number"],
-        .config-item input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-
-        .config-item input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .config-item .help-text {
-            font-size: 12px;
-            color: #6c757d;
-            margin-top: 5px;
-        }
-
-        .casos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-
-        .caso-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .caso-item:hover {
-            background: #e9ecef;
-        }
-
-        .caso-item.selected {
-            background: #e7f3ff;
-            border-color: #667eea;
-        }
-
-        .caso-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .caso-item label {
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        .nav-links a {
-            color: #667eea;
-            text-decoration: none;
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-links a:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-
-        .tiempo-display {
-            font-size: 12px;
-            color: #667eea;
-            margin-top: 5px;
-            font-weight: 500;
-        }
-    </style>
 </head>
 <body>
     <c:set var="pageTitle" value="⚙️ Configuración" scope="request"/>
     <%@ include file="navbar.jsp" %>
-    <div class="container" style="max-width: 1000px;">
+    <div class="container container-wide">
 
 
         <!-- Mensaje de resultado -->
@@ -233,7 +107,7 @@
                         <label for="mezclarTarjetas">
                             <input type="checkbox" id="mezclarTarjetas" name="mezclarTarjetas"
                                    <c:if test="${variablesMap['MEZCLAR_TARJETAS'] != null && variablesMap['MEZCLAR_TARJETAS'].valor == 'true'}">checked</c:if>
-                                   style="width: auto; margin-right: 10px;">
+                                   class="config-checkbox">
                             Mezclar tarjetas
                         </label>
                         <div class="help-text">Presenta las tarjetas en orden aleatorio</div>
@@ -247,10 +121,10 @@
                 <p>Activa o desactiva las estructuras de frase que deseas estudiar.</p>
 
                 <c:forEach var="entry" items="${estructurasPorDificultad}">
-                    <div class="dificultad-section" style="margin-bottom: 25px;">
-                        <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.1em; border-left: 4px solid #667eea; padding-left: 10px;">
+                    <div class="dificultad-section">
+                        <h3>
                             ${entry.key.titulo}
-                            <span style="font-weight: normal; font-size: 0.85em; color: #6c757d; margin-left: 10px;">${entry.key.descripcion}</span>
+                            <span>${entry.key.descripcion}</span>
                         </h3>
                         <div class="casos-grid">
                             <c:forEach var="estructura" items="${entry.value}">
@@ -269,8 +143,8 @@
                         </div>
                     </div>
                 </c:forEach>
-                <div style="margin-top: 15px; padding: 15px; background: #e7f3ff; border-radius: 10px;">
-                    <div style="margin-bottom: 10px;">
+                <div class="info-box">
+                    <div class="mb-10">
                         <strong>📌 Casos activos:</strong> <span id="casosActivosDisplay">
                         <c:forEach var="caso" items="${casosActivos}" varStatus="status">
                             ${caso.name()}<c:if test="${!status.last}">, </c:if>
@@ -445,10 +319,9 @@
             const messageBox = document.getElementById('messageBox');
             messageBox.textContent = texto;
             messageBox.className = 'message ' + tipo;
-            messageBox.style.display = 'block';
 
             setTimeout(() => {
-                messageBox.style.display = 'none';
+                messageBox.classList.add('hidden');
             }, 5000);
         }
     </script>
