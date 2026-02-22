@@ -1,9 +1,13 @@
 package com.bcadaval.esloveno.services.palabra.verbo;
 
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
+import com.bcadaval.esloveno.beans.enums.FormaVerbal;
+import com.bcadaval.esloveno.beans.enums.Transitividad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.stereotype.Service;
 
 import com.bcadaval.esloveno.beans.palabra.Verbo;
@@ -35,5 +39,35 @@ public class VerbosService {
 	public List<VerboFlexion> saveConjugations(List<VerboFlexion> conjugations) throws VerboNotFoundException {
 		verboRepo.findById(conjugations.getFirst().getSloleksId()).orElseThrow(VerboNotFoundException::new);
 		return verboFlexionRepo.saveAll(conjugations);
+	}
+
+	/**
+	 * Obtiene un verbo transitivo en presente aleatorio de la base de datos.
+	 * Útil como generador fallback para elementos opcionales.
+	 *
+	 * @return VerboFlexion transitivo en presente, o null si no hay ninguno disponible
+	 */
+	public VerboFlexion getVerboTransitivoPresenteAleatorio() {
+		ExampleMatcher matcher = ExampleMatcher.matching()
+				.withIgnoreNullValues()
+				.withIgnorePaths(
+						"factorFacilidad", "intervaloRepeticionSegundos",
+						"vecesConsecutivasCorrectas", "totalRevisiones",
+						"totalAciertos", "enReaprendizaje"
+				);
+
+		List<VerboFlexion> candidatos = verboFlexionRepo.findAll(
+				Example.of(VerboFlexion.builder()
+						.formaVerbal(FormaVerbal.PRESENT)
+						.negativo(false)
+						.build(), matcher))
+				.stream()
+				.filter(v -> v.getVerboBase() != null && v.getVerboBase().getTransitividad() == Transitividad.TRANSITIVO)
+				.toList();
+
+		if (candidatos.isEmpty()) {
+			return null;
+		}
+		return candidatos.get(ThreadLocalRandom.current().nextInt(candidatos.size()));
 	}
 }

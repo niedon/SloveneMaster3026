@@ -25,7 +25,9 @@ import org.springframework.stereotype.Component;
  * <p>
  * Elementos (en orden):
  * 1. PRONOMBRE (apoyo): generado a partir del verbo
- * 2. VERBO (slot): VerboFlexion con transitividad TRANSITIVO y forma PRESENT
+ * 2. VERBO (opcional): VerboFlexion con transitividad TRANSITIVO y forma PRESENT.
+ *    Si no hay verbos transitivos entre las tarjetas SRS, se genera uno aleatorio de la BD.
+ *    En ese caso, el verbo no participará en SRS (sin botones 👍/👎 en el frontend).
  * 3. NUMERO (apoyo): numeral que concuerda con el sustantivo
  * 4. CD (slot): SustantivoFlexion con caso ACUSATIVO
  */
@@ -44,7 +46,18 @@ public class FraseVerboTransitivoAcusativo extends EstructuraFrase {
 
     @PostConstruct
     public void configurarEstructura() {
-        // Definir slot de verbo transitivo en presente
+        // Definir slot de sustantivo en acusativo (obligatorio)
+        ElementoFrase<SustantivoFlexion> cd = ElementoFrase.<SustantivoFlexion>builder()
+                .nombre("CD")
+                .criterio(CriterioBusqueda.de(SustantivoFlexion.class)
+                        .con(CaracteristicaGramatical.CASO, Caso.ACUSATIVO)
+                        .build())
+                .extractor(ExtractorSustantivo.get())
+                .build();
+
+        // Definir verbo transitivo en presente como OPCIONAL:
+        // - criterio: busca verbos transitivos en presente entre las tarjetas SRS
+        // - generador: si no hay verbo disponible, genera uno aleatorio de la BD
         ElementoFrase<VerboFlexion> verbo = ElementoFrase.<VerboFlexion>builder()
                 .nombre("VERBO")
                 .criterio(CriterioBusqueda.de(VerboFlexion.class)
@@ -52,16 +65,8 @@ public class FraseVerboTransitivoAcusativo extends EstructuraFrase {
                         .con(CaracteristicaGramatical.TRANSITIVIDAD, Transitividad.TRANSITIVO)
                         .con(CaracteristicaGramatical.NEGATIVO, false)
                         .build())
+                .generador(() -> verbosService.getVerboTransitivoPresenteAleatorio())
                 .extractor(ExtractorVerbo.get())
-                .build();
-
-        // Definir slot de sustantivo en acusativo
-        ElementoFrase<SustantivoFlexion> cd = ElementoFrase.<SustantivoFlexion>builder()
-                .nombre("CD")
-                .criterio(CriterioBusqueda.de(SustantivoFlexion.class)
-                        .con(CaracteristicaGramatical.CASO, Caso.ACUSATIVO)
-                        .build())
-                .extractor(ExtractorSustantivo.get())
                 .build();
 
         // Definir apoyo de pronombre (depende del verbo)

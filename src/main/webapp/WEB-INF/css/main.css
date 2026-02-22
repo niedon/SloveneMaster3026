@@ -8,7 +8,6 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    padding-top: 60px; /* Espacio para navbar fija */
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     display: flex;
@@ -16,150 +15,150 @@ body {
     align-items: flex-start;
 }
 
-/* ===== NAVBAR ===== */
+/* ===== NAVBAR FLOTANTE ===== */
 .navbar {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, #333 0%, #1a1a2e 100%);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    top: 20px;
+    right: 20px;
     z-index: 1000;
-    height: 60px;
 }
 
-.navbar-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
+/* Botón flotante colapsado */
+.navbar-toggle {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    height: 100%;
-}
-
-.navbar-brand {
-    color: white;
-    font-size: 1.5em;
-    font-weight: bold;
-    text-decoration: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-@media (max-width: 768px) {
-    .navbar-brand {
-        font-size: 1.1em;
-        max-width: 70%;
-    }
-}
-
-@media (max-width: 480px) {
-    .navbar-brand {
-        font-size: 0.95em;
-        max-width: 65%;
-    }
-}
-
-.navbar-menu {
-    display: flex;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    gap: 5px;
-}
-
-.navbar-link {
-    color: white;
-    text-decoration: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    transition: background 0.3s ease;
-    font-size: 0.95em;
-    white-space: nowrap;
-}
-
-.navbar-link:hover {
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.navbar-toggle {
-    display: none;
-    background: transparent;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #333 0%, #1a1a2e 100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     border: none;
     cursor: pointer;
-    padding: 10px;
-    box-shadow: none;
+    padding: 0;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    margin-left: auto;
 }
 
+.navbar-toggle:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    transform: scale(1.07);
+}
+
+/* Icono hamburguesa */
 .navbar-toggle-icon {
     display: block;
-    width: 25px;
-    height: 3px;
+    width: 22px;
+    height: 2px;
     background: white;
     position: relative;
+    transition: background 0.2s ease;
 }
 
 .navbar-toggle-icon::before,
 .navbar-toggle-icon::after {
     content: '';
     position: absolute;
-    width: 25px;
-    height: 3px;
+    width: 22px;
+    height: 2px;
     background: white;
     left: 0;
+    transition: transform 0.3s ease, top 0.3s ease;
 }
 
-.navbar-toggle-icon::before {
-    top: -8px;
+.navbar-toggle-icon::before { top: -7px; }
+.navbar-toggle-icon::after  { top:  7px; }
+
+/* Cuando el menú está abierto, animar hamburguesa → X */
+.navbar.open .navbar-toggle-icon {
+    background: transparent;
 }
 
-.navbar-toggle-icon::after {
-    top: 8px;
+.navbar.open .navbar-toggle-icon::before {
+    top: 0;
+    transform: rotate(45deg);
 }
 
-/* Navbar responsiva */
-@media (max-width: 768px) {
-    .navbar-toggle {
-        display: block;
-    }
-
-    .navbar-menu {
-        display: none;
-        position: absolute;
-        top: 60px;
-        left: 0;
-        right: 0;
-        background: linear-gradient(135deg, #333 0%, #1a1a2e 100%);
-        flex-direction: column;
-        padding: 10px 0;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    }
-
-    .navbar-menu.active {
-        display: flex;
-    }
-
-    .navbar-link {
-        padding: 15px 20px;
-        border-radius: 0;
-    }
-
-    .navbar-link:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
+.navbar.open .navbar-toggle-icon::after {
+    top: 0;
+    transform: rotate(-45deg);
 }
+
+/* Panel del menú expandido */
+.navbar-container {
+    display: none;
+    flex-direction: column;
+    align-items: flex-end;
+    background: linear-gradient(135deg, #333 0%, #1a1a2e 100%);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    padding: 16px 12px 12px 12px;
+    margin-top: 8px;
+    min-width: 200px;
+    animation: navSlideIn 0.2s ease;
+}
+
+@keyframes navSlideIn {
+    from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.navbar.open .navbar-container {
+    display: flex;
+}
+
+/* Título de la app dentro del menú */
+.navbar-brand {
+    color: white;
+    font-size: 1.1em;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 6px 12px 12px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    width: 100%;
+    text-align: right;
+    display: block;
+    margin-bottom: 6px;
+}
+
+/* Lista de enlaces */
+.navbar-menu {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 2px;
+    width: 100%;
+}
+
+.navbar-link {
+    color: white;
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+    font-size: 0.95em;
+    white-space: nowrap;
+    display: block;
+    text-align: right;
+}
+
+.navbar-link:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
 
 /* ===== CONTAINER ===== */
 .container {
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    padding: 40px;
+    padding: 20px;
     max-width: 900px;
-    width: 90%;
-    margin: 20px;
+    width: 100%;
+    margin: 10px;
 }
 
 @media (max-width: 600px) {
@@ -263,9 +262,13 @@ input[type="search"]:focus {
 
 /* Tablas */
 table {
+    /* table-layout: auto + width: 100% hace que las columnas
+       ajusten primero al contenido y luego el espacio sobrante
+       se reparte proporcionalmente hasta llenar el 100%. */
+    table-layout: auto;
     width: 100%;
     border-collapse: collapse;
-    margin: 20px 0;
+    margin: 0 0 20px 0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     overflow: hidden;
@@ -275,6 +278,9 @@ th, td {
     padding: 15px;
     text-align: left;
     border-bottom: 1px solid #f0f0f0;
+    /* Las columnas se pueden comprimir si el espacio es justo,
+       pero nunca por debajo de su contenido */
+    width: auto;
 }
 
 th {
@@ -285,17 +291,37 @@ th {
     letter-spacing: 1px;
 }
 
-tr:hover {
-    background-color: #f8f9fa;
+/* Sombreado alterno de columnas (dos tonos muy suaves de gris) */
+td:nth-child(odd),
+th:nth-child(odd) {
+    background-color: #f5f5f5;
+}
+
+td:nth-child(even),
+th:nth-child(even) {
+    background-color: #ebebeb;
+}
+
+/* Sobrescribir el fondo del th con el gradiente (tiene prioridad visual) */
+th:nth-child(odd),
+th:nth-child(even) {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+tr:hover td {
+    filter: brightness(0.96);
 }
 
 /* Tabla colapsable */
 tr.collapsed {
-    display: none;
+    /* visibility:collapse oculta la fila pero mantiene su aportación
+       al cálculo de anchos de columna, evitando que las columnas
+       se redistribuyan al mostrar/ocultar filas */
+    visibility: collapse;
 }
 
 tr.visible {
-    display: table-row;
+    visibility: visible;
 }
 
 tr.row-visible {
@@ -498,7 +524,7 @@ tr.row-visible:hover {
 /* Tarjetas info - contador de tarjetas disponibles */
 .tarjetas-info {
     text-align: center;
-    margin-bottom: 25px;
+    margin-top: 25px;
     padding: 15px;
     border-radius: 10px;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -542,6 +568,7 @@ tr.row-visible:hover {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
+        width: 100%;
     }
 
     /* Grids de configuración en columna única */

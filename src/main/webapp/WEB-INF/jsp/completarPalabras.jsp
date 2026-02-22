@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Completar Palabras - Esloveno</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
+    <%@ include file="head-favicon.jsp" %>
     <style>
         .search-container {
             margin-bottom: 30px;

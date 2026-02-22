@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Añadir Palabras - Esloveno</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
+    <%@ include file="head-favicon.jsp" %>
     <style>
         .results-container {
             margin-top: 20px;

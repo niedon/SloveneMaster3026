@@ -107,6 +107,25 @@ class ElementoFraseTest {
             assertThat(elemento.esSlot()).isTrue();
             assertThat(elemento.esApoyo()).isFalse();
         }
+
+        @Test
+        @DisplayName("construye correctamente un elemento opcional (criterio + generador)")
+        void construyeOpcionalValido() {
+            ElementoFrase<SustantivoFlexion> opcional = ElementoFrase.<SustantivoFlexion>builder()
+                    .nombre("OPCIONAL")
+                    .criterio(CriterioBusqueda.de(SustantivoFlexion.class)
+                            .con(CaracteristicaGramatical.CASO, Caso.NOMINATIVO)
+                            .build())
+                    .generador(() -> sustantivoNominativo)
+                    .extractor(ExtraccionSlotEstandar.get())
+                    .build();
+
+            assertThat(opcional.getNombre()).isEqualTo("OPCIONAL");
+            assertThat(opcional.esOpcional()).isTrue();
+            assertThat(opcional.esSlot()).isTrue();       // participa en búsqueda
+            assertThat(opcional.esApoyo()).isFalse();      // no es apoyo puro
+            assertThat(opcional.esSlotObligatorio()).isFalse(); // no bloquea completitud
+        }
     }
 
     @Nested
@@ -120,6 +139,8 @@ class ElementoFraseTest {
 
             assertThat(slot.esSlot()).isTrue();
             assertThat(slot.esApoyo()).isFalse();
+            assertThat(slot.esOpcional()).isFalse();
+            assertThat(slot.esSlotObligatorio()).isTrue();
         }
 
         @Test
@@ -135,6 +156,19 @@ class ElementoFraseTest {
 
             assertThat(apoyo.esApoyo()).isTrue();
             assertThat(apoyo.esSlot()).isFalse();
+            assertThat(apoyo.esOpcional()).isFalse();
+            assertThat(apoyo.esSlotObligatorio()).isFalse();
+        }
+
+        @Test
+        @DisplayName("esOpcional retorna true para elemento con criterio y generador")
+        void esOpcionalConCriterioYGenerador() {
+            ElementoFrase<SustantivoFlexion> opcional = crearOpcionalNominativo();
+
+            assertThat(opcional.esOpcional()).isTrue();
+            assertThat(opcional.esSlot()).isTrue();
+            assertThat(opcional.esApoyo()).isFalse();
+            assertThat(opcional.esSlotObligatorio()).isFalse();
         }
     }
 
@@ -192,6 +226,22 @@ class ElementoFraseTest {
 
             assertThat(apoyo.coincide(sustantivoNominativo)).isFalse();
         }
+
+        @Test
+        @DisplayName("retorna true para opcional vacío si palabra cumple criterio")
+        void retornaTrueParaOpcionalVacioSiCumple() {
+            ElementoFrase<SustantivoFlexion> opcional = crearOpcionalNominativo();
+
+            assertThat(opcional.coincide(sustantivoNominativo)).isTrue();
+        }
+
+        @Test
+        @DisplayName("retorna false para opcional vacío si palabra no cumple criterio")
+        void retornaFalseParaOpcionalSiNoCumple() {
+            ElementoFrase<SustantivoFlexion> opcional = crearOpcionalNominativo();
+
+            assertThat(opcional.coincide(sustantivoAcusativo)).isFalse();
+        }
     }
 
     @Nested
@@ -225,6 +275,38 @@ class ElementoFraseTest {
 
             assertThat(slot.estaAsignado()).isFalse();
             assertThat(slot.getPalabraAsignada()).isNull();
+        }
+
+        @Test
+        @DisplayName("asignarComoGenerado marca fueRellenadoPorGenerador como true")
+        void asignarComoGeneradoMarcaFlag() {
+            ElementoFrase<SustantivoFlexion> opcional = crearOpcionalNominativo();
+            opcional.asignarComoGenerado(sustantivoNominativo);
+
+            assertThat(opcional.estaAsignado()).isTrue();
+            assertThat(opcional.isFueRellenadoPorGenerador()).isTrue();
+            assertThat(opcional.getPalabraAsignada()).isEqualTo(sustantivoNominativo);
+        }
+
+        @Test
+        @DisplayName("asignar normal no marca fueRellenadoPorGenerador")
+        void asignarNormalNoMarcaFlag() {
+            ElementoFrase<SustantivoFlexion> opcional = crearOpcionalNominativo();
+            opcional.asignar(sustantivoNominativo);
+
+            assertThat(opcional.estaAsignado()).isTrue();
+            assertThat(opcional.isFueRellenadoPorGenerador()).isFalse();
+        }
+
+        @Test
+        @DisplayName("limpiar resetea fueRellenadoPorGenerador")
+        void limpiarReseteaFlagGenerador() {
+            ElementoFrase<SustantivoFlexion> opcional = crearOpcionalNominativo();
+            opcional.asignarComoGenerado(sustantivoNominativo);
+            opcional.limpiar();
+
+            assertThat(opcional.estaAsignado()).isFalse();
+            assertThat(opcional.isFueRellenadoPorGenerador()).isFalse();
         }
     }
 
@@ -284,6 +366,18 @@ class ElementoFraseTest {
                 .criterio(CriterioBusqueda.de(SustantivoFlexion.class)
                         .con(CaracteristicaGramatical.CASO, Caso.NOMINATIVO)
                         .build())
+                .extractor(ExtraccionSlotEstandar.get())
+                .build();
+    }
+
+    // Helper para crear un elemento opcional de sustantivo nominativo (criterio + generador)
+    private ElementoFrase<SustantivoFlexion> crearOpcionalNominativo() {
+        return ElementoFrase.<SustantivoFlexion>builder()
+                .nombre("OPCIONAL")
+                .criterio(CriterioBusqueda.de(SustantivoFlexion.class)
+                        .con(CaracteristicaGramatical.CASO, Caso.NOMINATIVO)
+                        .build())
+                .generador(() -> sustantivoNominativo)
                 .extractor(ExtraccionSlotEstandar.get())
                 .build();
     }

@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuración - Esloveno</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
+    <%@ include file="head-favicon.jsp" %>
     <style>
         .config-section {
             margin-bottom: 40px;

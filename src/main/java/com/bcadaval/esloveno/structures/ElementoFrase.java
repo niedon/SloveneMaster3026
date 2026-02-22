@@ -6,20 +6,31 @@ import com.bcadaval.esloveno.structures.extractores.ExtraccionNull;
 import lombok.Getter;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Representa un elemento dentro de una estructura de frase.
  * <p>
- * Un elemento puede ser:
- * - SLOT: tiene CriterioBusqueda, busca palabras en repositorios y participa en SRS
- * - APOYO: tiene generadorObjeto, genera palabras dinámicamente basándose en slots
- * <p>
- * Ambos tipos nunca pueden coexistir (validado en build).
+ * Un elemento puede ser de tres tipos según cómo se configure en el Builder:
+ * <ul>
+ *   <li><b>SLOT</b>: solo tiene {@code criterio}. Busca palabras en repositorios y participa en SRS.
+ *       Es obligatorio para que la frase se considere completa.</li>
+ *   <li><b>APOYO</b>: solo tiene {@code generador}. Genera palabras dinámicamente (ej: pronombre
+ *       a partir del verbo). No participa en SRS.</li>
+ *   <li><b>OPCIONAL</b>: tiene {@code criterio} Y {@code generador}. Primero intenta rellenarse
+ *       por criterio con las tarjetas SRS disponibles. Si no se rellena, la frase se considera
+ *       completa igualmente. Al visualizar, si no fue rellenado por criterio, se usa el generador
+ *       como fallback y a efectos del frontend se trata como apoyo (sin botones SRS).</li>
+ * </ul>
  *
  * @param <T> Tipo de PalabraFlexion que maneja este elemento
  */
 @Getter
 public class ElementoFrase<T extends PalabraFlexion<?>> {
+
+    // ============================================
+    // Campos inmutables (configuración)
+    // ============================================
 
     /**
      * Nombre identificador del elemento (ej.: "VERBO", "CD", "PRONOMBRE")
@@ -27,20 +38,21 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
     private final String nombre;
 
     /**
-     * Criterio de búsqueda para slots.
-     * null si es un elemento de apoyo.
+     * Criterio de búsqueda para slots y opcionales.
+     * null si es un elemento de apoyo puro.
      */
     private final CriterioBusqueda<T> criterioBusqueda;
 
     /**
-     * Generador de objeto para elementos de apoyo.
-     * null si es un slot.
+     * Generador de objeto para elementos de apoyo y opcionales.
+     * Función que recibe la EstructuraFrase completa y devuelve el objeto generado.
+     * null si es un slot puro.
      */
     private final Function<EstructuraFrase, T> generadorObjeto;
 
     /**
-     * Slot del que depende este elemento de apoyo.
-     * null si es un slot.
+     * Slot del que depende este elemento (apoyo u opcional).
+     * null si es un slot puro o si el generador no depende de otro slot.
      */
     private final ElementoFrase<?> slotDependiente;
 
@@ -67,6 +79,13 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
      */
     private T palabraAsignada;
 
+    /**
+     * Indica si este elemento opcional fue rellenado por el generador (fallback)
+     * en lugar de por criterio. Solo relevante para elementos opcionales.
+     * Si es true, el frontend lo tratará como apoyo (sin botones SRS).
+     */
+    private boolean fueRellenadoPorGenerador;
+
     private ElementoFrase(Builder<T> builder) {
         this.nombre = builder.nombre;
         this.criterioBusqueda = builder.criterioBusqueda;
@@ -79,23 +98,55 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
         this.extractorAEspanol = builder.extractorAEspanol;
     }
 
+    // ============================================
+    // Consultas de tipo
+    // ============================================
+
     /**
-     * Indica si este elemento es un slot (busca en repositorios).
+     * Indica si este elemento participa en la búsqueda por criterio (tiene criterioBusqueda).
+     * Tanto slots puros como opcionales son slots.
      */
     public boolean esSlot() {
         return criterioBusqueda != null;
     }
 
     /**
-     * Indica si este elemento es de apoyo (genera objeto dinámicamente).
+     * Indica si este elemento es de apoyo puro (solo generador, sin criterio).
      */
     public boolean esApoyo() {
-        return generadorObjeto != null;
+        return generadorObjeto != null && criterioBusqueda == null;
     }
 
     /**
+     * Indica si este elemento es opcional (tiene criterio Y generador).
+     */
+    public boolean esOpcional() {
+        return criterioBusqueda != null && generadorObjeto != null;
+    }
+
+    /**
+     * Indica si este elemento es un slot obligatorio (solo criterio, sin generador).
+     * La frase no se considera completa si un slot obligatorio no está asignado.
+     */
+    public boolean esSlotObligatorio() {
+        return criterioBusqueda != null && generadorObjeto == null;
+    }
+
+    /**
+     * Indica si este elemento fue rellenado por el generador (fallback).
+     * Solo relevante para opcionales.
+     */
+    public boolean isFueRellenadoPorGenerador() {
+        return fueRellenadoPorGenerador;
+    }
+
+    // ============================================
+    // Lógica de asignación
+    // ============================================
+
+    /**
      * Verifica si una palabra cumple el criterio del slot.
-     * Solo válido para slots.
+     * Solo válido para elementos con criterio (slots y opcionales).
      *
      * @param palabra Palabra a verificar
      * @return true si el slot está vacío y la palabra cumple el criterio
@@ -106,12 +157,25 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
     }
 
     /**
-     * Asigna una palabra al elemento.
+     * Asigna una palabra al elemento (rellenado por criterio/SRS).
      *
      * @param palabra Palabra a asignar
      */
+    @SuppressWarnings("unchecked")
     public void asignar(PalabraFlexion<?> palabra) {
         this.palabraAsignada = (T) palabra;
+    }
+
+    /**
+     * Asigna una palabra al elemento marcándola como rellenada por generador.
+     * Usado para opcionales que se rellenan por fallback.
+     *
+     * @param palabra Palabra a asignar
+     */
+    @SuppressWarnings("unchecked")
+    public void asignarComoGenerado(PalabraFlexion<?> palabra) {
+        this.palabraAsignada = (T) palabra;
+        this.fueRellenadoPorGenerador = true;
     }
 
     /**
@@ -122,16 +186,20 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
     }
 
     /**
-     * Genera el objeto de apoyo usando el contexto de la frase.
-     * Solo válido para elementos de apoyo.
+     * Genera el objeto usando el generador con el contexto de la frase.
+     * Válido para elementos de apoyo y opcionales (que tienen generador).
      *
      * @param frase Estructura de frase con slots asignados
-     * @return Objeto generado o null si el slot dependiente no está asignado
+     * @return Objeto generado o null si no tiene generador o si el slot dependiente no está asignado
      */
     public T generarObjeto(EstructuraFrase frase) {
-        if (!esApoyo()) return null;
+        if (generadorObjeto == null) return null;
         return generadorObjeto.apply(frase);
     }
+
+    // ============================================
+    // Extracción de texto para visualización
+    // ============================================
 
     /**
      * Obtiene el texto para la fila 1 según el modo de visualización.
@@ -192,6 +260,7 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
      */
     public void limpiar() {
         this.palabraAsignada = null;
+        this.fueRellenadoPorGenerador = false;
     }
 
     // ============================================
@@ -219,8 +288,9 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
         }
 
         /**
-         * Configura este elemento como SLOT con criterio de búsqueda.
-         * Incompatible con generadorObjeto.
+         * Configura criterio de búsqueda.
+         * Si se combina con un generador, el elemento será OPCIONAL.
+         * Si se usa solo, el elemento será un SLOT obligatorio.
          */
         public Builder<T> criterio(CriterioBusqueda<T> criterio) {
             this.criterioBusqueda = criterio;
@@ -228,11 +298,15 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
         }
 
         /**
-         * Configura este elemento como APOYO con generador de objeto.
-         * Incompatible con criterio.
+         * Configura un generador que depende de otro elemento (slot dependiente).
+         * La función recibe la palabra asignada al slot dependiente y genera el objeto.
+         * Si el slot dependiente no está asignado, el generador devuelve null.
+         * <p>
+         * Si se combina con criterio, el elemento será OPCIONAL.
+         * Si se usa solo, el elemento será un APOYO.
          *
-         * @param slotDependiente Slot del que depende este apoyo
-         * @param generador Función que genera el objeto a partir del slot
+         * @param slotDependiente Elemento del que depende este generador
+         * @param generador Función que transforma la palabra del slot dependiente
          */
         public Builder<T> generador(ElementoFrase<?> slotDependiente,
                                     Function<PalabraFlexion<?>, T> generador) {
@@ -245,12 +319,18 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
         }
 
         /**
-         * Configura este elemento como APOYO con generador de objeto personalizado.
-         * Incompatible con criterio.
-         * Usar cuando se necesita acceso completo a la frase.
+         * Configura un generador independiente (sin slot dependiente).
+         * La función (Supplier) genera el objeto sin necesitar contexto.
+         * <p>
+         * Uso típico: obtener una palabra aleatoria de la BD como fallback para opcionales.
+         * <p>
+         * Si se combina con criterio, el elemento será OPCIONAL.
+         * Si se usa solo, el elemento será un APOYO.
+         *
+         * @param generador Función sin argumentos que genera el objeto
          */
-        public Builder<T> generadorCompleto(Function<EstructuraFrase, T> generador) {
-            this.generadorObjeto = generador;
+        public Builder<T> generador(Supplier<T> generador) {
+            this.generadorObjeto = frase -> generador.get();
             return this;
         }
 
@@ -292,14 +372,9 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
             boolean tieneSlot = criterioBusqueda != null;
             boolean tieneApoyo = generadorObjeto != null;
 
-            if (tieneSlot && tieneApoyo) {
-                throw new IllegalStateException(
-                        "ElementoFrase '" + nombre + "' no puede tener criterio Y generador simultáneamente");
-            }
-
             if (!tieneSlot && !tieneApoyo) {
                 throw new IllegalStateException(
-                        "ElementoFrase '" + nombre + "' debe tener criterio (slot) o generador (apoyo)");
+                        "ElementoFrase '" + nombre + "' debe tener criterio (slot), generador (apoyo), o ambos (opcional)");
             }
 
             // Verificar que tenga al menos una forma de extracción
@@ -323,4 +398,3 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
         }
     }
 }
-

@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import com.bcadaval.esloveno.services.palabra.NumeralService;
 import com.bcadaval.esloveno.services.palabra.PronombreService;
 import com.bcadaval.esloveno.services.palabra.sustantivo.SustantivoService;
+import com.bcadaval.esloveno.services.palabra.verbo.VerbosService;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ import lombok.extern.log4j.Log4j2;
  * La frase puede contener:
  * - Slots: elementos con CriterioBusqueda, buscan palabras en repositorios (participan en SRS)
  * - Apoyos: elementos con generadorObjeto, generan palabras dinámicamente sin ID
+ * - Opcionales: elementos con ambos (criterio + generador). Participan en la búsqueda por
+ *   criterio pero no bloquean la completitud de la frase. Si no se rellenan por criterio,
+ *   se usa el generador como fallback y se tratan como apoyo en el frontend.
  * <p>
  * El orden de los elementos en la lista determina el orden en la vista.
  * El orden en que se añaden en configurarEstructura es indiferente gracias a
@@ -63,6 +67,9 @@ public abstract class EstructuraFrase {
     protected SustantivoService sustantivoService;
 
     @Autowired
+    protected VerbosService verbosService;
+
+    @Autowired
     protected ExtraccionSlotEstandar extraccionSlotEstandar;
 
     @Autowired
@@ -84,9 +91,15 @@ public abstract class EstructuraFrase {
     protected final List<ElementoFrase<? extends PalabraFlexion<?>>> slots = new ArrayList<>();
 
     /**
-     * Lista de apoyos (elementos con generador) para procesamiento posterior.
+     * Lista de apoyos (elementos con generador puro) para procesamiento posterior.
      */
     protected final List<ElementoFrase<? extends PalabraFlexion<?>>> apoyos = new ArrayList<>();
+
+    /**
+     * Lista de opcionales (elementos con criterio + generador).
+     * Participan en búsqueda por criterio pero no bloquean la completitud.
+     */
+    protected final List<ElementoFrase<? extends PalabraFlexion<?>>> opcionales = new ArrayList<>();
 
     /**
      * Constructor por defecto para Spring
@@ -96,13 +109,18 @@ public abstract class EstructuraFrase {
 
     /**
      * Añade un elemento a la estructura.
-     * Clasifica automáticamente como slot o apoyo según su configuración.
+     * Clasifica automáticamente como slot, apoyo u opcional según su configuración.
      *
-     * @param elemento Elemento a añadir (slot o apoyo)
+     * @param elemento Elemento a añadir
      */
     protected void agregarElemento(ElementoFrase<? extends PalabraFlexion<?>> elemento) {
         elementos.add(elemento);
-        if (elemento.esSlot()) {
+        if (elemento.esOpcional()) {
+            // Opcional: tiene criterio Y generador
+            // Se añade a slots (para participar en búsqueda) y a opcionales (para tracking)
+            slots.add(elemento);
+            opcionales.add(elemento);
+        } else if (elemento.esSlot()) {
             slots.add(elemento);
         } else if (elemento.esApoyo()) {
             apoyos.add(elemento);
@@ -139,10 +157,13 @@ public abstract class EstructuraFrase {
     }
 
     /**
-     * Verifica si todos los slots tienen una palabra asignada
+     * Verifica si todos los slots obligatorios tienen una palabra asignada.
+     * Los elementos opcionales (con criterio + generador) no bloquean la completitud.
      */
     public boolean estaCompleta() {
-        return slots.stream().allMatch(ElementoFrase::estaAsignado);
+        return slots.stream()
+                .filter(ElementoFrase::esSlotObligatorio)
+                .allMatch(ElementoFrase::estaAsignado);
     }
 
     public Instant calcularMediaInstant() {
@@ -163,17 +184,40 @@ public abstract class EstructuraFrase {
      * Itera sobre los elementos EN ORDEN para mantener la estructura de la frase.
      * El JSP recibirá textoFila1 y textoFila2 sin saber qué idioma es cada uno.
      * <p>
-     * IMPORTANTE: Primero genera los objetos de apoyo (que dependen de slots asignados).
+     * IMPORTANTE: Orden de generación:
+     * 1. Opcionales no rellenados por criterio → se rellenan con generador (fallback)
+     * 2. Apoyos → se generan (pueden depender de opcionales ya rellenados)
+     * <p>
+     * Si cualquier generador (opcional o apoyo) devuelve null, la frase se considera
+     * inválida y se devuelve null. El controlador debe descartar esta estructura y
+     * probar con la siguiente candidata.
+     *
+     * @return Lista de DatoVisualizacion, o null si algún generador falló
      */
     public List<DatoVisualizacion> construirDatosVisualizacion() {
         // Modo aleatorio cada vez que se construye
         ModoVisualizacion modo = ModoVisualizacion.aleatorio();
         log.debug("Construyendo datos con modo: {}", modo);
 
-        // Primero generar y asignar objetos de apoyo
-        apoyos.stream()
-                .filter(ElementoFrase::esApoyo)
-                .forEach(this::generarYAsignarApoyo);
+        // 1. Rellenar opcionales no asignados con generador (fallback)
+        for (var opcional : opcionales) {
+            if (!opcional.estaAsignado()) {
+                if (!generarYAsignarOpcionalComoFallback(opcional)) {
+                    log.error("FRASE DESCARTADA '{}': el opcional '{}' no pudo ser generado por fallback",
+                            getNombreMostrar(), opcional.getNombre());
+                    return null;
+                }
+            }
+        }
+
+        // 2. Generar apoyos puros (pueden depender de opcionales ya rellenados)
+        for (var apoyo : apoyos) {
+            if (!generarYAsignarApoyo(apoyo)) {
+                log.error("FRASE DESCARTADA '{}': el apoyo '{}' no pudo ser generado",
+                        getNombreMostrar(), apoyo.getNombre());
+                return null;
+            }
+        }
 
         // Construir datos de visualización en orden
         return elementos.stream()
@@ -183,27 +227,53 @@ public abstract class EstructuraFrase {
     }
 
     /**
-     * Helper para capturar el tipo genérico y asignar apoyo correctamente.
-     * Resuelve el problema de type capture en el bucle for-each.
+     * Genera y asigna el objeto de apoyo. Devuelve false si el generador devuelve null.
      */
-    private <T extends PalabraFlexion<?>> void generarYAsignarApoyo(ElementoFrase<T> apoyo) {
+    private <T extends PalabraFlexion<?>> boolean generarYAsignarApoyo(ElementoFrase<T> apoyo) {
         T objetoGenerado = apoyo.generarObjeto(this);
+        if (objetoGenerado == null) {
+            return false;
+        }
         apoyo.asignar(objetoGenerado);
+        return true;
     }
 
     /**
-     * Construye un DatoVisualizacion para un elemento
+     * Genera y asigna un opcional como fallback por generador.
+     * Marca el elemento como rellenado por generador.
+     * Devuelve false si el generador devuelve null.
+     */
+    private <T extends PalabraFlexion<?>> boolean generarYAsignarOpcionalComoFallback(ElementoFrase<T> opcional) {
+        T objetoGenerado = opcional.generarObjeto(this);
+        if (objetoGenerado == null) {
+            return false;
+        }
+        opcional.asignarComoGenerado(objetoGenerado);
+        log.debug("Opcional '{}' rellenado por generador (fallback)", opcional.getNombre());
+        return true;
+    }
+
+    /**
+     * Construye un DatoVisualizacion para un elemento.
+     * Los elementos opcionales rellenados por generador se tratan como apoyo (sin SRS).
      */
     private DatoVisualizacion construirDato(ElementoFrase<?> elemento, ModoVisualizacion modo) {
         if (!elemento.estaAsignado()) return null;
 
         PalabraFlexion<?> palabra = elemento.getPalabraAsignada();
 
-        // Calcular intervalos si es un slot (tiene SRS)
+        // Determinar si este elemento participa en SRS:
+        // - Slots obligatorios: siempre participan
+        // - Opcionales rellenados por criterio: participan
+        // - Opcionales rellenados por generador: NO participan (se tratan como apoyo)
+        // - Apoyos: NO participan
+        boolean participaEnSRS = elemento.esSlot() && !elemento.isFueRellenadoPorGenerador();
+
+        // Calcular intervalos si participa en SRS
         String intervaloArriba = null;
         String intervaloAbajo = null;
 
-        if (elemento.esSlot() && repeticionEspaciadaService != null) {
+        if (participaEnSRS && repeticionEspaciadaService != null) {
             try {
                 long segundosArriba = repeticionEspaciadaService.calcularProximoIntervalo(palabra, true);
                 long segundosAbajo = repeticionEspaciadaService.calcularProximoIntervalo(palabra, false);
@@ -217,8 +287,8 @@ public abstract class EstructuraFrase {
         return DatoVisualizacion.builder()
                 .textoFila1(elemento.getTextoFila1(modo))
                 .textoFila2(elemento.getTextoFila2(modo))
-                .id(elemento.esSlot() ? palabra.getId() : null)
-                .tipo(elemento.esSlot() ? FraseTipoPalabra.fromObject(palabra) : null)
+                .id(participaEnSRS ? palabra.getId() : null)
+                .tipo(participaEnSRS ? FraseTipoPalabra.fromObject(palabra) : null)
                 .intervaloArriba(intervaloArriba)
                 .intervaloAbajo(intervaloAbajo)
                 .build();

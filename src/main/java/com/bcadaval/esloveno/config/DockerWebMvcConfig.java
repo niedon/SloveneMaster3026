@@ -26,5 +26,7 @@ public class DockerWebMvcConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/css/**")
                 .addResourceLocations("file:/app/WEB-INF/css/");
+        registry.addResourceHandler("/favicon/**")
+                .addResourceLocations("file:/app/WEB-INF/favicon/");
     }
 }

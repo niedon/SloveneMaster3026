@@ -8,36 +8,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estudio - Esloveno</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
+    <%@ include file="head-favicon.jsp" %>
 </head>
 <body>
     <c:set var="pageTitle" value="📖 Estudio de Palabras" scope="request"/>
     <%@ include file="navbar.jsp" %>
     <div class="container">
 
-        <!-- Contador de tarjetas disponibles -->
-        <div class="tarjetas-info">
-            <c:choose>
-                <c:when test="${tarjetasDisponibles > 0}">
-                    <p class="tarjetas-disponibles">📚 Hay <strong>${tarjetasDisponibles}</strong> palabra(s) disponible(s) para el estudio</p>
-                </c:when>
-                <c:when test="${tarjetasNuevas > 0}">
-                    <p class="tarjetas-nuevas">🆕 Hay <strong>${tarjetasNuevas}</strong> palabra(s) nueva(s) para aprender</p>
-                </c:when>
-                <c:otherwise>
-                    <p class="sin-tarjetas">✅ ¡No hay tarjetas pendientes! Vuelve más tarde.</p>
-                </c:otherwise>
-            </c:choose>
-        </div>
-
         <c:set var="tamanio" value="${fn:length(datos)}" />
 
         <form action="/enviarRespuestas" method="POST" id="respuestasForm">
             <table>
-                <thead>
-                    <tr>
-                        <th colspan="${tamanio}">Palabras</th>
-                    </tr>
-                </thead>
                 <tbody>
                     <!-- Fila 1: pregunta (transparente al idioma) -->
                     <tr class="row-visible">
@@ -85,6 +66,22 @@
                 <button type="submit" class="btn-primary submit-btn">Enviar Respuestas</button>
             </div>
         </form>
+
+        <!-- Contador de tarjetas disponibles -->
+        <div class="tarjetas-info">
+            <c:choose>
+                <c:when test="${tarjetasDisponibles > 0}">
+                    <p class="tarjetas-disponibles">📚 Hay <strong>${tarjetasDisponibles}</strong> palabra(s) disponible(s) para el estudio</p>
+                </c:when>
+                <c:when test="${tarjetasNuevas > 0}">
+                    <p class="tarjetas-nuevas">🆕 Hay <strong>${tarjetasNuevas}</strong> palabra(s) nueva(s) para aprender</p>
+                </c:when>
+                <c:otherwise>
+                    <p class="sin-tarjetas">✅ ¡No hay tarjetas pendientes! Vuelve más tarde.</p>
+                </c:otherwise>
+            </c:choose>
+        </div>
+
     </div>
 
     <script>
@@ -127,10 +124,10 @@
 
             if (intervaloContainer && intervaloTexto && intervaloArriba && intervaloAbajo) {
                 if (respuesta === 'arriba' && intervaloArriba.value) {
-                    intervaloTexto.textContent = '⏰ Próxima revisión: ' + intervaloArriba.value;
+                    intervaloTexto.textContent = '⏰ Próx: ' + intervaloArriba.value;
                     intervaloContainer.style.display = 'block';
                 } else if (respuesta === 'abajo' && intervaloAbajo.value) {
-                    intervaloTexto.textContent = '⏰ Próxima revisión: ' + intervaloAbajo.value;
+                    intervaloTexto.textContent = '⏰ Próx: ' + intervaloAbajo.value;
                     intervaloContainer.style.display = 'block';
                 } else {
                     intervaloContainer.style.display = 'none';

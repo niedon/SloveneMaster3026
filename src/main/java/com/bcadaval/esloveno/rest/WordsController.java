@@ -88,26 +88,34 @@ public class WordsController {
 
 		// Calcular puntuación para estructuras completas (media de usos de sus palabras)
 		// Menor puntuación = mejor (prioriza palabras menos asignables)
-		EstructuraFrase mejorEstructura = estructuras.stream()
+		List<EstructuraFrase> candidatas = estructuras.stream()
 				.filter(EstructuraFrase::estaCompleta)
-				.min(Comparator.comparing(EstructuraFrase::calcularMediaInstant))
-				.orElse(null);
+				.sorted(Comparator.comparing(EstructuraFrase::calcularMediaInstant))
+				.toList();
 
 		// Log de puntuaciones para debug
-		estructuras.stream()
-				.filter(EstructuraFrase::estaCompleta)
-				.forEach(el -> log.info("Estructura '{}': puntuación = {}",
-						el.getNombreMostrar(), el.calcularMediaInstant()));
+		candidatas.forEach(el -> log.info("Estructura candidata '{}': puntuación = {}",
+				el.getNombreMostrar(), el.calcularMediaInstant()));
 
-		if (mejorEstructura != null) {
-			log.info("Estructura seleccionada: '{}' con puntuación {}",
-					mejorEstructura.getNombreMostrar(), mejorEstructura.calcularMediaInstant());
-			return mejorEstructura.construirDatosVisualizacion();
+		// Intentar construir cada candidata; descartar si algún generador falla
+		for (EstructuraFrase candidata : candidatas) {
+			log.info("Intentando construir estructura '{}'...", candidata.getNombreMostrar());
+			List<DatoVisualizacion> resultado = candidata.construirDatosVisualizacion();
+			if (resultado != null) {
+				log.info("Estructura seleccionada: '{}' con puntuación {}",
+						candidata.getNombreMostrar(), candidata.calcularMediaInstant());
+				return resultado;
+			}
+			// Si devuelve null, el log de error ya se emitió en construirDatosVisualizacion
 		}
 
 
-		// Ninguna estructura se completó
-		log.warn("Ninguna estructura de frase se completó con las {} tarjetas disponibles", tarjetas.size());
+		// Ninguna estructura pudo construirse
+		if (candidatas.isEmpty()) {
+			log.warn("Ninguna estructura de frase se completó con las {} tarjetas disponibles", tarjetas.size());
+		} else {
+			log.warn("Se completaron {} estructura(s) pero ninguna pudo generar todos sus componentes", candidatas.size());
+		}
 		log.info("=================== Tarjetas no usadas ==================");
 		for (PalabraFlexion<?> tarjeta : tarjetas) {
 			log.info(" - {}", tarjeta);
