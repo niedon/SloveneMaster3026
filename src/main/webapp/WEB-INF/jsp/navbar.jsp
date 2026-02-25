@@ -20,11 +20,12 @@
             </c:choose>
         </a>
         <ul class="navbar-menu">
-            <li><a href="/getWords"        class="navbar-link">📖 Estudio</a></li>
-            <li><a href="/anadirPalabras"  class="navbar-link">📚 Añadir</a></li>
+            <li><a href="/getWords"          class="navbar-link">📖 Estudio</a></li>
+            <li><a href="/anadirPalabras"    class="navbar-link">📚 Añadir</a></li>
             <li><a href="/completarPalabras" class="navbar-link">📝 Completar</a></li>
-            <li><a href="/configuracion"   class="navbar-link">⚙️ Configuración</a></li>
-            <li><a href="/estadisticas"    class="navbar-link">📊 Estadísticas</a></li>
+            <li><a href="/buscarPalabras"    class="navbar-link">🔍 Buscar</a></li>
+            <li><a href="/configuracion"     class="navbar-link">⚙️ Configuración</a></li>
+            <li><a href="/estadisticas"      class="navbar-link">📊 Estadísticas</a></li>
         </ul>
     </div>
 </nav>

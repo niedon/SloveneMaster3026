@@ -14,4 +14,14 @@ public interface SustantivoRepo extends JpaRepository<Sustantivo, String> {
      * Encuentra sustantivos con significado null o animado null
      */
     List<Sustantivo> findBySignificadoIsNullOrAnimadoIsNull();
+
+    /**
+     * Busca sustantivos cuya forma principal contenga el texto (case-insensitive)
+     */
+    List<Sustantivo> findByPrincipalContainingIgnoreCase(String texto);
+
+    /**
+     * Busca sustantivos cuyo significado contenga el texto (case-insensitive)
+     */
+    List<Sustantivo> findBySignificadoContainingIgnoreCase(String texto);
 }

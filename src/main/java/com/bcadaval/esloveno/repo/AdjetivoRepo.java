@@ -14,4 +14,14 @@ public interface AdjetivoRepo extends JpaRepository<Adjetivo, String>{
      * Encuentra adjetivos con significado null
      */
     List<Adjetivo> findBySignificadoIsNull();
+
+    /**
+     * Busca adjetivos cuya forma principal contenga el texto (case-insensitive)
+     */
+    List<Adjetivo> findByPrincipalContainingIgnoreCase(String texto);
+
+    /**
+     * Busca adjetivos cuyo significado contenga el texto (case-insensitive)
+     */
+    List<Adjetivo> findBySignificadoContainingIgnoreCase(String texto);
 }

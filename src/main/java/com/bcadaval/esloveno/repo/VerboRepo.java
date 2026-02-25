@@ -14,4 +14,14 @@ public interface VerboRepo extends JpaRepository<Verbo, String>{
      * Encuentra verbos con significado null o transitividad null
      */
     List<Verbo> findBySignificadoIsNullOrTransitividadIsNull();
+
+    /**
+     * Busca verbos cuya forma principal contenga el texto (case-insensitive)
+     */
+    List<Verbo> findByPrincipalContainingIgnoreCase(String texto);
+
+    /**
+     * Busca verbos cuyo significado contenga el texto (case-insensitive)
+     */
+    List<Verbo> findBySignificadoContainingIgnoreCase(String texto);
 }
