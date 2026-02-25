@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.bcadaval.esloveno.config.InitializationInterceptor;
 import com.bcadaval.esloveno.services.InitializationService;
 import com.bcadaval.esloveno.services.InitializationService.InitStatusDTO;
 
@@ -27,6 +28,7 @@ public class InitializationController {
     public String index(Model model) {
         boolean ready = initializationService.isFullyReady();
         model.addAttribute("ready", ready);
+        model.addAttribute("cssVersion", InitializationInterceptor.CSS_VERSION);
 
         if (!ready) {
             log.info("Sistema no inicializado, mostrando pantalla de carga");

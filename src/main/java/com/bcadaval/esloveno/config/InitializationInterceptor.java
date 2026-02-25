@@ -2,6 +2,7 @@ package com.bcadaval.esloveno.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -22,6 +23,9 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 @Configuration
 public class InitializationInterceptor implements WebMvcConfigurer, HandlerInterceptor {
+
+    /** Versión fija al arranque de la JVM: fuerza recarga del CSS en cada redespliegue. */
+    public static final String CSS_VERSION = String.valueOf(System.currentTimeMillis());
 
     @Autowired
     private InitializationService initializationService;
@@ -50,6 +54,14 @@ public class InitializationInterceptor implements WebMvcConfigurer, HandlerInter
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void postHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+                           @NonNull Object handler, ModelAndView modelAndView) {
+        if (modelAndView != null) {
+            modelAndView.addObject("cssVersion", CSS_VERSION);
+        }
     }
 }
 

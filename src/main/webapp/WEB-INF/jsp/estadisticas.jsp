@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estadísticas de Estudio</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css?v=${cssVersion}">
     <%@ include file="head-favicon.jsp" %>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
