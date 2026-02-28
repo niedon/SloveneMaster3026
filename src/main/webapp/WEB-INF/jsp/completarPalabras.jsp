@@ -65,6 +65,13 @@
                     <label for="animado">Es animado</label>
                 </div>
 
+                <!-- Campo Cantidad (solo numerales) -->
+                <div class="form-group hidden" id="cantidadGroup">
+                    <label for="cantidad">Cantidad (valor numérico) *</label>
+                    <input type="number" id="cantidad" name="cantidad" min="0" step="1"
+                           placeholder="Ej: 1 para en, 2 para dva, 5 para pet...">
+                </div>
+
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" onclick="cancelarEdicion()">Cancelar</button>
                     <button type="submit" class="btn-primary">Guardar Cambios</button>
@@ -210,24 +217,29 @@
             // Mostrar/ocultar campos según tipo
             const transitividadGroup = document.getElementById('transitividadGroup');
             const animadoGroup = document.getElementById('animadoGroup');
+            const cantidadGroup = document.getElementById('cantidadGroup');
             const transitividadSelect = document.getElementById('transitividad');
             const animadoCheck = document.getElementById('animado');
+            const cantidadInput = document.getElementById('cantidad');
+
+            // Ocultar todos los campos específicos
+            transitividadGroup.classList.add('hidden');
+            animadoGroup.classList.add('hidden');
+            cantidadGroup.classList.add('hidden');
+            transitividadSelect.required = false;
+            cantidadInput.required = false;
 
             if (tipoEnum === ENUM_VERBO) {
                 transitividadGroup.classList.remove('hidden');
-                animadoGroup.classList.add('hidden');
                 transitividadSelect.value = palabra.transitividad || '';
                 transitividadSelect.required = true;
             } else if (tipoEnum === ENUM_SUSTANTIVO) {
-                transitividadGroup.classList.add('hidden');
                 animadoGroup.classList.remove('hidden');
-                transitividadSelect.required = false;
                 animadoCheck.checked = palabra.animado === true;
-            } else {
-                // Para adjetivos, pronombres y numerales solo mostrar significado
-                transitividadGroup.classList.add('hidden');
-                animadoGroup.classList.add('hidden');
-                transitividadSelect.required = false;
+            } else if (tipoEnum === ENUM_NUMERAL) {
+                cantidadGroup.classList.remove('hidden');
+                cantidadInput.value = palabra.cantidad != null ? palabra.cantidad : '';
+                cantidadInput.required = true;
             }
 
             formContainer.classList.add('visible');
@@ -256,6 +268,14 @@
             if (tipo === ENUM_VERBO && !formData.get('transitividad')) {
                 mostrarMensaje('La transitividad es obligatoria para verbos', 'error');
                 return;
+            }
+
+            if (tipo === ENUM_NUMERAL) {
+                const cantidadVal = formData.get('cantidad');
+                if (!cantidadVal || cantidadVal.trim() === '') {
+                    mostrarMensaje('La cantidad es obligatoria para numerales', 'error');
+                    return;
+                }
             }
 
             // Convertir checkbox a boolean

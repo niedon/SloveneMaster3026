@@ -1,42 +1,43 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
-import com.bcadaval.esloveno.beans.enums.Caso;
-import com.bcadaval.esloveno.beans.enums.NivelDificultad;
-import com.bcadaval.esloveno.beans.enums.Numero;
-import com.bcadaval.esloveno.beans.palabra.Numeral;
+import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
-import com.bcadaval.esloveno.services.palabra.NumeralService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtractorNumero;
 import com.bcadaval.esloveno.structures.extractores.ExtractorSustantivo;
 import com.bcadaval.esloveno.structures.frase.Frase;
 import com.bcadaval.esloveno.structures.frase.PalabraFrase;
-import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
 import com.bcadaval.esloveno.structures.frase.criterio.NumeralCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.criterio.SustantivoCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.dependencia.DependenciaBuilder;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Frase: Solo un Sustantivo en Nominativo.
+ * Frase: Numeral (1-4) + Sustantivo en Nominativo.
  * <p>
- * Ejemplo: "El libro" → "Knjiga"
+ * Ejemplo: "ena knjiga" (1 libro), "dve knjigi" (2 libros)
  * <p>
  * Huecos:
  * <ol>
- *   <li><strong>NUMERO</strong> (apoyo): numeral que concuerda con el sustantivo, generado a partir de este</li>
- *   <li><strong>SUSTANTIVO</strong> (obligatorio): {@link SustantivoFlexion} con caso NOMINATIVO</li>
+ *   <li><strong>NUMERO</strong> (obligatorio, slot SRS): {@link NumeralFlexion} con caso NOMINATIVO
+ *       y cantidad entre 1 y 4. El número y género se resuelven como dependencia del sustantivo:
+ *       singular→1, dual→2, plural→3-4.</li>
+ *   <li><strong>SUSTANTIVO</strong> (obligatorio, slot SRS): {@link SustantivoFlexion} con caso NOMINATIVO</li>
  * </ol>
+ * <p>
+ * Ambas palabras participan en SRS. El numeral depende del sustantivo para concordar
+ * en número y género gramatical, y su cantidad se restringe según el número:
+ * <ul>
+ *   <li>Sustantivo singular → numeral con cantidad = 1</li>
+ *   <li>Sustantivo dual → numeral con cantidad = 2</li>
+ *   <li>Sustantivo plural → numeral con cantidad 3 o 4</li>
+ * </ul>
  */
 @Component
 @DificultadFrase(NivelDificultad.PRINCIPIANTE)
 public class FraseSoloSustantivoNominativoNueva extends Frase {
-
-    @Autowired
-    private NumeralService numeralService;
 
     @Override
     public String getIdentificador() {
@@ -59,13 +60,25 @@ public class FraseSoloSustantivoNominativoNueva extends Frase {
                 .build();
 
         PalabraFrase<NumeralFlexion> numeral = PalabraFrase.<NumeralFlexion>builder()
-                .nombre("NUMERO2")
+                .nombre("NUMERO")
                 .criterio(NumeralCriterioBuilder.crear()
                         .conCaso(Caso.NOMINATIVO)
+                        .cantidadEntre(1, 4)
+                        // Dependencia de número: singular→1, dual→2, plural→3-4
                         .conDependencia(DependenciaBuilder.de(sustantivo)
-                                .si(sus -> sus.getNumero() == Numero.SINGULAR, NumeralCriterioBuilder.crear().conNumero(Numero.SINGULAR).build())
-                                .si(sus -> sus.getNumero() == Numero.DUAL, NumeralCriterioBuilder.crear().conNumero(Numero.DUAL).build())
-                                .orElse(NumeralCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
+                                .si(sust -> sust.getNumero() == Numero.SINGULAR,
+                                        NumeralCriterioBuilder.crear().conNumero(Numero.SINGULAR).conCantidad(1).build())
+                                .si(sust -> sust.getNumero() == Numero.DUAL,
+                                        NumeralCriterioBuilder.crear().conNumero(Numero.DUAL).conCantidad(2).build())
+                                .orElse(NumeralCriterioBuilder.crear().conNumero(Numero.PLURAL).conCantidad(3, 4).build())
+                        )
+                        // Dependencia de género: concordancia con el sustantivo
+                        .conDependencia(DependenciaBuilder.de(sustantivo)
+                                .si(sust -> sust.getSustantivoBase().getGenero() == Genero.MASCULINO,
+                                        NumeralCriterioBuilder.crear().conGenero(Genero.MASCULINO).build())
+                                .si(sust -> sust.getSustantivoBase().getGenero() == Genero.FEMENINO,
+                                        NumeralCriterioBuilder.crear().conGenero(Genero.FEMENINO).build())
+                                .orElse(NumeralCriterioBuilder.crear().conGenero(Genero.NEUTRO).build())
                         )
                         .build()
                 )

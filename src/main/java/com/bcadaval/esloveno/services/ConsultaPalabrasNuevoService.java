@@ -17,10 +17,9 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Servicio de consulta de palabras para estudio usando el nuevo sistema de criterios.
+ * Servicio de consulta de palabras para estudio usando el sistema de criterios.
  * <p>
- * Sustituye el filtrado en memoria de {@link ConsultaPalabrasService} por un filtrado
- * que usa {@link CriterioBusquedaNuevo} con sus restricciones tipadas.
+ * Usa {@link CriterioBusquedaNuevo} con sus restricciones tipadas para filtrar en memoria.
  * <p>
  * Estrategia:
  * <ul>

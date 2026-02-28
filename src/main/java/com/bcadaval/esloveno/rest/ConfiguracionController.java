@@ -46,8 +46,6 @@ public class ConfiguracionController {
 
         model.addAttribute("variablesMap", variablesMap);
 
-//        // Estructuras de frase para activar/desactivar (lista plana, para compatibilidad)
-//        model.addAttribute("estructuras", estructuraFraseService.getTodasParaConfiguracion());
 
         // Estructuras de frase agrupadas por nivel de dificultad
         model.addAttribute("estructurasPorDificultad", fraseService.getFrasesAgrupadasPorDificultad());

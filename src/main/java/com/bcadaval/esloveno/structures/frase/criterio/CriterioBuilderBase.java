@@ -26,6 +26,11 @@ public abstract class CriterioBuilderBase<T extends PalabraFlexion<?>, B extends
     protected final Map<String, Set<Object>> restricciones = new LinkedHashMap<>();
 
     /**
+     * Restricciones numéricas acumuladas (rangos, mayor/menor que, valores discretos).
+     */
+    protected final List<RestriccionNumerica> restriccionesNumericas = new ArrayList<>();
+
+    /**
      * Dependencias condicionales acumuladas.
      */
     protected final List<Dependencia<?>> dependencias = new ArrayList<>();
@@ -79,12 +84,24 @@ public abstract class CriterioBuilderBase<T extends PalabraFlexion<?>, B extends
     }
 
     /**
+     * Añade una restricción numérica al builder.
+     *
+     * @param restriccion restricción numérica a añadir
+     * @return este builder para encadenamiento fluido
+     */
+    protected B agregarRestriccionNumerica(RestriccionNumerica restriccion) {
+        restriccionesNumericas.add(restriccion);
+        return self();
+    }
+
+    /**
      * Construye el {@link CriterioBusquedaNuevo} con las restricciones y dependencias acumuladas.
      *
      * @return criterio de búsqueda inmutable listo para usar
      */
     public CriterioBusquedaNuevo<T> build() {
-        return new CriterioBusquedaNuevo<>(getTipoFlexion(), new LinkedHashMap<>(restricciones), new ArrayList<>(dependencias));
+        return new CriterioBusquedaNuevo<>(getTipoFlexion(), new LinkedHashMap<>(restricciones),
+                new ArrayList<>(dependencias), new ArrayList<>(restriccionesNumericas));
     }
 }
 

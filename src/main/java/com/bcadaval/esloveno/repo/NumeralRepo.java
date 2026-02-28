@@ -10,6 +10,11 @@ public interface NumeralRepo extends JpaRepository<Numeral, String> {
     List<Numeral> findBySignificadoIsNull();
 
     /**
+     * Busca numerales incompletos: sin significado o sin cantidad asignada.
+     */
+    List<Numeral> findBySignificadoIsNullOrCantidadIsNull();
+
+    /**
      * Busca numerales cuya forma principal contenga el texto (case-insensitive)
      */
     List<Numeral> findByPrincipalContainingIgnoreCase(String texto);

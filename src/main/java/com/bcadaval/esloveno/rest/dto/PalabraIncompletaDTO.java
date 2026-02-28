@@ -23,6 +23,10 @@ public class PalabraIncompletaDTO {
      */
     private String transitividad;
     /**
+     * Representación numérica del numeral (puede ser null)
+     */
+    private Integer cantidad;
+    /**
      * Significado en español (puede ser null)
      */
     private String significado;

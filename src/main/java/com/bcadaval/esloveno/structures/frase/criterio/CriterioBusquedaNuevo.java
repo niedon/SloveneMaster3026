@@ -64,12 +64,22 @@ public class CriterioBusquedaNuevo<T extends PalabraFlexion<?>> {
      */
     private final List<Dependencia<?>> dependencias;
 
+    /**
+     * Restricciones numéricas (rangos, mayor/menor que, valores discretos).
+     * Se evalúan por separado de las restricciones de igualdad.
+     * -- GETTER --
+     *  Obtiene las restricciones numéricas de este criterio.
+     */
+    private final List<RestriccionNumerica> restriccionesNumericas;
+
     CriterioBusquedaNuevo(Class<T> tipoFlexion,
                           Map<String, Set<Object>> restricciones,
-                          List<Dependencia<?>> dependencias) {
+                          List<Dependencia<?>> dependencias,
+                          List<RestriccionNumerica> restriccionesNumericas) {
         this.tipoFlexion = tipoFlexion;
         this.restricciones = Collections.unmodifiableMap(restricciones);
         this.dependencias = Collections.unmodifiableList(dependencias);
+        this.restriccionesNumericas = Collections.unmodifiableList(restriccionesNumericas);
     }
 
     /**
@@ -85,11 +95,24 @@ public class CriterioBusquedaNuevo<T extends PalabraFlexion<?>> {
         if (!tipoFlexion.isInstance(palabra)) return false;
 
         T palabraTipada = tipoFlexion.cast(palabra);
-        return restricciones.entrySet().stream()
+
+        // Evaluar restricciones de igualdad (AND entre campos, OR entre valores de cada campo)
+        boolean cumpleIgualdad = restricciones.entrySet().stream()
                 .allMatch(entry -> {
                     Object valorReal = extraerValor(palabraTipada, entry.getKey());
                     return entry.getValue().contains(valorReal);
                 });
+
+        if (!cumpleIgualdad) return false;
+
+        // Evaluar restricciones numéricas (AND entre ellas)
+        for (RestriccionNumerica restriccion : restriccionesNumericas) {
+            Object valorReal = extraerValor(palabraTipada, restriccion.campo());
+            Integer valorEntero = (valorReal instanceof Integer i) ? i : null;
+            if (!restriccion.cumple(valorEntero)) return false;
+        }
+
+        return true;
     }
 
     /**
@@ -162,20 +185,21 @@ public class CriterioBusquedaNuevo<T extends PalabraFlexion<?>> {
         List<CriterioBusquedaNuevo<T>> resultado = new ArrayList<>();
         for (List<CriterioBusquedaNuevo<?>> combinacion : combinaciones) {
             Map<String, Set<Object>> restriccionesFusionadas = new LinkedHashMap<>(this.restricciones);
+            List<RestriccionNumerica> numericasFusionadas = new ArrayList<>(this.restriccionesNumericas);
+
             for (CriterioBusquedaNuevo<?> rama : combinacion) {
                 for (Map.Entry<String, Set<Object>> entry : rama.getRestricciones().entrySet()) {
                     restriccionesFusionadas.merge(entry.getKey(), new LinkedHashSet<>(entry.getValue()),
                             (existente, nueva) -> {
-                                // AND: intersección no tiene sentido aquí;
-                                // los criterios de la dependencia se añaden como restricciones adicionales
-                                // Si ya existe la misma clave, el OR se mantiene dentro del Set
                                 Set<Object> merged = new LinkedHashSet<>(existente);
                                 merged.addAll(nueva);
                                 return merged;
                             });
                 }
+                numericasFusionadas.addAll(rama.getRestriccionesNumericas());
             }
-            resultado.add(new CriterioBusquedaNuevo<>(tipoFlexion, restriccionesFusionadas, List.of()));
+            resultado.add(new CriterioBusquedaNuevo<>(tipoFlexion, restriccionesFusionadas,
+                    List.of(), numericasFusionadas));
         }
 
         return resultado;

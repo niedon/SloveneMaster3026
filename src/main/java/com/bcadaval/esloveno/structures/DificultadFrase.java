@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 /**
  * Anotación para especificar el nivel de dificultad de una estructura de frase.
  * <p>
- * Esta anotación se aplica a las clases que extienden {@link EstructuraFrase}
+ * Esta anotación se aplica a las clases que extienden {@link com.bcadaval.esloveno.structures.frase.Frase}
  * para indicar el nivel de dificultad de la estructura.
  * <p>
  * Si una estructura no tiene esta anotación, se considera de nivel {@link NivelDificultad#PRINCIPIANTE}
@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
  * {@code
  * @Component
  * @DificultadFrase(NivelDificultad.INTERMEDIO)
- * public class FraseCompleja extends EstructuraFrase {
+ * public class FraseCompleja extends Frase {
  *     // ...
  * }
  * }

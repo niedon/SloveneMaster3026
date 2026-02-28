@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
-import com.bcadaval.esloveno.structures.CriterioGramatical;
 import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -21,7 +20,6 @@ import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
 import com.bcadaval.esloveno.repo.NumeralFlexionRepo;
 import com.bcadaval.esloveno.repo.PronombreFlexionRepo;
-import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
 import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboFlexionRepo;
 import com.bcadaval.esloveno.rest.dto.EstadisticasDTO;
@@ -41,15 +39,8 @@ public class RepeticionEspaciadaService {
 
     @Lazy
     @Autowired
-    private EstructuraFraseService estructuraFraseService;
-
-    @Lazy
-    @Autowired
     private FraseService fraseService;
 
-    @Lazy
-    @Autowired
-    private ConsultaPalabrasService consultaPalabrasService;
 
     @Lazy
     @Autowired
@@ -167,53 +158,22 @@ public class RepeticionEspaciadaService {
     }
 
     /**
-     * Obtiene las tarjetas listas para estudiar usando el sistema viejo.
-     * @deprecated Usar {@link #obtenerTarjetasDisponiblesNuevo(int)} con el nuevo sistema de criterios.
-     */
-    @Deprecated
-    public List<PalabraFlexion<?>> obtenerTarjetasDisponibles(int limite) {
-        // Obtener criterios activos por tipo
-        List<CriterioGramatical> criteriosVerbo = estructuraFraseService.getCriteriosGramaticalesPorTipo(VerboFlexion.class);
-        List<CriterioGramatical> criteriosSustantivo = estructuraFraseService.getCriteriosGramaticalesPorTipo(SustantivoFlexion.class);
-        List<CriterioGramatical> criteriosAdjetivo = estructuraFraseService.getCriteriosGramaticalesPorTipo(AdjetivoFlexion.class);
-
-        // Combinar streams con filtro gramatical ya aplicado
-        // Importante: recolectar cada stream a lista antes de combinar
-        // porque los streams de JPA se cierran al finalizar su procesamiento
-        List<PalabraFlexion<?>> tarjetas = Stream.of(
-            consultaPalabrasService.listVerbosListos(criteriosVerbo),
-            consultaPalabrasService.listSustantivosListos(criteriosSustantivo),
-            consultaPalabrasService.listAdjetivosListos(criteriosAdjetivo)
-        )
-        .flatMap(List::stream)
-        // Ordenar: reaprendizaje primero, luego por antigüedad
-        .sorted(Comparator
-            .comparing((PalabraFlexion<?> f) -> !Boolean.TRUE.equals(f.getEnReaprendizaje()))
-            .thenComparing(PalabraFlexion::getProximaRevision))
-        .collect(Collectors.toList());
-
-        // Mezclar aleatoriamente y limitar
-        if(variablesService.getMezclarTarjetas()) {
-            Collections.shuffle(tarjetas);
-        }
-        return tarjetas.size() > limite ? tarjetas.subList(0, limite) : tarjetas;
-    }
-
-    /**
      * Obtiene estadísticas del sistema de estudio.
-     * Usa streamActivos para obtener TODAS las tarjetas activas (proximaRevision != null)
+     * Usa el nuevo sistema de criterios para obtener todas las tarjetas activas.
      */
     public EstadisticasDTO obtenerEstadisticas() {
-        List<CriterioGramatical> criteriosVerbo = estructuraFraseService.getCriteriosGramaticalesPorTipo(VerboFlexion.class);
-        List<CriterioGramatical> criteriosSustantivo = estructuraFraseService.getCriteriosGramaticalesPorTipo(SustantivoFlexion.class);
-        List<CriterioGramatical> criteriosAdjetivo = estructuraFraseService.getCriteriosGramaticalesPorTipo(AdjetivoFlexion.class);
+        List<CriterioBusquedaNuevo<VerboFlexion>> criteriosVerbo = fraseService.getCriteriosPorTipo(VerboFlexion.class);
+        List<CriterioBusquedaNuevo<SustantivoFlexion>> criteriosSustantivo = fraseService.getCriteriosPorTipo(SustantivoFlexion.class);
+        List<CriterioBusquedaNuevo<AdjetivoFlexion>> criteriosAdjetivo = fraseService.getCriteriosPorTipo(AdjetivoFlexion.class);
+        List<CriterioBusquedaNuevo<NumeralFlexion>> criteriosNumeral = fraseService.getCriteriosPorTipo(NumeralFlexion.class);
+        List<CriterioBusquedaNuevo<PronombreFlexion>> criteriosPronombre = fraseService.getCriteriosPorTipo(PronombreFlexion.class);
 
-        // Obtener todas las tarjetas activas que cumplen criterios
-        // Importante: recolectar cada stream a lista antes de combinar
         List<PalabraFlexion<?>> todasActivas = Stream.of(
-                consultaPalabrasService.listVerbosActivos(criteriosVerbo),
-                consultaPalabrasService.listSustantivosActivos(criteriosSustantivo),
-                consultaPalabrasService.listAdjetivosActivos(criteriosAdjetivo)
+                consultaPalabrasNuevoService.listVerbosActivos(criteriosVerbo),
+                consultaPalabrasNuevoService.listSustantivosActivos(criteriosSustantivo),
+                consultaPalabrasNuevoService.listAdjetivosActivos(criteriosAdjetivo),
+                consultaPalabrasNuevoService.listNumeralesActivos(criteriosNumeral),
+                consultaPalabrasNuevoService.listPronombresActivos(criteriosPronombre)
         )
         .flatMap(List::stream)
         .collect(Collectors.toList());

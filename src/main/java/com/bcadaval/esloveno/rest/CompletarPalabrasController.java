@@ -123,12 +123,13 @@ public class CompletarPalabrasController {
                     .palabra(pronombreFlexion.getFlexion())
                     .tipo(TipoPalabra.PRONOMBRE.getXmlCode())
                     .significado(pronombreFlexion.getSignificado()));
-            case NUMERAL -> numeralRepo.findBySignificadoIsNull().stream()
+            case NUMERAL -> numeralRepo.findBySignificadoIsNullOrCantidadIsNull().stream()
                 .map(numeral -> PalabraIncompletaDTO.builder()
                     .id(numeral.getSloleksId())
                     .palabra(numeral.getPrincipal())
                     .tipo(TipoPalabra.NUMERAL.getXmlCode())
-                    .significado(numeral.getSignificado()));
+                    .significado(numeral.getSignificado())
+                    .cantidad(numeral.getCantidad()));
                 }
         ).forEach(el -> palabrasIncompletas.addAll(el.map(PalabraIncompletaDTO.PalabraIncompletaDTOBuilder::build).toList()));
 
@@ -147,7 +148,8 @@ public class CompletarPalabrasController {
             @RequestParam String tipo,
             @RequestParam String significado,
             @RequestParam(required = false) String transitividad,
-            @RequestParam(required = false) Boolean animado) {
+            @RequestParam(required = false) Boolean animado,
+            @RequestParam(required = false) Integer cantidad) {
 
         log.info("Actualizando palabra: id={}, tipo={}", id, tipo);
 
@@ -175,6 +177,7 @@ public class CompletarPalabrasController {
                 case NUMERAL -> numeralRepo.save(numeralRepo.findById(id)
                         .orElseThrow(() -> new RuntimeException("Numeral no encontrado: " + id))
                         .setSignificado(significado)
+                        .setCantidad(cantidad)
                 );
             }
 

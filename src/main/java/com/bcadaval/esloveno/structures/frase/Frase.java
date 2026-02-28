@@ -5,7 +5,10 @@ import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.services.RepeticionEspaciadaService;
-import com.bcadaval.esloveno.structures.*;
+import com.bcadaval.esloveno.structures.DatoVisualizacion;
+import com.bcadaval.esloveno.structures.DificultadFrase;
+import com.bcadaval.esloveno.structures.FraseTipoPalabra;
+import com.bcadaval.esloveno.structures.ModoVisualizacion;
 import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
 import com.bcadaval.esloveno.structures.frase.dependencia.Dependencia;
 import lombok.Getter;
@@ -15,7 +18,7 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * Clase base abstracta del nuevo sistema de frases. Sustituye a {@link EstructuraFrase}.
+ * Clase base abstracta del sistema de frases.
  * <p>
  * Contiene una lista ordenada de {@link PalabraFrase} (huecos) que se rellenan con
  * {@link PalabraFlexion}s según criterios gramaticales. Los huecos pueden tener

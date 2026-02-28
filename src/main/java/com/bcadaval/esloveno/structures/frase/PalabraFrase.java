@@ -13,7 +13,6 @@ import java.util.function.Supplier;
 /**
  * Representa un hueco (slot) dentro de una {@link Frase}.
  * <p>
- * Sustituye a {@link com.bcadaval.esloveno.structures.ElementoFrase} en el nuevo sistema.
  * Cada {@code PalabraFrase} es una plantilla que:
  * <ol>
  *   <li>Determina si una {@link PalabraFlexion} disponible encaja en este hueco</li>

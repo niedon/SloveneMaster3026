@@ -120,6 +120,15 @@ public class NumeralFlexion implements PalabraFlexion<Numeral> {
         return getNumeralBase().getSignificado();
     }
 
+    /**
+     * Delega a la palabra base para obtener la representación numérica del numeral.
+     *
+     * @return la cantidad (ej. 1 para "en", 2 para "dva"), o null si no asignada
+     */
+    public Integer getCantidad() {
+        return getNumeralBase().getCantidad();
+    }
+
     @Override
     public void setPalabraBase(Numeral palabra) {
         this.numeralBase = palabra;

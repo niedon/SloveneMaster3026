@@ -3,7 +3,6 @@ package com.bcadaval.esloveno.beans.palabra;
 import java.time.Instant;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
-import com.bcadaval.esloveno.beans.enums.CaracteristicaGramatical;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 import com.bcadaval.esloveno.beans.enums.Genero;
 import com.bcadaval.esloveno.beans.enums.Numero;
@@ -147,19 +146,6 @@ public class VerboFlexion implements PalabraFlexion<Verbo> {
         this.verboBase = palabra;
     }
 
-    @Override
-    public Object getCaracteristica(CaracteristicaGramatical caracteristica) {
-        return switch (caracteristica) {
-            case FORMA_VERBAL -> this.formaVerbal;
-            case PERSONA -> this.persona;
-            case NUMERO -> this.numero;
-            case GENERO -> this.genero;
-            case TRANSITIVIDAD -> verboBase != null ? verboBase.getTransitividad() : null;
-            case NEGATIVO -> this.negativo;
-            // Características que no aplican a verbos
-            case CASO, GRADO, DEFINITUD, TIPO_NUMERAL -> null;
-        };
-    }
 
 }
 
