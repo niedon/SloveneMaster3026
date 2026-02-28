@@ -26,7 +26,11 @@ import org.springframework.stereotype.Component;
  * 1. ADJETIVO (slot): AdjetivoFlexion con caso NOMINATIVO y grado POSITIVO
  * 2. SUSTANTIVO (apoyo): SustantivoFlexion que coincide en caso, género y número con el adjetivo
  */
-@Component
+/**
+ * @deprecated Sustituida por {@link com.bcadaval.esloveno.structures.frase.frases.FraseSustantivoAdjetivoNueva}
+ */
+@Deprecated
+// @Component — Desactivado: usar la nueva implementación en el paquete frase
 @DificultadFrase(NivelDificultad.ELEMENTAL)
 public class FraseSustantivoAdjetivo extends EstructuraFrase {
 

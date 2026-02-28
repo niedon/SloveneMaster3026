@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.bcadaval.esloveno.beans.Variable;
-import com.bcadaval.esloveno.services.EstructuraFraseService;
+import com.bcadaval.esloveno.services.FraseService;
 import com.bcadaval.esloveno.services.VariablesService;
 
 import lombok.extern.log4j.Log4j2;
@@ -29,7 +29,7 @@ public class ConfiguracionController {
     private VariablesService variablesService;
 
     @Autowired
-    private EstructuraFraseService estructuraFraseService;
+    private FraseService fraseService;
 
     /**
      * Muestra la página de configuración
@@ -50,13 +50,13 @@ public class ConfiguracionController {
 //        model.addAttribute("estructuras", estructuraFraseService.getTodasParaConfiguracion());
 
         // Estructuras de frase agrupadas por nivel de dificultad
-        model.addAttribute("estructurasPorDificultad", estructuraFraseService.getEstructurasAgrupadasPorDificultad());
+        model.addAttribute("estructurasPorDificultad", fraseService.getFrasesAgrupadasPorDificultad());
 
         // Casos activos derivados de las estructuras activas (solo para mostrar info)
-        model.addAttribute("casosActivos", estructuraFraseService.getCasosActivos());
+        model.addAttribute("casosActivos", fraseService.getCasosActivos());
 
         // Formas verbales activas derivadas de las estructuras activas
-        model.addAttribute("formasVerbalesActivas", estructuraFraseService.getFormasVerbalesActivas());
+        model.addAttribute("formasVerbalesActivas", fraseService.getFormasVerbalesActivas());
 
         return "configuracion";
     }
@@ -129,7 +129,8 @@ public class ConfiguracionController {
         log.info("Cambiando estado de estructura '{}' a {}", identificador, activa);
 
         try {
-            estructuraFraseService.setActiva(identificador, activa);
+            fraseService.setActiva(identificador, activa);
+            fraseService.onConfiguracionGuardada();
             return "{\"exito\": true, \"mensaje\": \"Estructura actualizada\"}";
         } catch (Exception e) {
             log.error("Error al actualizar estructura: {}", e.getMessage(), e);

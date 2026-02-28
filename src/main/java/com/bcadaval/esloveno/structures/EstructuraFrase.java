@@ -51,7 +51,10 @@ import lombok.extern.log4j.Log4j2;
  * - O crear copias de las estructuras antes de asignar palabras
  * - O sincronizar el acceso a nivel de controlador
  * Actualmente es seguro para uso monousuario.
+ *
+ * @deprecated Sustituida por {@link com.bcadaval.esloveno.structures.frase.Frase}
  */
+@Deprecated
 @Log4j2
 @Getter
 @Component

@@ -26,7 +26,10 @@ import lombok.extern.log4j.Log4j2;
  * - Auto-registra nuevas estructuras en BD
  * - Filtra estructuras activas
  * - Calcula casos activos derivados de las estructuras activas
+ *
+ * @deprecated Sustituido por {@link FraseService}
  */
+@Deprecated
 @Log4j2
 @Service
 public class EstructuraFraseService {

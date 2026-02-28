@@ -17,6 +17,13 @@ public interface PalabraFlexion<T extends Palabra<?>> {
      */
     Integer getId();
 
+    /**
+     * Obtiene el identificador Sloleks de la palabra base.
+     *
+     * @return El sloleksId de la palabra base.
+     */
+    String getSloleksId();
+
     String getSignificado();
 
     String getAcentuado();

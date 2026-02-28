@@ -32,7 +32,11 @@ import org.springframework.stereotype.Component;
  * Elementos:
  * 1. VERBO (slot): VerboFlexion con forma INFINITIVE
  */
-@Component
+/**
+ * @deprecated Sustituida por {@link com.bcadaval.esloveno.structures.frase.frases.FraseSoloVerboInfinitivoNueva}
+ */
+@Deprecated
+// @Component — Desactivado: usar la nueva implementación en el paquete frase
 @DificultadFrase(NivelDificultad.PRINCIPIANTE)
 public class FraseSoloVerboInfinitivo extends EstructuraFrase {
 

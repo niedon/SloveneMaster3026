@@ -9,11 +9,25 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.query.QueryByExampleExecutor;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface NumeralFlexionRepo extends JpaRepository<NumeralFlexion, Integer>, QueryByExampleExecutor<NumeralFlexion> {
 
     List<NumeralFlexion> findBySloleksId(String sloleksId);
+
+    /**
+     * Stream de numerales listos para estudiar: activos y con tiempo cumplido.
+     */
+    @Query("SELECT n FROM NumeralFlexion n WHERE n.proximaRevision IS NOT NULL AND n.proximaRevision <= :ahora")
+    Stream<NumeralFlexion> streamListosParaEstudiar(@Param("ahora") Instant ahora);
+
+    /**
+     * Stream de todos los numerales activos (tienen proximaRevision).
+     */
+    @Query("SELECT n FROM NumeralFlexion n WHERE n.proximaRevision IS NOT NULL")
+    Stream<NumeralFlexion> streamActivos();
 
     /**
      * Busca numerales que coincidan en caso y número, opcionalmente filtrando por género.

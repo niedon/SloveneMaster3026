@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
+import com.bcadaval.esloveno.beans.enums.Numero;
+import com.bcadaval.esloveno.beans.enums.Persona;
 import com.bcadaval.esloveno.beans.enums.Transitividad;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
@@ -63,6 +65,43 @@ public class VerbosService {
 						.build(), matcher))
 				.stream()
 				.filter(v -> v.getVerboBase() != null && v.getVerboBase().getTransitividad() == Transitividad.TRANSITIVO)
+				.toList();
+
+		if (candidatos.isEmpty()) {
+			return null;
+		}
+		return candidatos.get(ThreadLocalRandom.current().nextInt(candidatos.size()));
+	}
+
+	/**
+	 * Obtiene un verbo intransitivo o ambitransitivo en presente aleatorio de la base de datos,
+	 * filtrado por persona y número.
+	 * Útil como generador para estructuras de frase con numerales.
+	 *
+	 * @param persona Persona gramatical requerida (ej: TERCERA)
+	 * @param numero Número gramatical requerido (SINGULAR, DUAL, PLURAL)
+	 * @return VerboFlexion intransitivo/ambitransitivo en presente, o null si no hay ninguno disponible
+	 */
+	public VerboFlexion getVerboIntransitivoPresenteAleatorio(Persona persona, Numero numero) {
+		ExampleMatcher matcher = ExampleMatcher.matching()
+				.withIgnoreNullValues()
+				.withIgnorePaths(
+						"factorFacilidad", "intervaloRepeticionSegundos",
+						"vecesConsecutivasCorrectas", "totalRevisiones",
+						"totalAciertos", "enReaprendizaje"
+				);
+
+		List<VerboFlexion> candidatos = verboFlexionRepo.findAll(
+				Example.of(VerboFlexion.builder()
+						.formaVerbal(FormaVerbal.PRESENT)
+						.persona(persona)
+						.numero(numero)
+						.negativo(false)
+						.build(), matcher))
+				.stream()
+				.filter(v -> v.getVerboBase() != null
+						&& (v.getVerboBase().getTransitividad() == Transitividad.INTRANSITIVO
+						|| v.getVerboBase().getTransitividad() == Transitividad.AMBITRANSITIVO))
 				.toList();
 
 		if (candidatos.isEmpty()) {

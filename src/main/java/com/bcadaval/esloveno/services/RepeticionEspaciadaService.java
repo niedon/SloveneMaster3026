@@ -5,7 +5,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
+import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.structures.CriterioGramatical;
+import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,9 @@ import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
+import com.bcadaval.esloveno.repo.NumeralFlexionRepo;
+import com.bcadaval.esloveno.repo.PronombreFlexionRepo;
+import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
 import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboFlexionRepo;
 import com.bcadaval.esloveno.rest.dto.EstadisticasDTO;
@@ -39,7 +45,15 @@ public class RepeticionEspaciadaService {
 
     @Lazy
     @Autowired
+    private FraseService fraseService;
+
+    @Lazy
+    @Autowired
     private ConsultaPalabrasService consultaPalabrasService;
+
+    @Lazy
+    @Autowired
+    private ConsultaPalabrasNuevoService consultaPalabrasNuevoService;
 
     @Autowired
     private VerboFlexionRepo verboFlexionRepo;
@@ -49,6 +63,12 @@ public class RepeticionEspaciadaService {
 
     @Autowired
     private AdjetivoFlexionRepo adjetivoFlexionRepo;
+
+    @Autowired
+    private NumeralFlexionRepo numeralFlexionRepo;
+
+    @Autowired
+    private PronombreFlexionRepo pronombreFlexionRepo;
 
     /**
      * Procesa la respuesta del usuario y actualiza el estado de la tarjeta.
@@ -96,6 +116,8 @@ public class RepeticionEspaciadaService {
             case VerboFlexion vf -> verboFlexionRepo.save(vf);
             case SustantivoFlexion sf -> sustantivoFlexionRepo.save(sf);
             case AdjetivoFlexion af -> adjetivoFlexionRepo.save(af);
+            case NumeralFlexion nf -> numeralFlexionRepo.save(nf);
+            case PronombreFlexion pf -> pronombreFlexionRepo.save(pf);
             default -> log.warn("Tipo de flexión no soportado para guardar: {}", flexion.getClass());
         }
     }
@@ -145,10 +167,10 @@ public class RepeticionEspaciadaService {
     }
 
     /**
-     * Obtiene las tarjetas listas para estudiar.
-     * Una tarjeta está lista si: proximaRevision != null AND proximaRevision <= ahora
-     * La consulta a BD ya filtra esto, solo se aplica filtro gramatical en memoria.
+     * Obtiene las tarjetas listas para estudiar usando el sistema viejo.
+     * @deprecated Usar {@link #obtenerTarjetasDisponiblesNuevo(int)} con el nuevo sistema de criterios.
      */
+    @Deprecated
     public List<PalabraFlexion<?>> obtenerTarjetasDisponibles(int limite) {
         // Obtener criterios activos por tipo
         List<CriterioGramatical> criteriosVerbo = estructuraFraseService.getCriteriosGramaticalesPorTipo(VerboFlexion.class);
@@ -234,6 +256,86 @@ public class RepeticionEspaciadaService {
             .totalAciertos((int) totalAciertos)
             .tasaAciertos(tasaAciertos)
             .build();
+    }
+
+    /**
+     * Obtiene las tarjetas listas para estudiar usando el nuevo sistema de criterios.
+     * <p>
+     * Proceso:
+     * <ol>
+     *   <li>Obtiene criterios expandidos del {@link FraseService} por tipo de flexión</li>
+     *   <li>Consulta BD filtrando por SRS (proximaRevision &lt;= ahora) y criterios gramaticales</li>
+     *   <li>Ordena: reaprendizaje primero, luego por proximaRevision ASC, nuevas al final</li>
+     *   <li>Aplica Algoritmo de Desplazamiento Limitado (ventana=5) para variabilidad controlada</li>
+     * </ol>
+     *
+     * @param limite número máximo de tarjetas a devolver
+     * @return lista de PalabraFlexion ordenadas y desplazadas, listas para asignar a frases
+     */
+    public List<PalabraFlexion<?>> obtenerTarjetasDisponiblesNuevo(int limite) {
+        List<CriterioBusquedaNuevo<VerboFlexion>> criteriosVerbo = fraseService.getCriteriosPorTipo(VerboFlexion.class);
+        List<CriterioBusquedaNuevo<SustantivoFlexion>> criteriosSustantivo = fraseService.getCriteriosPorTipo(SustantivoFlexion.class);
+        List<CriterioBusquedaNuevo<AdjetivoFlexion>> criteriosAdjetivo = fraseService.getCriteriosPorTipo(AdjetivoFlexion.class);
+        List<CriterioBusquedaNuevo<NumeralFlexion>> criteriosNumeral = fraseService.getCriteriosPorTipo(NumeralFlexion.class);
+        List<CriterioBusquedaNuevo<PronombreFlexion>> criteriosPronombre = fraseService.getCriteriosPorTipo(PronombreFlexion.class);
+
+        List<PalabraFlexion<?>> tarjetas = Stream.of(
+                        consultaPalabrasNuevoService.listVerbosListos(criteriosVerbo),
+                        consultaPalabrasNuevoService.listSustantivosListos(criteriosSustantivo),
+                        consultaPalabrasNuevoService.listAdjetivosListos(criteriosAdjetivo),
+                        consultaPalabrasNuevoService.listNumeralesListos(criteriosNumeral),
+                        consultaPalabrasNuevoService.listPronombresListos(criteriosPronombre)
+                )
+                .flatMap(List::stream)
+                // Ordenar: reaprendizaje primero, luego por proximaRevision ASC, nuevas al final
+                .sorted(Comparator
+                        .comparing((PalabraFlexion<?> f) -> !Boolean.TRUE.equals(f.getEnReaprendizaje()))
+                        .thenComparing((PalabraFlexion<?> f) -> f.getUltimaRevision() == null ? 1 : 0)
+                        .thenComparing((PalabraFlexion<?> f) ->
+                                f.getProximaRevision() != null ? f.getProximaRevision() : Instant.MAX))
+                .collect(Collectors.toList());
+
+        // Aplicar Algoritmo de Desplazamiento Limitado (ventana = 5)
+        tarjetas = aplicarDesplazamientoLimitado(tarjetas, 5);
+
+        return tarjetas.size() > limite ? tarjetas.subList(0, limite) : tarjetas;
+    }
+
+    /**
+     * Algoritmo de Desplazamiento Limitado.
+     * <p>
+     * Para cada elemento en posición i de la lista ordenada, lo reasigna aleatoriamente
+     * a cualquier posición dentro del rango [max(0, i-ventana), min(N-1, i+ventana)].
+     * Introduce variabilidad controlada sin destruir el orden de prioridad SRS.
+     *
+     * @param lista   lista ordenada de tarjetas
+     * @param ventana tamaño de la ventana de desplazamiento
+     * @return nueva lista con desplazamiento aplicado
+     */
+    private List<PalabraFlexion<?>> aplicarDesplazamientoLimitado(List<PalabraFlexion<?>> lista, int ventana) {
+        if (lista.size() <= 1) return lista;
+
+        Random random = new Random();
+        int n = lista.size();
+        // Asignar posiciones desplazadas
+        double[] posiciones = new double[n];
+        for (int i = 0; i < n; i++) {
+            int limiteInferior = Math.max(0, i - ventana);
+            int limiteSuperior = Math.min(n - 1, i + ventana);
+            // Posición aleatoria dentro del rango, usando double para desempate
+            posiciones[i] = limiteInferior + random.nextDouble() * (limiteSuperior - limiteInferior);
+        }
+
+        // Crear pares (posición desplazada, elemento) y ordenar por posición
+        Integer[] indices = new Integer[n];
+        for (int i = 0; i < n; i++) indices[i] = i;
+        Arrays.sort(indices, Comparator.comparingDouble(i -> posiciones[i]));
+
+        List<PalabraFlexion<?>> resultado = new ArrayList<>(n);
+        for (int idx : indices) {
+            resultado.add(lista.get(idx));
+        }
+        return resultado;
     }
 
 }

@@ -16,7 +16,10 @@ import lombok.Getter;
  * </pre>
  *
  * @param <T> Tipo de PalabraFlexion que busca
+ *
+ * @deprecated Sustituido por {@link com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo}
  */
+@Deprecated
 @Getter
 public class CriterioBusqueda<T extends PalabraFlexion<?>> {
 

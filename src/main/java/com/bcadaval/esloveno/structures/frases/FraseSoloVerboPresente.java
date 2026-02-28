@@ -26,7 +26,11 @@ import org.springframework.stereotype.Component;
  * 1. PRONOMBRE (apoyo): generado a partir del verbo
  * 2. VERBO (slot): VerboFlexion con forma PRESENT
  */
-@Component
+/**
+ * @deprecated Sustituida por {@link com.bcadaval.esloveno.structures.frase.frases.FraseSoloVerboPresenteNueva}
+ */
+@Deprecated
+// @Component — Desactivado: usar la nueva implementación en el paquete frase
 @DificultadFrase(NivelDificultad.PRINCIPIANTE)
 public class FraseSoloVerboPresente extends EstructuraFrase {
 

@@ -1,73 +1,59 @@
-package com.bcadaval.esloveno.structures;
+package com.bcadaval.esloveno.structures.frase;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
+import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
 import com.bcadaval.esloveno.structures.extractores.EstrategiaExtraccion;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionNull;
+import com.bcadaval.esloveno.structures.ModoVisualizacion;
 import lombok.Getter;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Representa un elemento dentro de una estructura de frase.
+ * Representa un hueco (slot) dentro de una {@link Frase}.
  * <p>
- * Un elemento puede ser de tres tipos según cómo se configure en el Builder:
- * <ul>
- *   <li><b>SLOT</b>: solo tiene {@code criterio}. Busca palabras en repositorios y participa en SRS.
- *       Es obligatorio para que la frase se considere completa.</li>
- *   <li><b>APOYO</b>: solo tiene {@code generador}. Genera palabras dinámicamente (ej: pronombre
- *       a partir del verbo). No participa en SRS.</li>
- *   <li><b>OPCIONAL</b>: tiene {@code criterio} Y {@code generador}. Primero intenta rellenarse
- *       por criterio con las tarjetas SRS disponibles. Si no se rellena, la frase se considera
- *       completa igualmente. Al visualizar, si no fue rellenado por criterio, se usa el generador
- *       como fallback y a efectos del frontend se trata como apoyo (sin botones SRS).</li>
- * </ul>
+ * Sustituye a {@link com.bcadaval.esloveno.structures.ElementoFrase} en el nuevo sistema.
+ * Cada {@code PalabraFrase} es una plantilla que:
+ * <ol>
+ *   <li>Determina si una {@link PalabraFlexion} disponible encaja en este hueco</li>
+ *   <li>Expone sus criterios de elegibilidad para el sistema de consulta de palabras estudiables</li>
+ * </ol>
+ * <p>
+ * <strong>Tipos funcionales según configuración:</strong>
+ * <table>
+ *   <tr><th>criterio</th><th>generador</th><th>Tipo</th><th>Descripción</th></tr>
+ *   <tr><td>✅</td><td>❌</td><td>Obligatoria</td><td>Se rellena desde SRS, bloquea la frase si no se rellena</td></tr>
+ *   <tr><td>❌</td><td>✅</td><td>Apoyo</td><td>Se genera tras rellenar obligatorias, nunca participa en SRS</td></tr>
+ *   <tr><td>✅</td><td>✅</td><td>Opcional</td><td>Intenta SRS; si falla, usa generador como fallback (no SRS)</td></tr>
+ *   <tr><td>❌</td><td>❌</td><td>Inválida</td><td>Error: frase marcada como inválida</td></tr>
+ * </table>
+ * <p>
+ * <strong>Ejemplo de construcción:</strong>
+ * <pre>
+ * PalabraFrase&lt;SustantivoFlexion&gt; sustantivo = PalabraFrase.&lt;SustantivoFlexion&gt;builder()
+ *     .nombre("SUSTANTIVO")
+ *     .criterio(CriterioBusquedaNuevo.de(SustantivoFlexion.class)
+ *         .conCaso(Caso.NOMINATIVO)
+ *         .build())
+ *     .extractor(ExtractorSustantivo.get())
+ *     .build();
+ * </pre>
  *
- * @param <T> Tipo de PalabraFlexion que maneja este elemento
- *
- * @deprecated Sustituido por {@link com.bcadaval.esloveno.structures.frase.PalabraFrase}
+ * @param <T> Tipo concreto de {@link PalabraFlexion} que maneja este hueco
  */
-@Deprecated
-@Getter
-public class ElementoFrase<T extends PalabraFlexion<?>> {
+public class PalabraFrase<T extends PalabraFlexion<?>> {
 
     // ============================================
     // Campos inmutables (configuración)
     // ============================================
 
-    /**
-     * Nombre identificador del elemento (ej.: "VERBO", "CD", "PRONOMBRE")
-     */
+    @Getter
     private final String nombre;
-
-    /**
-     * Criterio de búsqueda para slots y opcionales.
-     * null si es un elemento de apoyo puro.
-     */
-    private final CriterioBusqueda<T> criterioBusqueda;
-
-    /**
-     * Generador de objeto para elementos de apoyo y opcionales.
-     * Función que recibe la EstructuraFrase completa y devuelve el objeto generado.
-     * null si es un slot puro.
-     */
-    private final Function<EstructuraFrase, T> generadorObjeto;
-
-    /**
-     * Slot del que depende este elemento (apoyo u opcional).
-     * null si es un slot puro o si el generador no depende de otro slot.
-     */
-    private final ElementoFrase<?> slotDependiente;
-
-    /**
-     * Estrategia de extracción (singleton reutilizable).
-     * Puede ser null si se usan extractores individuales.
-     */
+    @Getter
+    private final CriterioBusquedaNuevo<T> criterioBusqueda;
+    private final Function<Frase, T> generadorObjeto;
     private final EstrategiaExtraccion<T> estrategiaExtraccion;
-
-    /**
-     * Extractores individuales (opcionales, sobreescriben estrategia).
-     */
     private final Function<T, String> extractorDeEspanol;
     private final Function<T, String> extractorAEsloveno;
     private final Function<T, String> extractorDeEsloveno;
@@ -78,22 +64,23 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
     // ============================================
 
     /**
-     * Palabra asignada a este elemento (null si no asignado)
+     * Palabra asignada a este hueco (null si vacío).
      */
+    @Getter
     private T palabraAsignada;
 
     /**
-     * Indica si este elemento opcional fue rellenado por el generador (fallback)
-     * en lugar de por criterio. Solo relevante para elementos opcionales.
+     * Indica si este hueco fue rellenado por el generador (fallback)
+     * en lugar de por criterio. Solo relevante para huecos opcionales.
      * Si es true, el frontend lo tratará como apoyo (sin botones SRS).
      */
+    @Getter
     private boolean fueRellenadoPorGenerador;
 
-    private ElementoFrase(Builder<T> builder) {
+    private PalabraFrase(Builder<T> builder) {
         this.nombre = builder.nombre;
         this.criterioBusqueda = builder.criterioBusqueda;
         this.generadorObjeto = builder.generadorObjeto;
-        this.slotDependiente = builder.slotDependiente;
         this.estrategiaExtraccion = builder.estrategiaExtraccion;
         this.extractorDeEspanol = builder.extractorDeEspanol;
         this.extractorAEsloveno = builder.extractorAEsloveno;
@@ -102,45 +89,59 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
     }
 
     // ============================================
-    // Consultas de tipo
+    // Consultas de tipo funcional
     // ============================================
 
     /**
-     * Indica si este elemento participa en la búsqueda por criterio (tiene criterioBusqueda).
-     * Tanto slots puros como opcionales son slots.
+     * Indica si este hueco participa en la búsqueda por criterio (tiene {@code criterioBusqueda}).
      */
-    public boolean esSlot() {
+    public boolean tieneCriterio() {
         return criterioBusqueda != null;
     }
 
     /**
-     * Indica si este elemento es de apoyo puro (solo generador, sin criterio).
+     * Indica si este hueco tiene generador.
+     */
+    public boolean tieneGenerador() {
+        return generadorObjeto != null;
+    }
+
+    /**
+     * Indica si es un apoyo puro (solo generador, sin criterio).
      */
     public boolean esApoyo() {
         return generadorObjeto != null && criterioBusqueda == null;
     }
 
     /**
-     * Indica si este elemento es opcional (tiene criterio Y generador).
+     * Indica si es opcional (tiene criterio Y generador).
      */
     public boolean esOpcional() {
         return criterioBusqueda != null && generadorObjeto != null;
     }
 
     /**
-     * Indica si este elemento es un slot obligatorio (solo criterio, sin generador).
-     * La frase no se considera completa si un slot obligatorio no está asignado.
+     * Indica si es un slot obligatorio (solo criterio, sin generador).
      */
-    public boolean esSlotObligatorio() {
+    public boolean esObligatorio() {
         return criterioBusqueda != null && generadorObjeto == null;
     }
 
     /**
-     * Indica si este elemento fue rellenado por el generador (fallback).
-     * Solo relevante para opcionales.
+     * Indica si este hueco tiene una palabra asignada.
      */
-    public boolean isFueRellenadoPorGenerador() {
-        return fueRellenadoPorGenerador;
+    public boolean estaAsignado() {
+        return palabraAsignada != null;
+    }
+
+    /**
+     * Indica si este hueco participa en SRS.
+     * Un hueco participa en SRS si tiene criterio, está asignado y NO fue rellenado por generador.
+     *
+     * @return {@code true} si participa en SRS
+     */
+    public boolean participaEnSRS() {
+        return tieneCriterio() && estaAsignado() && !fueRellenadoPorGenerador;
     }
 
     // ============================================
@@ -148,54 +149,54 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
     // ============================================
 
     /**
-     * Verifica si una palabra cumple el criterio del slot.
-     * Solo válido para elementos con criterio (slots y opcionales).
+     * Verifica si una {@link PalabraFlexion} cumple los criterios de este hueco
+     * y puede ser asignada.
+     * <p>
+     * Comprueba:
+     * <ol>
+     *   <li>Que el hueco tenga criterio y esté vacío</li>
+     *   <li>Que la palabra cumpla los criterios fijos</li>
+     *   <li>Que las dependencias estén resueltas y la palabra cumpla los criterios dinámicos</li>
+     * </ol>
      *
-     * @param palabra Palabra a verificar
-     * @return true si el slot está vacío y la palabra cumple el criterio
+     * @param palabra palabra candidata
+     * @return {@code true} si la palabra puede ser asignada a este hueco
      */
     public boolean coincide(PalabraFlexion<?> palabra) {
-        if (!esSlot()) return false;
-        return palabraAsignada == null && criterioBusqueda.cumple(palabra);
+        if (!tieneCriterio()) return false;
+        if (estaAsignado()) return false;
+        return criterioBusqueda.cumpleConDependencias(palabra);
     }
 
     /**
-     * Asigna una palabra al elemento (rellenado por criterio/SRS).
+     * Asigna una palabra al hueco (rellenado por criterio SRS).
      *
-     * @param palabra Palabra a asignar
+     * @param palabra palabra a asignar
      */
     @SuppressWarnings("unchecked")
     public void asignar(PalabraFlexion<?> palabra) {
         this.palabraAsignada = (T) palabra;
+        this.fueRellenadoPorGenerador = false;
     }
 
     /**
-     * Asigna una palabra al elemento marcándola como rellenada por generador.
-     * Usado para opcionales que se rellenan por fallback.
+     * Asigna una palabra al hueco marcándola como rellenada por generador.
+     * Usado para opcionales que se rellenan por fallback y para apoyos.
      *
-     * @param palabra Palabra a asignar
+     * @param palabra palabra generada
      */
-    @SuppressWarnings("unchecked")
-    public void asignarComoGenerado(PalabraFlexion<?> palabra) {
-        this.palabraAsignada = (T) palabra;
+    public void asignarComoGenerado(T palabra) {
+        this.palabraAsignada = palabra;
         this.fueRellenadoPorGenerador = true;
     }
 
     /**
-     * Verifica si el elemento tiene una palabra asignada.
-     */
-    public boolean estaAsignado() {
-        return palabraAsignada != null;
-    }
-
-    /**
      * Genera el objeto usando el generador con el contexto de la frase.
-     * Válido para elementos de apoyo y opcionales (que tienen generador).
      *
-     * @param frase Estructura de frase con slots asignados
-     * @return Objeto generado o null si no tiene generador o si el slot dependiente no está asignado
+     * @param frase la frase contenedora con sus huecos asignados
+     * @return objeto generado, o {@code null} si no tiene generador
      */
-    public T generarObjeto(EstructuraFrase frase) {
+    public T generarObjeto(Frase frase) {
         if (generadorObjeto == null) return null;
         return generadorObjeto.apply(frase);
     }
@@ -224,8 +225,6 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
                 : getAEspanol(palabraAsignada);
     }
 
-    // Métodos privados para resolver extractor (individual > estrategia)
-    // Prioridad: extractor individual -> estrategia -> cadena vacía
     private String getDeEspanol(T p) {
         String resultado = extractorDeEspanol.apply(p);
         if (resultado == null && estrategiaExtraccion.deEspanol() != null) {
@@ -259,7 +258,7 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
     }
 
     /**
-     * Limpia el estado del elemento para reutilización.
+     * Limpia el estado mutable para reutilización (patrón singleton).
      */
     public void limpiar() {
         this.palabraAsignada = null;
@@ -270,67 +269,70 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
     // Builder
     // ============================================
 
+    /**
+     * Crea un nuevo builder para {@code PalabraFrase}.
+     *
+     * @param <T> tipo de flexión
+     * @return builder nuevo
+     */
     public static <T extends PalabraFlexion<?>> Builder<T> builder() {
         return new Builder<>();
     }
 
+    /**
+     * Builder para construir instancias de {@link PalabraFrase}.
+     * <p>
+     * Requiere al menos un nombre y una forma de extracción (extractor o estrategia).
+     * Debe tener criterio, generador o ambos (nunca ninguno).
+     *
+     * @param <T> tipo de flexión
+     */
     public static class Builder<T extends PalabraFlexion<?>> {
         private String nombre;
-        private CriterioBusqueda<T> criterioBusqueda;
-        private Function<EstructuraFrase, T> generadorObjeto;
-        private ElementoFrase<?> slotDependiente;
+        private CriterioBusquedaNuevo<T> criterioBusqueda;
+        private Function<Frase, T> generadorObjeto;
         private EstrategiaExtraccion<T> estrategiaExtraccion;
         private Function<T, String> extractorDeEspanol;
         private Function<T, String> extractorAEsloveno;
         private Function<T, String> extractorDeEsloveno;
         private Function<T, String> extractorAEspanol;
 
+        /**
+         * Nombre identificador del hueco (ej: "VERBO", "CD", "PRONOMBRE").
+         */
         public Builder<T> nombre(String nombre) {
             this.nombre = nombre;
             return this;
         }
 
         /**
-         * Configura criterio de búsqueda.
-         * Si se combina con un generador, el elemento será OPCIONAL.
-         * Si se usa solo, el elemento será un SLOT obligatorio.
+         * Criterio de búsqueda para slots y opcionales.
          */
-        public Builder<T> criterio(CriterioBusqueda<T> criterio) {
+        public Builder<T> criterio(CriterioBusquedaNuevo<T> criterio) {
             this.criterioBusqueda = criterio;
             return this;
         }
 
         /**
-         * Configura un generador que depende de otro elemento (slot dependiente).
-         * La función recibe la palabra asignada al slot dependiente y genera el objeto.
-         * Si el slot dependiente no está asignado, el generador devuelve null.
-         * <p>
-         * Si se combina con criterio, el elemento será OPCIONAL.
-         * Si se usa solo, el elemento será un APOYO.
+         * Generador dependiente de otro hueco.
+         * La función recibe la palabra asignada al hueco dependiente y genera el objeto.
          *
-         * @param slotDependiente Elemento del que depende este generador
-         * @param generador Función que transforma la palabra del slot dependiente
+         * @param huecoFuente hueco del que depende este generador
+         * @param generador   función que transforma la palabra del hueco fuente
+         * @param <S>         tipo de flexión del hueco fuente
          */
-        public Builder<T> generador(ElementoFrase<?> slotDependiente,
-                                    Function<PalabraFlexion<?>, T> generador) {
-            this.slotDependiente = slotDependiente;
+        public <S extends PalabraFlexion<?>> Builder<T> generador(
+                PalabraFrase<S> huecoFuente,
+                Function<S, T> generador) {
             this.generadorObjeto = frase -> {
-                if (slotDependiente == null || !slotDependiente.estaAsignado()) return null;
-                return generador.apply(slotDependiente.getPalabraAsignada());
+                if (!huecoFuente.estaAsignado()) return null;
+                return generador.apply(huecoFuente.getPalabraAsignada());
             };
             return this;
         }
 
         /**
-         * Configura un generador independiente (sin slot dependiente).
-         * La función (Supplier) genera el objeto sin necesitar contexto.
-         * <p>
-         * Uso típico: obtener una palabra aleatoria de la BD como fallback para opcionales.
-         * <p>
-         * Si se combina con criterio, el elemento será OPCIONAL.
-         * Si se usa solo, el elemento será un APOYO.
-         *
-         * @param generador Función sin argumentos que genera el objeto
+         * Generador independiente (sin dependencia de otro hueco).
          */
         public Builder<T> generador(Supplier<T> generador) {
             this.generadorObjeto = frase -> generador.get();
@@ -345,7 +347,6 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
             return this;
         }
 
-        // Extractores individuales (sobreescriben estrategia)
         public Builder<T> extractorDeEspanol(Function<T, String> extractor) {
             this.extractorDeEspanol = extractor;
             return this;
@@ -366,21 +367,25 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
             return this;
         }
 
-        public ElementoFrase<T> build() {
-            // Validaciones
+        /**
+         * Construye la {@link PalabraFrase}.
+         *
+         * @return instancia inmutable (configuración) con estado mutable (asignación)
+         * @throws IllegalStateException si falta nombre, extractor, o no tiene ni criterio ni generador
+         */
+        public PalabraFrase<T> build() {
             if (nombre == null || nombre.isBlank()) {
-                throw new IllegalStateException("El nombre del elemento es obligatorio");
+                throw new IllegalStateException("El nombre del hueco es obligatorio");
             }
 
-            boolean tieneSlot = criterioBusqueda != null;
-            boolean tieneApoyo = generadorObjeto != null;
+            boolean tieneCriterio = criterioBusqueda != null;
+            boolean tieneGenerador = generadorObjeto != null;
 
-            if (!tieneSlot && !tieneApoyo) {
+            if (!tieneCriterio && !tieneGenerador) {
                 throw new IllegalStateException(
-                        "ElementoFrase '" + nombre + "' debe tener criterio (slot), generador (apoyo), o ambos (opcional)");
+                        "PalabraFrase '" + nombre + "' debe tener criterio, generador o ambos");
             }
 
-            // Verificar que tenga al menos una forma de extracción
             boolean sinExtractores = estrategiaExtraccion == null
                     && extractorDeEspanol == null
                     && extractorAEsloveno == null
@@ -388,7 +393,7 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
                     && extractorAEspanol == null;
             if (sinExtractores) {
                 throw new IllegalStateException(
-                        "ElementoFrase '" + nombre + "' debe tener estrategia o extractores");
+                        "PalabraFrase '" + nombre + "' debe tener estrategia o extractores");
             }
 
             if (estrategiaExtraccion == null) estrategiaExtraccion = ExtraccionNull.get();
@@ -397,7 +402,8 @@ public class ElementoFrase<T extends PalabraFlexion<?>> {
             if (extractorDeEsloveno == null) extractorDeEsloveno = p -> null;
             if (extractorAEspanol == null) extractorAEspanol = p -> null;
 
-            return new ElementoFrase<>(this);
+            return new PalabraFrase<>(this);
         }
     }
 }
+

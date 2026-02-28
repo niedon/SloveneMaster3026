@@ -790,6 +790,22 @@ tr.row-visible:hover {
     border-color: #667eea;
 }
 
+.caso-item.invalida {
+    background: #fee2e2;
+    border-color: #ef4444;
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+.caso-item.invalida:hover {
+    background: #fecaca;
+}
+
+.caso-item.invalida label {
+    color: #b91c1c;
+    cursor: not-allowed;
+}
+
 .caso-item input[type="checkbox"] {
     width: 20px;
     height: 20px;

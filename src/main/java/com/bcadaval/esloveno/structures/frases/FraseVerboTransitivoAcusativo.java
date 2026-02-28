@@ -31,7 +31,11 @@ import org.springframework.stereotype.Component;
  * 3. NUMERO (apoyo): numeral que concuerda con el sustantivo
  * 4. CD (slot): SustantivoFlexion con caso ACUSATIVO
  */
-@Component
+/**
+ * @deprecated Sustituida por {@link com.bcadaval.esloveno.structures.frase.frases.FraseVerboTransitivoAcusativoNueva}
+ */
+@Deprecated
+// @Component — Desactivado: usar la nueva implementación en el paquete frase
 @DificultadFrase(NivelDificultad.ELEMENTAL)
 public class FraseVerboTransitivoAcusativo extends EstructuraFrase {
 

@@ -26,7 +26,11 @@ import org.springframework.stereotype.Component;
  * 1. NUMERO (apoyo): numeral que concuerda con el sustantivo
  * 2. SUSTANTIVO (slot): SustantivoFlexion con caso NOMINATIVO
  */
-@Component
+/**
+ * @deprecated Sustituida por {@link com.bcadaval.esloveno.structures.frase.frases.FraseSoloSustantivoNominativoNueva}
+ */
+@Deprecated
+// @Component — Desactivado: usar la nueva implementación en el paquete frase
 @DificultadFrase(NivelDificultad.PRINCIPIANTE)
 public class FraseSoloSustantivoNominativo extends EstructuraFrase {
 

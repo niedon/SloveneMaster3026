@@ -5,11 +5,11 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
-import com.bcadaval.esloveno.services.EstructuraFraseService;
+import com.bcadaval.esloveno.services.FraseService;
 import com.bcadaval.esloveno.services.RepeticionEspaciadaService;
 import com.bcadaval.esloveno.services.VariablesService;
 import com.bcadaval.esloveno.structures.DatoVisualizacion;
-import com.bcadaval.esloveno.structures.EstructuraFrase;
+import com.bcadaval.esloveno.structures.frase.Frase;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -21,7 +21,7 @@ import lombok.extern.log4j.Log4j2;
 /**
  * Controlador para obtener palabras para estudiar.
  * Integra el sistema de repetición espaciada para mostrar tarjetas disponibles.
- * Usa el sistema de EstructuraFrase para construir frases con patrones.
+ * Usa el nuevo sistema de {@link Frase} para construir frases con patrones.
  */
 @Log4j2
 @Controller
@@ -34,22 +34,29 @@ public class WordsController {
 	private VariablesService variablesService;
 
 	@Autowired
-	private EstructuraFraseService estructuraFraseService;
+	private FraseService fraseService;
 
 	/**
 	 * Obtiene palabras para practicar basándose en el sistema de repetición espaciada.
-	 * Muestra el número de tarjetas disponibles y las tarjetas a estudiar.
+	 * <p>
+	 * Flujo:
+	 * <ol>
+	 *   <li>Obtiene tarjetas SRS disponibles (ordenadas y desplazadas)</li>
+	 *   <li>Obtiene frases activas y válidas</li>
+	 *   <li>Bucle multi-pasada: cada palabra pasa por cada frase hasta que una pasada no produzca asignaciones</li>
+	 *   <li>Filtra frases con todos los huecos obligatorios rellenos</li>
+	 *   <li>Elige la frase con media de proximaRevision más antigua</li>
+	 *   <li>Genera los huecos de apoyo/opcionales no rellenos y envía al JSP</li>
+	 * </ol>
 	 */
 	@GetMapping("/getWords")
 	public String getWords(Model model) {
 		int maxRevision = variablesService.getMaxTarjetasRevisionDia();
 
-		// Obtener tarjetas listas para estudiar (proximaRevision <= ahora)
-		List<PalabraFlexion<?>> tarjetas = repeticionEspaciadaService.obtenerTarjetasDisponibles(maxRevision);
+		// Obtener tarjetas listas para estudiar con el nuevo sistema
+		List<PalabraFlexion<?>> tarjetas = repeticionEspaciadaService.obtenerTarjetasDisponiblesNuevo(maxRevision);
 
 		log.info("Tarjetas disponibles: {}", tarjetas.size());
-
-		// Pasar contadores al modelo
 		model.addAttribute("tarjetasDisponibles", tarjetas.size());
 
 		List<DatoVisualizacion> datos;
@@ -61,60 +68,74 @@ public class WordsController {
 		}
 
 		model.addAttribute("datos", datos);
-
 		return "estudioPalabras";
 	}
 
 	/**
-	 * Construye una frase buscando la primera estructura activa que se complete
-	 * con las palabras disponibles (ya ordenadas por prioridad SRS).
+	 * Construye una frase usando el bucle de asignación multi-pasada.
+	 * <p>
+	 * Algoritmo:
+	 * <ol>
+	 *   <li>Obtener frases activas y válidas, limpiar su estado</li>
+	 *   <li><strong>Bucle de pasadas:</strong> para cada palabra, intentar asignar a cada frase.
+	 *       Repetir hasta que una pasada completa no produzca ninguna asignación nueva.</li>
+	 *   <li>Filtrar frases completas (huecos obligatorios rellenos)</li>
+	 *   <li>Elegir la frase con media de proximaRevision más antigua (más "atrasada")</li>
+	 *   <li>Generar apoyos/opcionales y construir datos de visualización</li>
+	 * </ol>
 	 *
-	 * @param tarjetas Lista de palabras disponibles
+	 * @param tarjetas Lista de palabras disponibles (ya ordenadas y desplazadas)
 	 * @return Lista de DatoVisualizacion para el JSP
 	 */
 	private List<DatoVisualizacion> construirFrase(List<PalabraFlexion<?>> tarjetas) {
-		// Obtener solo las estructuras activas
-		List<EstructuraFrase> estructuras = estructuraFraseService.getEstructurasActivas();
+		List<Frase> frases = fraseService.getFrasesActivasYValidas();
 
-		// Limpiar slots antes de usar (singleton)
-		estructuras.forEach(EstructuraFrase::limpiar);
+		// Limpiar estado de frases (singleton)
+		frases.forEach(Frase::limpiar);
 
-		// Intentar asignar palabras a todas las estructuras
-		tarjetas.forEach(palabra -> {
-			estructuras.forEach(estructura -> {
-				estructura.intentarAsignar(palabra);
-			});
-		});
+		// Bucle de asignación multi-pasada
+		boolean huboCambio;
+		int pasada = 0;
+		do {
+			huboCambio = false;
+			pasada++;
+			for (PalabraFlexion<?> palabra : tarjetas) {
+				for (Frase frase : frases) {
+					if (frase.intentarAsignar(palabra)) {
+						huboCambio = true;
+					}
+				}
+			}
+			log.debug("Pasada {}: huboCambio={}", pasada, huboCambio);
+		} while (huboCambio);
 
-		// Calcular puntuación para estructuras completas (media de usos de sus palabras)
-		// Menor puntuación = mejor (prioriza palabras menos asignables)
-		List<EstructuraFrase> candidatas = estructuras.stream()
-				.filter(EstructuraFrase::estaCompleta)
-				.sorted(Comparator.comparing(EstructuraFrase::calcularMediaInstant))
+		log.info("Asignación completada en {} pasadas", pasada);
+
+		// Filtrar frases completas y ordenar por media de proximaRevision (más antigua primero)
+		List<Frase> candidatas = frases.stream()
+				.filter(Frase::estaCompleta)
+				.sorted(Comparator.comparing(Frase::calcularMediaInstant))
 				.toList();
 
-		// Log de puntuaciones para debug
-		candidatas.forEach(el -> log.info("Estructura candidata '{}': puntuación = {}",
-				el.getNombreMostrar(), el.calcularMediaInstant()));
+		candidatas.forEach(f -> log.info("Frase candidata '{}': media = {}",
+				f.getNombreMostrar(), f.calcularMediaInstant()));
 
-		// Intentar construir cada candidata; descartar si algún generador falla
-		for (EstructuraFrase candidata : candidatas) {
-			log.info("Intentando construir estructura '{}'...", candidata.getNombreMostrar());
-			List<DatoVisualizacion> resultado = candidata.construirDatosVisualizacion();
+		// Intentar construir cada candidata (genera apoyos/opcionales)
+		for (Frase candidata : candidatas) {
+			log.info("Intentando construir frase '{}'...", candidata.getNombreMostrar());
+			List<DatoVisualizacion> resultado = candidata.construirDatosVisualizacion(repeticionEspaciadaService);
 			if (resultado != null) {
-				log.info("Estructura seleccionada: '{}' con puntuación {}",
+				log.info("Frase seleccionada: '{}' con media {}",
 						candidata.getNombreMostrar(), candidata.calcularMediaInstant());
 				return resultado;
 			}
-			// Si devuelve null, el log de error ya se emitió en construirDatosVisualizacion
 		}
 
-
-		// Ninguna estructura pudo construirse
+		// Ninguna frase pudo construirse
 		if (candidatas.isEmpty()) {
-			log.warn("Ninguna estructura de frase se completó con las {} tarjetas disponibles", tarjetas.size());
+			log.warn("Ninguna frase se completó con las {} tarjetas disponibles", tarjetas.size());
 		} else {
-			log.warn("Se completaron {} estructura(s) pero ninguna pudo generar todos sus componentes", candidatas.size());
+			log.warn("Se completaron {} frase(s) pero ninguna pudo generar todos sus componentes", candidatas.size());
 		}
 		log.info("=================== Tarjetas no usadas ==================");
 		for (PalabraFlexion<?> tarjeta : tarjetas) {
