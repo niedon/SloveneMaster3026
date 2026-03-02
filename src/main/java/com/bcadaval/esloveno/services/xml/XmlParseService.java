@@ -34,6 +34,8 @@ import com.bcadaval.esloveno.beans.palabra.Adjetivo;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.Numeral;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
+import com.bcadaval.esloveno.beans.palabra.Particula;
+import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
 import com.bcadaval.esloveno.beans.palabra.Pronombre;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.Sustantivo;
@@ -85,6 +87,7 @@ public class XmlParseService {
 	private static final String XPATH_HEAD_GENDER = "/entry/head/grammar/grammarFeature[@name='gender']";
 	private static final String XPATH_HEAD_ASPECT = "/entry/head/grammar/grammarFeature[@name='aspect']";
 	private static final String XPATH_HEAD_TYPE = "/entry/head/grammar/grammarFeature[@name='type']";
+	private static final String XPATH_HEAD_SUBCATEGORY = "/entry/head/grammar/subcategory/@type";
 
 	// XPaths para wordForms
 	private static final String XPATH_WORDFORMS = "/entry/body/wordFormList/wordForm";
@@ -136,6 +139,7 @@ public class XmlParseService {
 					case ADJETIVO -> parseAdjetivo(doc, xPath, lema);
 					case PRONOMBRE -> parsePronombre(doc, xPath, lema);
 					case NUMERAL -> parseNumeral(doc, xPath, lema);
+					case PARTICULA -> parseParticula(doc, xPath, lema);
 			};
         } catch (SAXException | IOException | ParserConfigurationException | XPathException e) {
             throw new XmlParserException("Error parseando XML: " + e.getMessage(), e);
@@ -288,6 +292,31 @@ public class XmlParseService {
 						.filter(Objects::nonNull)
 						.filter(flexion -> StringUtils.isNotBlank(flexion.getFlexion()))
 						.toList())
+                .build();
+    }
+
+    private Particula parseParticula(Document doc, XPath xPath, String principal) throws XPathException {
+        NodeList wordForms = (NodeList) xPath.compile(XPATH_WORDFORMS).evaluate(doc, XPathConstants.NODESET);
+        String sloleksId = getXPathValue(doc, xPath, XPATH_SLOLEKS_ID);
+        String subcategoria = getXPathValue(doc, xPath, XPATH_HEAD_SUBCATEGORY);
+        return Particula.builder()
+                .principal(principal)
+                .sloleksId(sloleksId)
+                .sloleksKey(getXPathValue(doc, xPath, XPATH_SLOLEKS_KEY))
+                .subcategoria(subcategoria != null && !subcategoria.isBlank() ? subcategoria : null)
+                .listaFlexiones(IntStream.range(0, wordForms.getLength())
+                        .mapToObj(wordForms::item)
+                        .map(wordForm -> ParticulaFlexion.builder()
+                                .sloleksId(sloleksId)
+                                .principal(principal)
+                                .flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
+                                .acentuado(getNodeXPathValue(wordForm, xPath, XPATH_ACENTUADO))
+                                .pronunciacionIpa(getNodeXPathValue(wordForm, xPath, XPATH_PRONUNCIACION_IPA))
+                                .pronunciacionSampa(getNodeXPathValue(wordForm, xPath, XPATH_PRONUNCIACION_SAMPA))
+                                .build())
+                        .filter(Objects::nonNull)
+                        .filter(flexion -> StringUtils.isNotBlank(flexion.getFlexion()))
+                        .toList())
                 .build();
     }
 

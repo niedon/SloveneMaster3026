@@ -99,7 +99,14 @@ public class CriterioBusquedaNuevo<T extends PalabraFlexion<?>> {
         // Evaluar restricciones de igualdad (AND entre campos, OR entre valores de cada campo)
         boolean cumpleIgualdad = restricciones.entrySet().stream()
                 .allMatch(entry -> {
-                    Object valorReal = extraerValor(palabraTipada, entry.getKey());
+                    String campo = entry.getKey();
+                    // Restricción de exclusión: !campo significa "NO debe estar en estos valores"
+                    if (campo.startsWith("!")) {
+                        String campoReal = campo.substring(1);
+                        Object valorReal = extraerValor(palabraTipada, campoReal);
+                        return !entry.getValue().contains(valorReal);
+                    }
+                    Object valorReal = extraerValor(palabraTipada, campo);
                     return entry.getValue().contains(valorReal);
                 });
 
@@ -234,6 +241,8 @@ public class CriterioBusquedaNuevo<T extends PalabraFlexion<?>> {
             return (B) new NumeralCriterioBuilder();
         } else if (tipoFlexion == PronombreFlexion.class) {
             return (B) new PronombreCriterioBuilder();
+        } else if (tipoFlexion == ParticulaFlexion.class) {
+            return (B) new ParticulaCriterioBuilder();
         }
         throw new IllegalArgumentException("Tipo de flexión no soportado: " + tipoFlexion.getSimpleName());
     }
@@ -293,6 +302,7 @@ public class CriterioBusquedaNuevo<T extends PalabraFlexion<?>> {
         if (palabra instanceof AdjetivoFlexion af) return af.getAdjetivoBase();
         if (palabra instanceof NumeralFlexion nf) return nf.getNumeralBase();
         if (palabra instanceof PronombreFlexion pf) return pf.getPronombreBase();
+        if (palabra instanceof ParticulaFlexion paf) return paf.getParticulaBase();
         return null;
     }
 

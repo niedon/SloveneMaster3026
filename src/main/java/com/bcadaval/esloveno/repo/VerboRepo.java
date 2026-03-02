@@ -11,9 +11,10 @@ import com.bcadaval.esloveno.beans.palabra.Verbo;
 public interface VerboRepo extends JpaRepository<Verbo, String>{
 
     /**
-     * Encuentra verbos con significado null o transitividad null
+     * Encuentra verbos incompletos: significado, transitividad,
+     * requiereSujetoAnimado o requiereObjetoAnimado null
      */
-    List<Verbo> findBySignificadoIsNullOrTransitividadIsNull();
+    List<Verbo> findBySignificadoIsNullOrTransitividadIsNullOrRequiereSujetoAnimadoIsNullOrRequiereObjetoAnimadoIsNull();
 
     /**
      * Busca verbos cuya forma principal contenga el texto (case-insensitive)

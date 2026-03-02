@@ -2,7 +2,10 @@ package com.bcadaval.esloveno.structures;
 
 import com.bcadaval.esloveno.beans.enums.Numero;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
+import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
+import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
 import com.bcadaval.esloveno.beans.palabra.Pronombre;
+import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import lombok.Getter;
@@ -12,8 +15,11 @@ public enum FraseTipoPalabra {
     VERBO_FLEXION(VerboFlexion.class, "v"),
     SUSTANTIVO_FLEXION(SustantivoFlexion.class, "s"),
     ADJETIVO_FLEXION(AdjetivoFlexion.class, "a"),
-    PRONOMBRE(Pronombre.class, "p"),
-    NUMERO(Numero.class, "n");
+    PRONOMBRE_FLEXION(PronombreFlexion.class, "p"),
+    NUMERAL_FLEXION(NumeralFlexion.class, "n"),
+    PARTICULA_FLEXION(ParticulaFlexion.class, "pa"),
+    PRONOMBRE(Pronombre.class, "pr"),
+    NUMERO(Numero.class, "nu");
 
     private final Class<?> clazz;
     private final String codigo;

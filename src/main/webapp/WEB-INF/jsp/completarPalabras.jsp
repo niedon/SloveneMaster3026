@@ -21,16 +21,31 @@
         <!-- Contador de palabras -->
         <div class="palabra-count" id="palabraCount"></div>
 
-        <!-- Buscador -->
+        <!-- Filtros -->
         <div class="search-container">
             <input type="text"
                    class="search-input"
                    id="searchInput"
                    placeholder="🔍 Buscar palabra..."
                    autocomplete="off">
+            <div style="margin-top: 8px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                    <input type="checkbox" id="filtroIncompletas" checked>
+                    Solo incompletas
+                </label>
+                <select id="filtroTipo" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc;">
+                    <option value="">Todos los tipos</option>
+                    <option value="<%= TipoPalabra.SUSTANTIVO.getXmlCode() %>">Sustantivos</option>
+                    <option value="<%= TipoPalabra.VERBO.getXmlCode() %>">Verbos</option>
+                    <option value="<%= TipoPalabra.ADJETIVO.getXmlCode() %>">Adjetivos</option>
+                    <option value="<%= TipoPalabra.PRONOMBRE.getXmlCode() %>">Pronombres</option>
+                    <option value="<%= TipoPalabra.NUMERAL.getXmlCode() %>">Numerales</option>
+                    <option value="<%= TipoPalabra.PARTICULA.getXmlCode() %>">Partículas</option>
+                </select>
+            </div>
         </div>
 
-        <!-- Lista de palabras incompletas -->
+        <!-- Lista de palabras -->
         <div class="palabras-list" id="palabrasList">
             <div class="spinner spinner-active"></div>
         </div>
@@ -59,10 +74,68 @@
                     </select>
                 </div>
 
-                <!-- Campo Animado (solo sustantivos) -->
-                <div class="form-group checkbox-group hidden" id="animadoGroup">
-                    <input type="checkbox" id="animado" name="animado">
-                    <label for="animado">Es animado</label>
+                <!-- Campo RequiereSujetoAnimado (solo verbos) -->
+                <div class="form-group hidden" id="requiereSujetoAnimadoGroup">
+                    <label for="requiereSujetoAnimado">¿Requiere sujeto animado? *</label>
+                    <select id="requiereSujetoAnimado" name="requiereSujetoAnimado">
+                        <option value="">Seleccione...</option>
+                        <option value="SI">Sí</option>
+                        <option value="NO">No</option>
+                    </select>
+                </div>
+
+                <!-- Campo RequiereObjetoAnimado (solo verbos) -->
+                <div class="form-group hidden" id="requiereObjetoAnimadoGroup">
+                    <label for="requiereObjetoAnimado">¿Requiere objeto animado? *</label>
+                    <select id="requiereObjetoAnimado" name="requiereObjetoAnimado">
+                        <option value="">Seleccione...</option>
+                        <option value="SI">Sí</option>
+                        <option value="NO">No</option>
+                    </select>
+                </div>
+
+                <!-- Campo Animacidad (solo sustantivos) -->
+                <div class="form-group hidden" id="animacidadGroup">
+                    <label for="animacidad">Animacidad *</label>
+                    <select id="animacidad" name="animacidad">
+                        <option value="">Seleccione...</option>
+                        <option value="ANIMADO">Animado</option>
+                        <option value="INANIMADO">Inanimado</option>
+                    </select>
+                </div>
+
+                <!-- Campo Contabilidad (solo sustantivos) -->
+                <div class="form-group hidden" id="contabilidadGroup">
+                    <label for="contabilidad">Contabilidad *</label>
+                    <select id="contabilidad" name="contabilidad">
+                        <option value="">Seleccione...</option>
+                        <option value="CONTABLE">Contable</option>
+                        <option value="INCONTABLE">Incontable</option>
+                    </select>
+                </div>
+
+                <!-- Campo ClaseSemantica (solo sustantivos) -->
+                <div class="form-group hidden" id="claseSemanticaGroup">
+                    <label for="claseSemantica">Clase semántica *</label>
+                    <select id="claseSemantica" name="claseSemantica">
+                        <option value="">Seleccione...</option>
+                        <option value="HUMANO">Humano</option>
+                        <option value="ANIMAL">Animal</option>
+                        <option value="OBJETO">Objeto</option>
+                        <option value="LUGAR">Lugar</option>
+                        <option value="SUSTANCIA">Sustancia</option>
+                        <option value="ABSTRACTO">Abstracto</option>
+                    </select>
+                </div>
+
+                <!-- Campo CabezaRelacional (solo sustantivos) -->
+                <div class="form-group hidden" id="cabezaRelacionalGroup">
+                    <label for="cabezaRelacional">¿Cabeza relacional? *</label>
+                    <select id="cabezaRelacional" name="cabezaRelacional">
+                        <option value="">Seleccione...</option>
+                        <option value="SI">Sí</option>
+                        <option value="NO">No</option>
+                    </select>
                 </div>
 
                 <!-- Campo Cantidad (solo numerales) -->
@@ -91,6 +164,7 @@
         const ENUM_ADJETIVO = '<%= TipoPalabra.ADJETIVO.name() %>';
         const ENUM_PRONOMBRE = '<%= TipoPalabra.PRONOMBRE.name() %>';
         const ENUM_NUMERAL = '<%= TipoPalabra.NUMERAL.name() %>';
+        const ENUM_PARTICULA = '<%= TipoPalabra.PARTICULA.name() %>';
 
         // Valores del enum TipoPalabra desde Java
         const TIPO_PALABRA = {
@@ -113,6 +187,10 @@
             '<%= TipoPalabra.NUMERAL.getXmlCode() %>': {
                 enum: ENUM_NUMERAL,
                 nombre: '<%= TipoPalabra.NUMERAL.getNombreEspanol() %>'
+            },
+            '<%= TipoPalabra.PARTICULA.getXmlCode() %>': {
+                enum: ENUM_PARTICULA,
+                nombre: '<%= TipoPalabra.PARTICULA.getNombreEspanol() %>'
             }
         };
 
@@ -121,18 +199,10 @@
             cargarPalabras();
         });
 
-        // Buscador en tiempo real
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase().trim();
-            if (query === '') {
-                palabrasFiltradas = palabrasCompletas;
-            } else {
-                palabrasFiltradas = palabrasCompletas.filter(p =>
-                    p.palabra.toLowerCase().includes(query)
-                );
-            }
-            renderizarLista();
-        });
+        // Filtros en tiempo real
+        document.getElementById('searchInput').addEventListener('input', aplicarFiltros);
+        document.getElementById('filtroIncompletas').addEventListener('change', aplicarFiltros);
+        document.getElementById('filtroTipo').addEventListener('change', aplicarFiltros);
 
         // Submit del formulario
         document.getElementById('editForm').addEventListener('submit', function(e) {
@@ -145,9 +215,7 @@
                 .then(response => response.json())
                 .then(data => {
                     palabrasCompletas = data;
-                    palabrasFiltradas = data;
-                    renderizarLista();
-                    actualizarContador();
+                    aplicarFiltros();
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -155,47 +223,65 @@
                 });
         }
 
+        function aplicarFiltros() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const soloIncompletas = document.getElementById('filtroIncompletas').checked;
+            const filtroTipo = document.getElementById('filtroTipo').value;
+
+            palabrasFiltradas = palabrasCompletas.filter(p => {
+                if (query && !p.palabra.toLowerCase().includes(query)) return false;
+                if (soloIncompletas && p.completa) return false;
+                if (filtroTipo && p.tipo !== filtroTipo) return false;
+                return true;
+            });
+
+            renderizarLista();
+            actualizarContador();
+        }
+
         function renderizarLista() {
             const lista = document.getElementById('palabrasList');
 
             if (palabrasFiltradas.length === 0) {
-                lista.innerHTML = `
-                    <div class="empty-state">
-                        <h3>¡Excelente!</h3>
-                        <p>No hay palabras incompletas</p>
-                    </div>
-                `;
+                const soloIncompletas = document.getElementById('filtroIncompletas').checked;
+                lista.innerHTML = '<div class="empty-state"><h3>' +
+                    (soloIncompletas ? '¡Excelente!' : 'Sin resultados') +
+                    '</h3><p>' +
+                    (soloIncompletas ? 'No hay palabras incompletas' : 'No se encontraron palabras') +
+                    '</p></div>';
                 return;
             }
 
             lista.innerHTML = palabrasFiltradas.map(palabra => {
                 const tipoInfo = TIPO_PALABRA[palabra.tipo];
                 const nombreTipo = tipoInfo ? tipoInfo.nombre : palabra.tipo;
-                return `
-                    <div class="palabra-item" onclick="seleccionarPalabra('\${palabra.id}')">
-                        <span class="palabra-text">\${palabra.palabra}</span>
-                        <span class="palabra-tipo">\${nombreTipo}</span>
-                    </div>
-                `;
+                const estadoIcono = palabra.completa
+                    ? '<span style="color:#28a745;font-size:0.8em;">✓</span>'
+                    : '<span style="color:#dc3545;font-size:0.8em;">✗</span>';
+                return '<div class="palabra-item" onclick="seleccionarPalabra(\'' + palabra.id + '\')">' +
+                    '<span class="palabra-text">' + palabra.palabra + '</span>' +
+                    '<span style="display:flex;gap:8px;align-items:center;">' +
+                    estadoIcono +
+                    '<span class="palabra-tipo">' + nombreTipo + '</span>' +
+                    '</span></div>';
             }).join('');
         }
 
         function actualizarContador() {
             const contador = document.getElementById('palabraCount');
-            contador.textContent = `\${palabrasCompletas.length} palabra(s) incompleta(s)`;
+            const totalIncompletas = palabrasCompletas.filter(p => !p.completa).length;
+            contador.textContent = palabrasFiltradas.length + ' palabra(s) mostrada(s) · ' + totalIncompletas + ' incompleta(s) en total';
         }
 
         function seleccionarPalabra(id) {
             palabraSeleccionada = palabrasCompletas.find(p => p.id === id);
             if (!palabraSeleccionada) return;
 
-            // Actualizar selección visual
             document.querySelectorAll('.palabra-item').forEach(item => {
                 item.classList.remove('selected');
             });
             event.target.closest('.palabra-item').classList.add('selected');
 
-            // Mostrar formulario
             mostrarFormulario(palabraSeleccionada);
         }
 
@@ -203,43 +289,56 @@
             const formContainer = document.getElementById('formContainer');
             const formTitle = document.getElementById('formTitle');
 
-            // Convertir el tipo XML al enum de TipoPalabra
             const tipoInfo = TIPO_PALABRA[palabra.tipo];
             const tipoEnum = tipoInfo ? tipoInfo.enum : palabra.tipo;
 
-            // Llenar campos
             document.getElementById('palabraId').value = palabra.id;
-            document.getElementById('palabraTipo').value = tipoEnum; // Usar el nombre del enum
+            document.getElementById('palabraTipo').value = tipoEnum;
             document.getElementById('significado').value = palabra.significado || '';
 
-            formTitle.textContent = `Completar: \${palabra.palabra}`;
-
-            // Mostrar/ocultar campos según tipo
-            const transitividadGroup = document.getElementById('transitividadGroup');
-            const animadoGroup = document.getElementById('animadoGroup');
-            const cantidadGroup = document.getElementById('cantidadGroup');
-            const transitividadSelect = document.getElementById('transitividad');
-            const animadoCheck = document.getElementById('animado');
-            const cantidadInput = document.getElementById('cantidad');
+            formTitle.textContent = (palabra.completa ? 'Editar: ' : 'Completar: ') + palabra.palabra;
 
             // Ocultar todos los campos específicos
-            transitividadGroup.classList.add('hidden');
-            animadoGroup.classList.add('hidden');
-            cantidadGroup.classList.add('hidden');
-            transitividadSelect.required = false;
-            cantidadInput.required = false;
+            var gruposEspecificos = [
+                'transitividadGroup', 'requiereSujetoAnimadoGroup', 'requiereObjetoAnimadoGroup',
+                'animacidadGroup', 'contabilidadGroup', 'claseSemanticaGroup', 'cabezaRelacionalGroup',
+                'cantidadGroup'
+            ];
+            gruposEspecificos.forEach(function(g) { document.getElementById(g).classList.add('hidden'); });
+
+            // Resetear required
+            ['transitividad', 'requiereSujetoAnimado', 'requiereObjetoAnimado',
+             'animacidad', 'contabilidad', 'claseSemantica', 'cabezaRelacional'].forEach(function(id) {
+                document.getElementById(id).required = false;
+            });
+            document.getElementById('cantidad').required = false;
 
             if (tipoEnum === ENUM_VERBO) {
-                transitividadGroup.classList.remove('hidden');
-                transitividadSelect.value = palabra.transitividad || '';
-                transitividadSelect.required = true;
+                ['transitividadGroup', 'requiereSujetoAnimadoGroup', 'requiereObjetoAnimadoGroup'].forEach(function(g) {
+                    document.getElementById(g).classList.remove('hidden');
+                });
+                document.getElementById('transitividad').value = palabra.transitividad || '';
+                document.getElementById('transitividad').required = true;
+                document.getElementById('requiereSujetoAnimado').value = palabra.requiereSujetoAnimado || '';
+                document.getElementById('requiereSujetoAnimado').required = true;
+                document.getElementById('requiereObjetoAnimado').value = palabra.requiereObjetoAnimado || '';
+                document.getElementById('requiereObjetoAnimado').required = true;
             } else if (tipoEnum === ENUM_SUSTANTIVO) {
-                animadoGroup.classList.remove('hidden');
-                animadoCheck.checked = palabra.animado === true;
+                ['animacidadGroup', 'contabilidadGroup', 'claseSemanticaGroup', 'cabezaRelacionalGroup'].forEach(function(g) {
+                    document.getElementById(g).classList.remove('hidden');
+                });
+                document.getElementById('animacidad').value = palabra.animacidad || '';
+                document.getElementById('animacidad').required = true;
+                document.getElementById('contabilidad').value = palabra.contabilidad || '';
+                document.getElementById('contabilidad').required = true;
+                document.getElementById('claseSemantica').value = palabra.claseSemantica || '';
+                document.getElementById('claseSemantica').required = true;
+                document.getElementById('cabezaRelacional').value = palabra.cabezaRelacional || '';
+                document.getElementById('cabezaRelacional').required = true;
             } else if (tipoEnum === ENUM_NUMERAL) {
-                cantidadGroup.classList.remove('hidden');
-                cantidadInput.value = palabra.cantidad != null ? palabra.cantidad : '';
-                cantidadInput.required = true;
+                document.getElementById('cantidadGroup').classList.remove('hidden');
+                document.getElementById('cantidad').value = palabra.cantidad != null ? palabra.cantidad : '';
+                document.getElementById('cantidad').required = true;
             }
 
             formContainer.classList.add('visible');
@@ -258,33 +357,30 @@
             const formData = new FormData(document.getElementById('editForm'));
             const tipo = formData.get('tipo');
 
-            // Validar que todos los campos requeridos estén llenos
             const significado = formData.get('significado').trim();
             if (!significado) {
                 mostrarMensaje('El significado es obligatorio', 'error');
                 return;
             }
 
-            if (tipo === ENUM_VERBO && !formData.get('transitividad')) {
-                mostrarMensaje('La transitividad es obligatoria para verbos', 'error');
-                return;
+            if (tipo === ENUM_VERBO) {
+                if (!formData.get('transitividad')) { mostrarMensaje('La transitividad es obligatoria para verbos', 'error'); return; }
+                if (!formData.get('requiereSujetoAnimado')) { mostrarMensaje('Requiere sujeto animado es obligatorio para verbos', 'error'); return; }
+                if (!formData.get('requiereObjetoAnimado')) { mostrarMensaje('Requiere objeto animado es obligatorio para verbos', 'error'); return; }
+            }
+
+            if (tipo === ENUM_SUSTANTIVO) {
+                if (!formData.get('animacidad')) { mostrarMensaje('La animacidad es obligatoria para sustantivos', 'error'); return; }
+                if (!formData.get('contabilidad')) { mostrarMensaje('La contabilidad es obligatoria para sustantivos', 'error'); return; }
+                if (!formData.get('claseSemantica')) { mostrarMensaje('La clase semántica es obligatoria para sustantivos', 'error'); return; }
+                if (!formData.get('cabezaRelacional')) { mostrarMensaje('Cabeza relacional es obligatorio para sustantivos', 'error'); return; }
             }
 
             if (tipo === ENUM_NUMERAL) {
                 const cantidadVal = formData.get('cantidad');
-                if (!cantidadVal || cantidadVal.trim() === '') {
-                    mostrarMensaje('La cantidad es obligatoria para numerales', 'error');
-                    return;
-                }
+                if (!cantidadVal || cantidadVal.trim() === '') { mostrarMensaje('La cantidad es obligatoria para numerales', 'error'); return; }
             }
 
-            // Convertir checkbox a boolean
-            if (tipo === ENUM_SUSTANTIVO) {
-                const animado = document.getElementById('animado').checked;
-                formData.set('animado', animado);
-            }
-
-            // Enviar al servidor
             fetch('/api/actualizarPalabra', {
                 method: 'POST',
                 body: formData
@@ -294,7 +390,6 @@
                 if (data.exito) {
                     mostrarMensaje('✅ ' + data.mensaje, 'success');
                     cancelarEdicion();
-                    // Recargar lista
                     cargarPalabras();
                 } else {
                     mostrarMensaje('❌ ' + data.mensaje, 'error');

@@ -27,4 +27,11 @@ public interface PronombreFlexionRepo extends JpaRepository<PronombreFlexion, In
      */
     @Query("SELECT p FROM PronombreFlexion p WHERE p.proximaRevision IS NOT NULL")
     Stream<PronombreFlexion> streamActivos();
+
+    /**
+     * Stream de pronombres nuevos: proximaRevision IS NULL y significado no null.
+     * El significado está directamente en la flexión para pronombres.
+     */
+    @Query("SELECT p FROM PronombreFlexion p WHERE p.proximaRevision IS NULL AND p.significado IS NOT NULL")
+    Stream<PronombreFlexion> streamNuevos();
 }

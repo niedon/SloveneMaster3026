@@ -95,6 +95,34 @@ public abstract class CriterioBuilderBase<T extends PalabraFlexion<?>, B extends
     }
 
     /**
+     * Restringe la forma principal (lema) de la palabra.
+     * Varios valores se interpretan como OR (ej. {@code conPrincipal("biti", "imeti")} acepta "biti" O "imeti").
+     * <p>
+     * Filtra por el campo {@code principal} presente en todas las flexiones.
+     *
+     * @param principales formas principales aceptadas
+     * @return este builder para encadenamiento fluido
+     */
+    public B conPrincipal(String... principales) {
+        return agregarRestriccion("principal", (Object[]) principales);
+    }
+
+    /**
+     * Excluye las formas principales indicadas de la búsqueda.
+     * <p>
+     * Internamente se implementa con una restricción especial de exclusión
+     * sobre el campo {@code principal}.
+     *
+     * @param principales formas principales a excluir
+     * @return este builder para encadenamiento fluido
+     */
+    public B conPrincipalExcepto(String... principales) {
+        restricciones.computeIfAbsent("!principal", k -> new LinkedHashSet<>())
+                .addAll(Arrays.asList(principales));
+        return self();
+    }
+
+    /**
      * Construye el {@link CriterioBusquedaNuevo} con las restricciones y dependencias acumuladas.
      *
      * @return criterio de búsqueda inmutable listo para usar

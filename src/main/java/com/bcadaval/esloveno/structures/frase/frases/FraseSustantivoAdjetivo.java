@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @DificultadFrase(NivelDificultad.ELEMENTAL)
-public class FraseSustantivoAdjetivoNueva extends Frase {
+public class FraseSustantivoAdjetivo extends Frase {
 
     @Autowired
     private NumeralService numeralService;

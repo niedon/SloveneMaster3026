@@ -3,6 +3,7 @@ package com.bcadaval.esloveno.structures.frase.frases;
 import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
+import com.bcadaval.esloveno.services.palabra.NumeralService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtractorNumero;
 import com.bcadaval.esloveno.structures.extractores.ExtractorSustantivo;
@@ -12,6 +13,7 @@ import com.bcadaval.esloveno.structures.frase.criterio.NumeralCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.criterio.SustantivoCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.dependencia.DependenciaBuilder;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,7 +39,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @DificultadFrase(NivelDificultad.PRINCIPIANTE)
-public class FraseSoloSustantivoNominativoNueva extends Frase {
+public class FraseSoloSustantivoNominativo extends Frase {
+
+    @Autowired
+    private NumeralService numeralService;
 
     @Override
     public String getIdentificador() {
@@ -46,7 +51,7 @@ public class FraseSoloSustantivoNominativoNueva extends Frase {
 
     @Override
     public String getNombreMostrar() {
-        return "Sustantivo (NOM)";
+        return "Sustantivos";
     }
 
     @PostConstruct
@@ -64,7 +69,6 @@ public class FraseSoloSustantivoNominativoNueva extends Frase {
                 .criterio(NumeralCriterioBuilder.crear()
                         .conCaso(Caso.NOMINATIVO)
                         .cantidadEntre(1, 4)
-                        // Dependencia de número: singular→1, dual→2, plural→3-4
                         .conDependencia(DependenciaBuilder.de(sustantivo)
                                 .si(sust -> sust.getNumero() == Numero.SINGULAR,
                                         NumeralCriterioBuilder.crear().conNumero(Numero.SINGULAR).conCantidad(1).build())
@@ -82,6 +86,7 @@ public class FraseSoloSustantivoNominativoNueva extends Frase {
                         )
                         .build()
                 )
+                .generador(sustantivo, sust -> numeralService.getNumeral(sust))
                 .extractor(ExtractorNumero.get())
                 .build();
 

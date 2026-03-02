@@ -3,6 +3,7 @@ package com.bcadaval.esloveno.rest;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.services.FraseService;
@@ -10,6 +11,7 @@ import com.bcadaval.esloveno.services.RepeticionEspaciadaService;
 import com.bcadaval.esloveno.services.VariablesService;
 import com.bcadaval.esloveno.structures.DatoVisualizacion;
 import com.bcadaval.esloveno.structures.frase.Frase;
+import com.bcadaval.esloveno.structures.frase.PalabraFrase;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -56,8 +58,12 @@ public class WordsController {
 		// Obtener tarjetas listas para estudiar con el nuevo sistema
 		List<PalabraFlexion<?>> tarjetas = repeticionEspaciadaService.obtenerTarjetasDisponiblesNuevo(maxRevision);
 
-		log.info("Tarjetas disponibles: {}", tarjetas.size());
-		model.addAttribute("tarjetasDisponibles", tarjetas.size());
+		long tarjetasNuevas = tarjetas.stream().filter(t -> t.getProximaRevision() == null).count();
+		long tarjetasRevision = tarjetas.size() - tarjetasNuevas;
+
+		log.info("Tarjetas disponibles: {} (revisión: {}, nuevas: {})", tarjetas.size(), tarjetasRevision, tarjetasNuevas);
+		model.addAttribute("tarjetasDisponibles", tarjetasRevision);
+		model.addAttribute("tarjetasNuevas", tarjetasNuevas);
 
 		List<DatoVisualizacion> datos;
 		if (tarjetas.isEmpty()) {
@@ -127,6 +133,15 @@ public class WordsController {
 			if (resultado != null) {
 				log.info("Frase seleccionada: '{}' con media {}",
 						candidata.getNombreMostrar(), candidata.calcularMediaInstant());
+
+				// Inicializar campos SRS de tarjetas nuevas asignadas por criterio a esta frase
+				candidata.getElementos().stream()
+						.filter(PalabraFrase::participaEnSRS)
+						.map(PalabraFrase::getPalabraAsignada)
+						.filter(Objects::nonNull)
+						.filter(p -> p.getProximaRevision() == null)
+						.forEach(repeticionEspaciadaService::inicializarTarjetaNueva);
+
 				return resultado;
 			}
 		}

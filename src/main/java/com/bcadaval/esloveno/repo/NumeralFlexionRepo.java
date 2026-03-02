@@ -30,6 +30,16 @@ public interface NumeralFlexionRepo extends JpaRepository<NumeralFlexion, Intege
     Stream<NumeralFlexion> streamActivos();
 
     /**
+     * Stream de numerales nuevos: proximaRevision IS NULL y palabra base completa
+     * (significado y cantidad no null).
+     */
+    @Query("SELECT nf FROM NumeralFlexion nf JOIN nf.numeralBase n " +
+            "WHERE nf.proximaRevision IS NULL " +
+            "AND n.significado IS NOT NULL " +
+            "AND n.cantidad IS NOT NULL")
+    Stream<NumeralFlexion> streamNuevos();
+
+    /**
      * Busca numerales que coincidan en caso y número, opcionalmente filtrando por género.
      * Solo devuelve tarjetas inicializadas (proximaRevision IS NOT NULL).
      *

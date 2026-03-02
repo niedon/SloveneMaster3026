@@ -40,6 +40,11 @@ public class PalabraService {
 	@Autowired
 	private NumeralFlexionRepo numeralFlexionRepo;
 
+	@Autowired
+	private ParticulaRepo particulaRepo;
+	@Autowired
+	private ParticulaFlexionRepo particulaFlexionRepo;
+
 	/** Devuelve el repositorio de flexiones correspondiente según la clase de la palabra */
 	@SuppressWarnings("rawtypes")
 	private JpaRepository getFlexionRepository(Palabra<?> palabra) {
@@ -49,6 +54,7 @@ public class PalabraService {
             case ADJETIVO -> adjetivoFlexionRepo;
             case PRONOMBRE -> pronombreFlexionRepo;
             case NUMERAL -> numeralFlexionRepo;
+            case PARTICULA -> particulaFlexionRepo;
         };
 
 	}
@@ -65,6 +71,7 @@ public class PalabraService {
 			case Adjetivo p -> adjetivoRepo.save(p);
 			case Pronombre p -> pronombreRepo.save(p);
 			case Numeral p -> numeralRepo.save(p);
+			case Particula p -> particulaRepo.save(p);
 			default -> throw new IllegalArgumentException("Tipo de palabra no soportado: " + palabra.getClass());
 		};
 
@@ -96,6 +103,7 @@ public class PalabraService {
 			case ADJETIVO -> adjetivoRepo.existsById(sloleksId);
 			case PRONOMBRE -> pronombreRepo.existsById(sloleksId);
 			case NUMERAL -> numeralRepo.existsById(sloleksId);
+			case PARTICULA -> particulaRepo.existsById(sloleksId);
 		};
 	}
 

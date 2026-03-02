@@ -53,6 +53,7 @@ public abstract class Frase {
     /**
      * Lista ordenada de todos los huecos (determina el orden de visualización).
      */
+    @Getter
     protected final List<PalabraFrase<? extends PalabraFlexion<?>>> elementos = new ArrayList<>();
 
     /**

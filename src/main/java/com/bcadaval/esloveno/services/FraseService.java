@@ -10,7 +10,9 @@ import com.bcadaval.esloveno.structures.frase.Frase;
 import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -65,6 +67,29 @@ public class FraseService {
      * Se recalcula al arranque y al guardar configuración.
      */
     private volatile Map<Class<? extends PalabraFlexion<?>>, List<CriterioBusquedaNuevo<?>>> cacheCriterios = new HashMap<>();
+
+    // ============================================
+    // Inicialización al arranque
+    // ============================================
+
+    /**
+     * Se ejecuta cuando la aplicación está completamente lista.
+     * Registra las frases en BD, valida su estructura y calcula los criterios
+     * de búsqueda para que estén disponibles desde la primera llamada a {@code /getWords}.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        if (initializationService.isDatabaseReady()) {
+            log.info("Aplicación lista. Iniciando registro, validación y cálculo de criterios...");
+            autoRegistrarFrasesIfNeeded();
+            // Si autoRegistrarFrasesIfNeeded ya ejecutó la validación (primera vez), no repetir
+            if (!validacionEjecutada.get()) {
+                validarTodasLasFrases();
+            }
+        } else {
+            log.warn("BD no lista al arranque. Los criterios se calcularán en la primera petición.");
+        }
+    }
 
     // ============================================
     // Auto-registro en BD

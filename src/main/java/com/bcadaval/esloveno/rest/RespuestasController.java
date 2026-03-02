@@ -11,6 +11,9 @@ import java.util.TreeMap;
 import com.bcadaval.esloveno.repo.VerboFlexionRepo;
 import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
 import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
+import com.bcadaval.esloveno.repo.NumeralFlexionRepo;
+import com.bcadaval.esloveno.repo.PronombreFlexionRepo;
+import com.bcadaval.esloveno.repo.ParticulaFlexionRepo;
 import com.bcadaval.esloveno.services.RepeticionEspaciadaService;
 
 import lombok.extern.log4j.Log4j2;
@@ -38,6 +41,15 @@ public class RespuestasController {
 
 	@Autowired
 	private AdjetivoFlexionRepo adjetivoFlexionRepo;
+
+	@Autowired
+	private NumeralFlexionRepo numeralFlexionRepo;
+
+	@Autowired
+	private PronombreFlexionRepo pronombreFlexionRepo;
+
+	@Autowired
+	private ParticulaFlexionRepo particulaFlexionRepo;
 
 	@Autowired
 	private RepeticionEspaciadaService repeticionEspaciadaService;
@@ -120,8 +132,34 @@ public class RespuestasController {
 						);
 						break;
 
-					case "p": // Pronombre (sin SRS por ahora)
-						log.info("Pronombre (tipo 'p') - ID: {} - No tiene SRS", id);
+					case "n": // Numeral
+						numeralFlexionRepo.findById(id).ifPresentOrElse(
+							numeral -> {
+								log.info("NumeralFlexion: {} - Recordó: {}", numeral.getFlexion(), recordo);
+								repeticionEspaciadaService.procesarRespuesta(numeral, recordo);
+							},
+							() -> log.warn("NumeralFlexion con ID {} no encontrado", id)
+						);
+						break;
+
+					case "p": // Pronombre (ahora con SRS)
+						pronombreFlexionRepo.findById(id).ifPresentOrElse(
+							pronombre -> {
+								log.info("PronombreFlexion: {} - Recordó: {}", pronombre.getFlexion(), recordo);
+								repeticionEspaciadaService.procesarRespuesta(pronombre, recordo);
+							},
+							() -> log.warn("PronombreFlexion con ID {} no encontrado", id)
+						);
+						break;
+
+					case "pa": // Partícula
+						particulaFlexionRepo.findById(id).ifPresentOrElse(
+							particula -> {
+								log.info("ParticulaFlexion: {} - Recordó: {}", particula.getFlexion(), recordo);
+								repeticionEspaciadaService.procesarRespuesta(particula, recordo);
+							},
+							() -> log.warn("ParticulaFlexion con ID {} no encontrado", id)
+						);
 						break;
 
 					default:

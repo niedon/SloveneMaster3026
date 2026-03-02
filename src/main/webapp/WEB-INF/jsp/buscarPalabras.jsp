@@ -69,6 +69,7 @@
                                 <label><input type="checkbox" name="filtroTipo" value="adjective" checked> Adjetivos</label>
                                 <label><input type="checkbox" name="filtroTipo" value="pronoun" checked> Pronombres</label>
                                 <label><input type="checkbox" name="filtroTipo" value="numeral" checked> Numerales</label>
+                                <label><input type="checkbox" name="filtroTipo" value="particle" checked> Partículas</label>
                             </div>
                         </div>
 
@@ -108,11 +109,11 @@
                                 </div>
                             </div>
                             <div class="filtro-subseccion">
-                                <div class="filtro-subseccion-titulo">Animado</div>
+                                <div class="filtro-subseccion-titulo">Animacidad</div>
                                 <div class="filtro-grupo">
                                     <label><input type="radio" name="filtroAnimado" value="todos" checked> Todos</label>
-                                    <label><input type="radio" name="filtroAnimado" value="si"> Animado</label>
-                                    <label><input type="radio" name="filtroAnimado" value="no"> Inanimado</label>
+                                    <label><input type="radio" name="filtroAnimado" value="ANIMADO"> Animado</label>
+                                    <label><input type="radio" name="filtroAnimado" value="INANIMADO"> Inanimado</label>
                                     <label><input type="radio" name="filtroAnimado" value="null"> Sin definir</label>
                                 </div>
                             </div>
@@ -278,9 +279,8 @@
                 if (p.tipo === 'noun') {
                     const gen = p.genero || 'null';
                     if (!generoActivo.includes(gen)) return false;
-                    if (filtroAnimado === 'si' && p.animado !== true) return false;
-                    if (filtroAnimado === 'no' && p.animado !== false) return false;
-                    if (filtroAnimado === 'null' && p.animado !== null) return false;
+                    const anim = p.animacidad || 'null';
+                    if (filtroAnimado !== 'todos' && anim !== filtroAnimado) return false;
                 }
                 if (p.tipo === 'pronoun') {
                     const tp = p.tipoPronombre || 'null';
@@ -330,11 +330,15 @@
             if (p.tipo === 'verb') {
                 if (p.transitividad) badges += '<span class="prop-badge">' + abreviarTransitividad(p.transitividad) + '</span>';
                 if (p.aspecto) badges += '<span class="prop-badge">' + abreviarAspecto(p.aspecto) + '</span>';
+                if (p.requiereSujetoAnimado) badges += '<span class="prop-badge" title="Requiere sujeto animado">S:' + p.requiereSujetoAnimado + '</span>';
+                if (p.requiereObjetoAnimado) badges += '<span class="prop-badge" title="Requiere objeto animado">O:' + p.requiereObjetoAnimado + '</span>';
             }
             if (p.tipo === 'noun') {
                 if (p.genero) badges += '<span class="prop-badge">' + abreviarGenero(p.genero) + '</span>';
-                if (p.animado === true) badges += '<span class="prop-badge">🐾 Anim.</span>';
-                if (p.animado === false) badges += '<span class="prop-badge">🪨 Inan.</span>';
+                if (p.animacidad === 'ANIMADO') badges += '<span class="prop-badge">🐾 Anim.</span>';
+                if (p.animacidad === 'INANIMADO') badges += '<span class="prop-badge">🪨 Inan.</span>';
+                if (p.contabilidad) badges += '<span class="prop-badge">' + (p.contabilidad === 'CONTABLE' ? '🔢' : '💧') + '</span>';
+                if (p.claseSemantica) badges += '<span class="prop-badge" title="Clase semántica">' + p.claseSemantica.substring(0,3) + '</span>';
             }
             if (p.tipo === 'pronoun' && p.tipoPronombre) {
                 badges += '<span class="prop-badge">' + p.tipoPronombre.substring(0,4).toLowerCase() + '</span>';
@@ -405,10 +409,15 @@
                 if (p.transitividad) propsHtml += '<span class="detalle-prop-tag">' + p.transitividad + '</span>';
                 if (p.aspecto) propsHtml += '<span class="detalle-prop-tag">' + p.aspecto + '</span>';
                 if (p.verboOtroAspecto) propsHtml += '<span class="detalle-prop-tag">Par: ' + escapeHtml(p.verboOtroAspecto) + '</span>';
+                if (p.requiereSujetoAnimado) propsHtml += '<span class="detalle-prop-tag">Suj.anim: ' + p.requiereSujetoAnimado + '</span>';
+                if (p.requiereObjetoAnimado) propsHtml += '<span class="detalle-prop-tag">Obj.anim: ' + p.requiereObjetoAnimado + '</span>';
             }
             if (p.tipo === 'noun') {
                 if (p.genero) propsHtml += '<span class="detalle-prop-tag">' + p.genero + '</span>';
-                if (p.animado !== null) propsHtml += '<span class="detalle-prop-tag">' + (p.animado ? 'Animado' : 'Inanimado') + '</span>';
+                if (p.animacidad) propsHtml += '<span class="detalle-prop-tag">' + (p.animacidad === 'ANIMADO' ? 'Animado' : 'Inanimado') + '</span>';
+                if (p.contabilidad) propsHtml += '<span class="detalle-prop-tag">' + (p.contabilidad === 'CONTABLE' ? 'Contable' : 'Incontable') + '</span>';
+                if (p.claseSemantica) propsHtml += '<span class="detalle-prop-tag">' + p.claseSemantica + '</span>';
+                if (p.cabezaRelacional) propsHtml += '<span class="detalle-prop-tag">Cab.rel: ' + p.cabezaRelacional + '</span>';
             }
             if (p.tipo === 'pronoun' && p.tipoPronombre) {
                 propsHtml += '<span class="detalle-prop-tag">' + p.tipoPronombre + '</span>';

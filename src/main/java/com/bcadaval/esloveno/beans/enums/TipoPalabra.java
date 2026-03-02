@@ -15,7 +15,8 @@ public enum TipoPalabra {
     VERBO("verb", Verbo.class, VerboFlexion.class),
     ADJETIVO("adjective", Adjetivo.class, AdjetivoFlexion.class),
     PRONOMBRE("pronoun", Pronombre.class, PronombreFlexion.class),
-    NUMERAL("numeral", Numeral.class, NumeralFlexion.class);
+    NUMERAL("numeral", Numeral.class, NumeralFlexion.class),
+    PARTICULA("particle", Particula.class, ParticulaFlexion.class);
 
     private final String xmlCode;
     private final Class<?> clazz;
@@ -78,6 +79,7 @@ public enum TipoPalabra {
             case ADJETIVO -> "Adjetivo";
             case PRONOMBRE -> "Pronombre";
             case NUMERAL -> "Numeral";
+            case PARTICULA -> "Partícula";
         };
     }
 

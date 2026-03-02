@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * DTO para representar una palabra incompleta
+ * DTO para representar una palabra (incompleta o completa) en la pantalla de completar/editar palabras
  */
 @Builder
 @AllArgsConstructor
@@ -14,18 +14,10 @@ import lombok.NoArgsConstructor;
 @Data
 public class PalabraIncompletaDTO {
 
-    /**
-     * Indica si el sustantivo es animado (puede ser null)
-     */
-    private Boolean animado;
-    /**
-     * Transitividad del verbo (puede ser null)
-     */
-    private String transitividad;
-    /**
-     * Representación numérica del numeral (puede ser null)
-     */
-    private Integer cantidad;
+    // =====================================================
+    // Campos comunes
+    // =====================================================
+
     /**
      * Significado en español (puede ser null)
      */
@@ -40,10 +32,68 @@ public class PalabraIncompletaDTO {
      * La palabra en esloveno
      */
     private String palabra;
+
     /**
      * ID de la palabra (principal)
      */
     private String id;
+
+    /**
+     * Indica si la palabra está completa (todos los campos obligatorios rellenos)
+     */
+    private boolean completa;
+
+    // =====================================================
+    // Campos específicos de sustantivo
+    // =====================================================
+
+    /**
+     * Animacidad del sustantivo (ANIMADO/INANIMADO, puede ser null)
+     */
+    private String animacidad;
+
+    /**
+     * Contabilidad del sustantivo (CONTABLE/INCONTABLE, puede ser null)
+     */
+    private String contabilidad;
+
+    /**
+     * Clase semántica del sustantivo (HUMANO/ANIMAL/OBJETO/LUGAR/SUSTANCIA/ABSTRACTO, puede ser null)
+     */
+    private String claseSemantica;
+
+    /**
+     * Cabeza relacional del sustantivo (SI/NO, puede ser null)
+     */
+    private String cabezaRelacional;
+
+    // =====================================================
+    // Campos específicos de verbo
+    // =====================================================
+
+    /**
+     * Transitividad del verbo (puede ser null)
+     */
+    private String transitividad;
+
+    /**
+     * Indica si el verbo requiere sujeto animado (SI/NO, puede ser null)
+     */
+    private String requiereSujetoAnimado;
+
+    /**
+     * Indica si el verbo requiere objeto animado (SI/NO, puede ser null)
+     */
+    private String requiereObjetoAnimado;
+
+    // =====================================================
+    // Campos específicos de numeral
+    // =====================================================
+
+    /**
+     * Representación numérica del numeral (puede ser null)
+     */
+    private Integer cantidad;
 
 }
 

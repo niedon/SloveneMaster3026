@@ -44,15 +44,19 @@ public class DatosInicialesService {
     @Autowired
     private SustantivoRepo sustantivoRepo;
 
+    @Autowired
+    private ParticulaRepo particulaRepo;
+
 
     /**
      * Palabras iniciales a cargar por tipo
      */
     private static final List<String> PRONOMBRES_INICIALES = List.of("jaz", "ti", "on");
-    private static final List<String> NUMERALES_INICIALES = List.of("en", "dva", "trije");
+    private static final List<String> NUMERALES_INICIALES = List.of("en", "dva", "trije", "štirje", "pet");
     private static final List<String> VERBOS_INICIALES = List.of("gledati");
     private static final List<String> ADJETIVOS_INICIALES = List.of("velik");
     private static final List<String> SUSTANTIVOS_INICIALES = List.of("pes", "hiša", "drevo");
+    private static final List<String> PARTICULAS_INICIALES = List.of("ne");
 
     /**
      * Verifica si la base de datos tiene datos y, si no, carga las palabras iniciales.
@@ -91,7 +95,8 @@ public class DatosInicialesService {
         }
 
         int totalPalabras = PRONOMBRES_INICIALES.size() + NUMERALES_INICIALES.size() +
-                           VERBOS_INICIALES.size() + ADJETIVOS_INICIALES.size() + SUSTANTIVOS_INICIALES.size();
+                           VERBOS_INICIALES.size() + ADJETIVOS_INICIALES.size() + SUSTANTIVOS_INICIALES.size() +
+                           PARTICULAS_INICIALES.size();
         int cargadas = 0;
         int errores = 0;
 
@@ -170,6 +175,21 @@ public class DatosInicialesService {
             }
         }
 
+        // Cargar partículas
+        for (String palabra : PARTICULAS_INICIALES) {
+            if (messageCallback != null) {
+                messageCallback.accept("Cargando partícula: " + palabra);
+            }
+            if (cargarPalabra(palabra, TipoPalabra.PARTICULA)) {
+                cargadas++;
+            } else {
+                errores++;
+            }
+            if (progressCallback != null) {
+                progressCallback.accept(90 + (cargadas * 10 / totalPalabras));
+            }
+        }
+
         log.info("Carga de datos iniciales completada: {} palabras cargadas, {} errores", cargadas, errores);
         return true; // Se cargaron los datos iniciales
     }
@@ -182,7 +202,8 @@ public class DatosInicialesService {
                numeralRepo.count() > 0 ||
                verboRepo.count() > 0 ||
                adjetivoRepo.count() > 0 ||
-               sustantivoRepo.count() > 0;
+               sustantivoRepo.count() > 0 ||
+               particulaRepo.count() > 0;
     }
 
     /**

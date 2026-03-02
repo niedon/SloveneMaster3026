@@ -117,6 +117,28 @@ public class VerboCriterioBuilder extends CriterioBuilderBase<VerboFlexion, Verb
     public VerboCriterioBuilder conAspecto(Aspecto... aspectos) {
         return agregarRestriccion("base.aspecto", (Object[]) aspectos);
     }
+
+    /**
+     * Restringe si el verbo requiere sujeto animado (campo de la palabra base {@code Verbo}).
+     * Varios valores se interpretan como OR.
+     *
+     * @param valores valores aceptados
+     * @return este builder
+     */
+    public VerboCriterioBuilder conRequiereSujetoAnimado(RequiereSujetoAnimado... valores) {
+        return agregarRestriccion("base.requiereSujetoAnimado", (Object[]) valores);
+    }
+
+    /**
+     * Restringe si el verbo requiere objeto animado (campo de la palabra base {@code Verbo}).
+     * Varios valores se interpretan como OR.
+     *
+     * @param valores valores aceptados
+     * @return este builder
+     */
+    public VerboCriterioBuilder conRequiereObjetoAnimado(RequiereObjetoAnimado... valores) {
+        return agregarRestriccion("base.requiereObjetoAnimado", (Object[]) valores);
+    }
 }
 
 

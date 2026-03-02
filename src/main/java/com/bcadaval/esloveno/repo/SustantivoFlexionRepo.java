@@ -30,6 +30,19 @@ public interface SustantivoFlexionRepo extends JpaRepository<SustantivoFlexion, 
 	Stream<SustantivoFlexion> streamActivos();
 
 	/**
+	 * Stream de sustantivos nuevos: proximaRevision IS NULL y palabra base completa
+	 * (significado, animacidad, contabilidad, claseSemantica y cabezaRelacional no null).
+	 */
+	@Query("SELECT sf FROM SustantivoFlexion sf JOIN sf.sustantivoBase s " +
+			"WHERE sf.proximaRevision IS NULL " +
+			"AND s.significado IS NOT NULL " +
+			"AND s.animacidad IS NOT NULL " +
+			"AND s.contabilidad IS NOT NULL " +
+			"AND s.claseSemantica IS NOT NULL " +
+			"AND s.cabezaRelacional IS NOT NULL")
+	Stream<SustantivoFlexion> streamNuevos();
+
+	/**
 	 * Encuentra flexiones por el sloleksId (sustantivo base)
 	 */
 	List<SustantivoFlexion> findBySloleksId(String sloleksId);

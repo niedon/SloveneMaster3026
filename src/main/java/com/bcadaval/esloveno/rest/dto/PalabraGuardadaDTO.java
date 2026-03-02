@@ -70,9 +70,34 @@ public class PalabraGuardadaDTO {
     private String genero;
 
     /**
-     * Si el sustantivo es animado
+     * Animacidad del sustantivo (ANIMADO, INANIMADO)
      */
-    private Boolean animado;
+    private String animacidad;
+
+    /**
+     * Contabilidad del sustantivo (CONTABLE, INCONTABLE)
+     */
+    private String contabilidad;
+
+    /**
+     * Clase semántica del sustantivo (HUMANO, ANIMAL, OBJETO, LUGAR, SUSTANCIA, ABSTRACTO)
+     */
+    private String claseSemantica;
+
+    /**
+     * Cabeza relacional del sustantivo (SI, NO)
+     */
+    private String cabezaRelacional;
+
+    /**
+     * Si el verbo requiere sujeto animado (SI, NO)
+     */
+    private String requiereSujetoAnimado;
+
+    /**
+     * Si el verbo requiere objeto animado (SI, NO)
+     */
+    private String requiereObjetoAnimado;
 
     /**
      * Tipo de pronombre (PERSONAL, POSESIVO, etc.)

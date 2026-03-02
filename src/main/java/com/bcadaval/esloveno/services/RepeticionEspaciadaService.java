@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
+import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
 import com.bcadaval.esloveno.repo.NumeralFlexionRepo;
+import com.bcadaval.esloveno.repo.ParticulaFlexionRepo;
 import com.bcadaval.esloveno.repo.PronombreFlexionRepo;
 import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboFlexionRepo;
@@ -60,6 +62,9 @@ public class RepeticionEspaciadaService {
 
     @Autowired
     private PronombreFlexionRepo pronombreFlexionRepo;
+
+    @Autowired
+    private ParticulaFlexionRepo particulaFlexionRepo;
 
     /**
      * Procesa la respuesta del usuario y actualiza el estado de la tarjeta.
@@ -109,6 +114,7 @@ public class RepeticionEspaciadaService {
             case AdjetivoFlexion af -> adjetivoFlexionRepo.save(af);
             case NumeralFlexion nf -> numeralFlexionRepo.save(nf);
             case PronombreFlexion pf -> pronombreFlexionRepo.save(pf);
+            case ParticulaFlexion paf -> particulaFlexionRepo.save(paf);
             default -> log.warn("Tipo de flexión no soportado para guardar: {}", flexion.getClass());
         }
     }
@@ -167,13 +173,15 @@ public class RepeticionEspaciadaService {
         List<CriterioBusquedaNuevo<AdjetivoFlexion>> criteriosAdjetivo = fraseService.getCriteriosPorTipo(AdjetivoFlexion.class);
         List<CriterioBusquedaNuevo<NumeralFlexion>> criteriosNumeral = fraseService.getCriteriosPorTipo(NumeralFlexion.class);
         List<CriterioBusquedaNuevo<PronombreFlexion>> criteriosPronombre = fraseService.getCriteriosPorTipo(PronombreFlexion.class);
+        List<CriterioBusquedaNuevo<ParticulaFlexion>> criteriosParticula = fraseService.getCriteriosPorTipo(ParticulaFlexion.class);
 
         List<PalabraFlexion<?>> todasActivas = Stream.of(
                 consultaPalabrasNuevoService.listVerbosActivos(criteriosVerbo),
                 consultaPalabrasNuevoService.listSustantivosActivos(criteriosSustantivo),
                 consultaPalabrasNuevoService.listAdjetivosActivos(criteriosAdjetivo),
                 consultaPalabrasNuevoService.listNumeralesActivos(criteriosNumeral),
-                consultaPalabrasNuevoService.listPronombresActivos(criteriosPronombre)
+                consultaPalabrasNuevoService.listPronombresActivos(criteriosPronombre),
+                consultaPalabrasNuevoService.listParticulasActivas(criteriosParticula)
         )
         .flatMap(List::stream)
         .collect(Collectors.toList());
@@ -181,6 +189,8 @@ public class RepeticionEspaciadaService {
         Instant ahora = Instant.now();
 
         long totalTarjetas = todasActivas.size();
+        long tarjetasNuevas = 0;
+        long tarjetasEstudiadas = 0;
         long tarjetasDisponiblesAhora = 0;
         long tarjetasEnReaprendizaje = 0;
         long totalRevisiones = 0;
@@ -193,23 +203,38 @@ public class RepeticionEspaciadaService {
             totalRevisiones += revisiones;
             totalAciertos += aciertos;
 
-            if (Boolean.TRUE.equals(f.getEnReaprendizaje())) {
-                tarjetasEnReaprendizaje++;
-            }
+            if (f.getProximaRevision() == null) {
+                // Tarjeta nueva: palabra completa pero nunca introducida al SRS
+                tarjetasNuevas++;
+            } else {
+                if (f.getUltimaRevision() != null) {
+                    tarjetasEstudiadas++;
+                } else {
+                    // Inicializada pero nunca estudiada → también nueva funcionalmente
+                    tarjetasNuevas++;
+                }
 
-            // Disponible ahora = proximaRevision != null AND proximaRevision <= ahora
-            Instant proxima = f.getProximaRevision();
-            if (proxima != null && !proxima.isAfter(ahora)) {
-                tarjetasDisponiblesAhora++;
+                if (Boolean.TRUE.equals(f.getEnReaprendizaje())) {
+                    tarjetasEnReaprendizaje++;
+                }
+
+                // Disponible ahora = proximaRevision != null AND proximaRevision <= ahora
+                Instant proxima = f.getProximaRevision();
+                if (!proxima.isAfter(ahora)) {
+                    tarjetasDisponiblesAhora++;
+                }
             }
         }
+
+        // Las tarjetas nuevas también son disponibles ahora (se pueden introducir al estudio)
+        tarjetasDisponiblesAhora += tarjetasNuevas;
 
         double tasaAciertos = totalRevisiones > 0 ? (double) totalAciertos / totalRevisiones * 100 : 0;
 
         return EstadisticasDTO.builder()
             .totalTarjetas((int) totalTarjetas)
-            .tarjetasEstudiadas((int) totalTarjetas) // Todas activas han sido estudiadas al menos una vez
-            .tarjetasNuevas(0) // Ya no hay concepto de "nuevas" - todas las activas fueron inicializadas
+            .tarjetasEstudiadas((int) tarjetasEstudiadas)
+            .tarjetasNuevas((int) tarjetasNuevas)
             .tarjetasDisponiblesAhora((int) tarjetasDisponiblesAhora)
             .tarjetasEnReaprendizaje((int) tarjetasEnReaprendizaje)
             .totalRevisiones((int) totalRevisiones)
@@ -224,41 +249,97 @@ public class RepeticionEspaciadaService {
      * Proceso:
      * <ol>
      *   <li>Obtiene criterios expandidos del {@link FraseService} por tipo de flexión</li>
-     *   <li>Consulta BD filtrando por SRS (proximaRevision &lt;= ahora) y criterios gramaticales</li>
+     *   <li>Consulta BD filtrando por criterios gramaticales, incluyendo tarjetas de revisión
+     *       (proximaRevision &lt;= ahora) y tarjetas nuevas (proximaRevision IS NULL, palabra completa)</li>
+     *   <li>Separa tarjetas de revisión y nuevas, aplicando límites independientes</li>
      *   <li>Ordena: reaprendizaje primero, luego por proximaRevision ASC, nuevas al final</li>
      *   <li>Aplica Algoritmo de Desplazamiento Limitado (ventana=5) para variabilidad controlada</li>
      * </ol>
      *
-     * @param limite número máximo de tarjetas a devolver
+     * @param limiteRevision número máximo de tarjetas de revisión
      * @return lista de PalabraFlexion ordenadas y desplazadas, listas para asignar a frases
      */
-    public List<PalabraFlexion<?>> obtenerTarjetasDisponiblesNuevo(int limite) {
+    public List<PalabraFlexion<?>> obtenerTarjetasDisponiblesNuevo(int limiteRevision) {
+        int limiteNuevas = variablesService.getMaxTarjetasNuevasDia();
+
         List<CriterioBusquedaNuevo<VerboFlexion>> criteriosVerbo = fraseService.getCriteriosPorTipo(VerboFlexion.class);
         List<CriterioBusquedaNuevo<SustantivoFlexion>> criteriosSustantivo = fraseService.getCriteriosPorTipo(SustantivoFlexion.class);
         List<CriterioBusquedaNuevo<AdjetivoFlexion>> criteriosAdjetivo = fraseService.getCriteriosPorTipo(AdjetivoFlexion.class);
         List<CriterioBusquedaNuevo<NumeralFlexion>> criteriosNumeral = fraseService.getCriteriosPorTipo(NumeralFlexion.class);
         List<CriterioBusquedaNuevo<PronombreFlexion>> criteriosPronombre = fraseService.getCriteriosPorTipo(PronombreFlexion.class);
+        List<CriterioBusquedaNuevo<ParticulaFlexion>> criteriosParticula = fraseService.getCriteriosPorTipo(ParticulaFlexion.class);
 
-        List<PalabraFlexion<?>> tarjetas = Stream.of(
+        List<PalabraFlexion<?>> todasLasTarjetas = Stream.of(
                         consultaPalabrasNuevoService.listVerbosListos(criteriosVerbo),
                         consultaPalabrasNuevoService.listSustantivosListos(criteriosSustantivo),
                         consultaPalabrasNuevoService.listAdjetivosListos(criteriosAdjetivo),
                         consultaPalabrasNuevoService.listNumeralesListos(criteriosNumeral),
-                        consultaPalabrasNuevoService.listPronombresListos(criteriosPronombre)
+                        consultaPalabrasNuevoService.listPronombresListos(criteriosPronombre),
+                        consultaPalabrasNuevoService.listParticulasListas(criteriosParticula)
                 )
                 .flatMap(List::stream)
-                // Ordenar: reaprendizaje primero, luego por proximaRevision ASC, nuevas al final
+                .collect(Collectors.toList());
+
+        // Separar tarjetas de revisión (proximaRevision != null) y nuevas (proximaRevision == null)
+        List<PalabraFlexion<?>> tarjetasRevision = todasLasTarjetas.stream()
+                .filter(f -> f.getProximaRevision() != null)
                 .sorted(Comparator
                         .comparing((PalabraFlexion<?> f) -> !Boolean.TRUE.equals(f.getEnReaprendizaje()))
                         .thenComparing((PalabraFlexion<?> f) -> f.getUltimaRevision() == null ? 1 : 0)
-                        .thenComparing((PalabraFlexion<?> f) ->
-                                f.getProximaRevision() != null ? f.getProximaRevision() : Instant.MAX))
+                        .thenComparing((PalabraFlexion<?> f) -> f.getProximaRevision()))
                 .collect(Collectors.toList());
+
+        List<PalabraFlexion<?>> tarjetasNuevas = todasLasTarjetas.stream()
+                .filter(f -> f.getProximaRevision() == null)
+                .collect(Collectors.toList());
+
+        // Aplicar límites por separado
+        if (tarjetasRevision.size() > limiteRevision) {
+            tarjetasRevision = tarjetasRevision.subList(0, limiteRevision);
+        }
+        if (tarjetasNuevas.size() > limiteNuevas) {
+            // Mezclar antes de cortar para dar variabilidad a cuáles entran
+            Collections.shuffle(tarjetasNuevas);
+            tarjetasNuevas = tarjetasNuevas.subList(0, limiteNuevas);
+        }
+
+        // Combinar: revisiones primero, nuevas al final
+        List<PalabraFlexion<?>> tarjetas = new ArrayList<>(tarjetasRevision);
+        tarjetas.addAll(tarjetasNuevas);
+
+        log.info("Tarjetas obtenidas: {} revisión + {} nuevas = {} total",
+                tarjetasRevision.size(), tarjetasNuevas.size(), tarjetas.size());
 
         // Aplicar Algoritmo de Desplazamiento Limitado (ventana = 5)
         tarjetas = aplicarDesplazamientoLimitado(tarjetas, 5);
 
-        return tarjetas.size() > limite ? tarjetas.subList(0, limite) : tarjetas;
+        return tarjetas;
+    }
+
+    /**
+     * Inicializa los campos SRS de una tarjeta nueva (proximaRevision == null).
+     * Se invoca cuando una tarjeta nueva es asignada a una frase por primera vez.
+     * Establece proximaRevision = ahora para que entre al ciclo de estudio.
+     *
+     * @param flexion la flexión a inicializar
+     */
+    @Transactional
+    public void inicializarTarjetaNueva(PalabraFlexion<?> flexion) {
+        if (flexion.getProximaRevision() != null) return;
+
+        Double factorInicial = variablesService.getFactorFacilidadInicial();
+        Instant ahora = Instant.now();
+
+        flexion.setFactorFacilidad(factorInicial);
+        flexion.setIntervaloRepeticionSegundos(0L);
+        flexion.setVecesConsecutivasCorrectas(0);
+        flexion.setTotalRevisiones(0);
+        flexion.setTotalAciertos(0);
+        flexion.setEnReaprendizaje(false);
+        flexion.setProximaRevision(ahora);
+
+        guardarFlexion(flexion);
+        log.debug("Tarjeta nueva inicializada: {} ({})", flexion.getFlexion(), flexion.getClass().getSimpleName());
     }
 
     /**

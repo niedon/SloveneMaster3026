@@ -11,7 +11,10 @@ import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
  *   <li>{@link #conNumero(Numero...)} — Número gramatical (campo de la flexión)</li>
  *   <li>{@link #conCaso(Caso...)} — Caso gramatical (campo de la flexión)</li>
  *   <li>{@link #conGenero(Genero...)} — Género (campo de la palabra base {@code Sustantivo})</li>
- *   <li>{@link #conAnimado(Boolean...)} — Animacidad (campo de la palabra base {@code Sustantivo})</li>
+ *   <li>{@link #conAnimacidad(Animacidad...)} — Animacidad (campo de la palabra base {@code Sustantivo})</li>
+ *   <li>{@link #conContabilidad(Contabilidad...)} — Contabilidad (campo de la palabra base {@code Sustantivo})</li>
+ *   <li>{@link #conClaseSemantica(ClaseSemantica...)} — Clase semántica (campo de la palabra base {@code Sustantivo})</li>
+ *   <li>{@link #conCabezaRelacional(CabezaRelacional...)} — Cabeza relacional (campo de la palabra base {@code Sustantivo})</li>
  * </ul>
  * <p>
  * Ejemplo de uso:
@@ -19,6 +22,7 @@ import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
  * CriterioBusquedaNuevo.de(SustantivoFlexion.class)
  *     .conCaso(Caso.NOMINATIVO)
  *     .conGenero(Genero.FEMENINO, Genero.NEUTRO)
+ *     .conAnimacidad(Animacidad.ANIMADO)
  *     .build();
  * </pre>
  */
@@ -74,10 +78,43 @@ public class SustantivoCriterioBuilder extends CriterioBuilderBase<SustantivoFle
      * Restringe la animacidad del sustantivo (campo de la palabra base {@code Sustantivo}).
      * Varios valores se interpretan como OR.
      *
-     * @param animado valores aceptados ({@code true} = animado, {@code false} = inanimado)
+     * @param animacidades valores aceptados
      * @return este builder
      */
-    public SustantivoCriterioBuilder conAnimado(Boolean... animado) {
-        return agregarRestriccion("base.animado", (Object[]) animado);
+    public SustantivoCriterioBuilder conAnimacidad(Animacidad... animacidades) {
+        return agregarRestriccion("base.animacidad", (Object[]) animacidades);
+    }
+
+    /**
+     * Restringe la contabilidad del sustantivo (campo de la palabra base {@code Sustantivo}).
+     * Varios valores se interpretan como OR.
+     *
+     * @param contabilidades valores aceptados
+     * @return este builder
+     */
+    public SustantivoCriterioBuilder conContabilidad(Contabilidad... contabilidades) {
+        return agregarRestriccion("base.contabilidad", (Object[]) contabilidades);
+    }
+
+    /**
+     * Restringe la clase semántica del sustantivo (campo de la palabra base {@code Sustantivo}).
+     * Varios valores se interpretan como OR.
+     *
+     * @param clases valores aceptados
+     * @return este builder
+     */
+    public SustantivoCriterioBuilder conClaseSemantica(ClaseSemantica... clases) {
+        return agregarRestriccion("base.claseSemantica", (Object[]) clases);
+    }
+
+    /**
+     * Restringe si el sustantivo es cabeza relacional (campo de la palabra base {@code Sustantivo}).
+     * Varios valores se interpretan como OR.
+     *
+     * @param valores valores aceptados
+     * @return este builder
+     */
+    public SustantivoCriterioBuilder conCabezaRelacional(CabezaRelacional... valores) {
+        return agregarRestriccion("base.cabezaRelacional", (Object[]) valores);
     }
 }

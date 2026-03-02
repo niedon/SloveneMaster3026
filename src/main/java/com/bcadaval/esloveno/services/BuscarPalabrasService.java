@@ -47,6 +47,10 @@ public class BuscarPalabrasService {
     private PronombreFlexionRepo pronombreFlexionRepo;
     @Autowired
     private NumeralFlexionRepo numeralFlexionRepo;
+    @Autowired
+    private ParticulaRepo particulaRepo;
+    @Autowired
+    private ParticulaFlexionRepo particulaFlexionRepo;
 
     @Autowired
     private FraseService fraseService;
@@ -66,6 +70,7 @@ public class BuscarPalabrasService {
         mapa.put(TipoPalabra.ADJETIVO, fraseService.getCriteriosPorTipo(AdjetivoFlexion.class));
         mapa.put(TipoPalabra.PRONOMBRE, fraseService.getCriteriosPorTipo(PronombreFlexion.class));
         mapa.put(TipoPalabra.NUMERAL, fraseService.getCriteriosPorTipo(NumeralFlexion.class));
+        mapa.put(TipoPalabra.PARTICULA, fraseService.getCriteriosPorTipo(ParticulaFlexion.class));
         return mapa;
     }
 
@@ -92,6 +97,7 @@ public class BuscarPalabrasService {
             resultados.addAll(mapearAdjetivos(adjetivoRepo.findAll(), criteriosActivos));
             resultados.addAll(mapearPronombres(pronombreRepo.findAll(), criteriosActivos));
             resultados.addAll(mapearNumerales(numeralRepo.findAll(), criteriosActivos));
+            resultados.addAll(mapearParticulas(particulaRepo.findAll(), criteriosActivos));
         } else {
             // Buscar por principal y significado, eliminar duplicados
             Set<String> idsVerbos = new LinkedHashSet<>();
@@ -143,6 +149,16 @@ public class BuscarPalabrasService {
                 if (idsNum.add(n.getSloleksId())) numerales.add(n);
             }
             resultados.addAll(mapearNumerales(numerales, criteriosActivos));
+
+            Set<String> idsPart = new LinkedHashSet<>();
+            List<Particula> particulas = new ArrayList<>();
+            for (Particula p : particulaRepo.findByPrincipalContainingIgnoreCase(texto)) {
+                if (idsPart.add(p.getSloleksId())) particulas.add(p);
+            }
+            for (Particula p : particulaRepo.findBySignificadoContainingIgnoreCase(texto)) {
+                if (idsPart.add(p.getSloleksId())) particulas.add(p);
+            }
+            resultados.addAll(mapearParticulas(particulas, criteriosActivos));
         }
 
         // Ordenar por nombre principal
@@ -163,6 +179,7 @@ public class BuscarPalabrasService {
             case ADJETIVO -> fraseService.getCriteriosPorTipo(AdjetivoFlexion.class);
             case PRONOMBRE -> fraseService.getCriteriosPorTipo(PronombreFlexion.class);
             case NUMERAL -> fraseService.getCriteriosPorTipo(NumeralFlexion.class);
+            case PARTICULA -> fraseService.getCriteriosPorTipo(ParticulaFlexion.class);
         };
 
         return switch (tipo) {
@@ -176,6 +193,8 @@ public class BuscarPalabrasService {
                     .map(f -> mapearFlexionPronombre(f, criterios)).toList();
             case NUMERAL -> numeralFlexionRepo.findBySloleksId(sloleksId).stream()
                     .map(f -> mapearFlexionNumeral(f, criterios)).toList();
+            case PARTICULA -> particulaFlexionRepo.findBySloleksId(sloleksId).stream()
+                    .map(f -> mapearFlexionParticula(f, criterios)).toList();
         };
     }
 
@@ -194,10 +213,15 @@ public class BuscarPalabrasService {
                     .significado(v.getSignificado())
                     .tipo(TipoPalabra.VERBO.getXmlCode())
                     .tipoEspanol(TipoPalabra.VERBO.getNombreEspanol())
-                    .completa(v.getSignificado() != null && v.getTransitividad() != null)
+                    .completa(v.getSignificado() != null
+                            && v.getTransitividad() != null
+                            && v.getRequiereSujetoAnimado() != null
+                            && v.getRequiereObjetoAnimado() != null)
                     .transitividad(v.getTransitividad() != null ? v.getTransitividad().name() : null)
                     .aspecto(v.getAspecto() != null ? v.getAspecto().name() : null)
                     .verboOtroAspecto(v.getVerboOtroAspecto())
+                    .requiereSujetoAnimado(v.getRequiereSujetoAnimado() != null ? v.getRequiereSujetoAnimado().name() : null)
+                    .requiereObjetoAnimado(v.getRequiereObjetoAnimado() != null ? v.getRequiereObjetoAnimado().name() : null)
                     .totalFlexiones(flexiones.size())
                     .flexionesActivas((int) flexiones.stream().filter(f -> f.getProximaRevision() != null).count())
                     .flexionesElegibles(elegibles)
@@ -217,9 +241,16 @@ public class BuscarPalabrasService {
                     .significado(s.getSignificado())
                     .tipo(TipoPalabra.SUSTANTIVO.getXmlCode())
                     .tipoEspanol(TipoPalabra.SUSTANTIVO.getNombreEspanol())
-                    .completa(s.getSignificado() != null && s.getAnimado() != null)
+                    .completa(s.getSignificado() != null
+                            && s.getAnimacidad() != null
+                            && s.getContabilidad() != null
+                            && s.getClaseSemantica() != null
+                            && s.getCabezaRelacional() != null)
                     .genero(s.getGenero() != null ? s.getGenero().name() : null)
-                    .animado(s.getAnimado())
+                    .animacidad(s.getAnimacidad() != null ? s.getAnimacidad().name() : null)
+                    .contabilidad(s.getContabilidad() != null ? s.getContabilidad().name() : null)
+                    .claseSemantica(s.getClaseSemantica() != null ? s.getClaseSemantica().name() : null)
+                    .cabezaRelacional(s.getCabezaRelacional() != null ? s.getCabezaRelacional().name() : null)
                     .totalFlexiones(flexiones.size())
                     .flexionesActivas((int) flexiones.stream().filter(f -> f.getProximaRevision() != null).count())
                     .flexionesElegibles(elegibles)
@@ -361,6 +392,30 @@ public class BuscarPalabrasService {
         dto.setCaso(nf.getCaso() != null ? nf.getCaso().name() : null);
         dto.setGenero(nf.getGenero() != null ? nf.getGenero().name() : null);
         return dto;
+    }
+
+    private List<PalabraGuardadaDTO> mapearParticulas(List<Particula> particulas, Map<TipoPalabra, List<? extends CriterioBusquedaNuevo<?>>> criteriosActivos) {
+        List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.PARTICULA, List.of());
+        return particulas.stream().map(p -> {
+            List<ParticulaFlexion> flexiones = particulaFlexionRepo.findBySloleksId(p.getSloleksId());
+            int elegibles = (int) flexiones.stream().filter(f -> esElegible(f, criterios)).count();
+            return PalabraGuardadaDTO.builder()
+                    .sloleksId(p.getSloleksId())
+                    .principal(p.getPrincipal())
+                    .significado(p.getSignificado())
+                    .tipo(TipoPalabra.PARTICULA.getXmlCode())
+                    .tipoEspanol(TipoPalabra.PARTICULA.getNombreEspanol())
+                    .completa(p.getSignificado() != null)
+                    .totalFlexiones(flexiones.size())
+                    .flexionesActivas((int) flexiones.stream().filter(f -> f.getProximaRevision() != null).count())
+                    .flexionesElegibles(elegibles)
+                    .disponible(elegibles > 0)
+                    .build();
+        }).toList();
+    }
+
+    private FlexionDetalleDTO mapearFlexionParticula(ParticulaFlexion paf, List<? extends CriterioBusquedaNuevo<?>> criterios) {
+        return mapearFlexionBase(paf, criterios);
     }
 
     /**

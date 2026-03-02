@@ -27,6 +27,18 @@ public interface VerboFlexionRepo extends JpaRepository<VerboFlexion, Integer> {
 	Stream<VerboFlexion> streamActivos();
 
 	/**
+	 * Stream de verbos nuevos: proximaRevision IS NULL y palabra base completa
+	 * (significado, transitividad, requiereSujetoAnimado y requiereObjetoAnimado no null).
+	 */
+	@Query("SELECT vf FROM VerboFlexion vf JOIN vf.verboBase v " +
+			"WHERE vf.proximaRevision IS NULL " +
+			"AND v.significado IS NOT NULL " +
+			"AND v.transitividad IS NOT NULL " +
+			"AND v.requiereSujetoAnimado IS NOT NULL " +
+			"AND v.requiereObjetoAnimado IS NOT NULL")
+	Stream<VerboFlexion> streamNuevos();
+
+	/**
 	 * Encuentra flexiones por el sloleksId (verbo base)
 	 */
 	List<VerboFlexion> findBySloleksId(String sloleksId);

@@ -76,6 +76,31 @@ public class NumeralService {
 	}
 
 	/**
+	 * Devuelve un numeral con cantidad ≥ 5 que coincida con el género, número y caso del sustantivo dado.
+	 * Se usa como generador en frases de cantidad grande (numerales a partir de 5).
+	 *
+	 * @param sustantivoFlexion sustantivo del que tomar género y caso
+	 * @return NumeralFlexion con cantidad ≥ 5, o null si no se encuentra
+	 */
+	public NumeralFlexion getNumeralGrande(SustantivoFlexion sustantivoFlexion) {
+		List<NumeralFlexion> candidatos = numeralFlexionRepo.findByCasoAndNumeroAndGenero(
+				sustantivoFlexion.getCaso(),
+				sustantivoFlexion.getNumero(),
+				sustantivoFlexion.getSustantivoBase().getGenero()
+		);
+
+		List<NumeralFlexion> filtrados = candidatos.stream()
+				.filter(nf -> nf.getNumeralBase().getCantidad() != null && nf.getNumeralBase().getCantidad() >= 5)
+				.toList();
+
+		if (filtrados.isEmpty()) {
+			return null;
+		}
+
+		return filtrados.get(ThreadLocalRandom.current().nextInt(filtrados.size()));
+	}
+
+	/**
 	 * Filtra los numerales según el número:
 	 * - SINGULAR: principal debe ser "en"
 	 * - DUAL: principal debe ser "dva"
