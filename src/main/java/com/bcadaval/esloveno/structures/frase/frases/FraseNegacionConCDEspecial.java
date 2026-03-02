@@ -3,6 +3,7 @@ package com.bcadaval.esloveno.structures.frase.frases;
 import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.*;
 import com.bcadaval.esloveno.services.palabra.NumeralService;
+import com.bcadaval.esloveno.services.palabra.ParticulaService;
 import com.bcadaval.esloveno.services.palabra.PronombreService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.extractores.*;
@@ -39,6 +40,9 @@ public class FraseNegacionConCDEspecial extends Frase {
 
     @Autowired
     private NumeralService numeralService;
+
+    @Autowired
+    private ParticulaService particulaService;
 
     @Override
     public String getIdentificador() {
@@ -128,7 +132,18 @@ public class FraseNegacionConCDEspecial extends Frase {
                 .extractor(ExtractorNumero.get())
                 .build();
 
+
+        // Partícula "ne" (apoyo)
+        PalabraFrase<ParticulaFlexion> particula = PalabraFrase.<ParticulaFlexion>builder()
+                .nombre("PARTICULA_NE")
+                .generador(() -> particulaService.getPorPrincipal("ne"))
+                .extractor(ExtractorParticula.get())
+                .extractorDeEsloveno(p->"")
+                .extractorAEsloveno(p->"")
+                .build();
+
         agregarElemento(pronombre);
+        agregarElemento(particula);
         agregarElemento(verbo);
         agregarElemento(numeral);
         agregarElemento(sustantivo);
