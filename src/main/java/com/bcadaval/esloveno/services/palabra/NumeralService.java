@@ -52,17 +52,18 @@ public class NumeralService {
 	 * - Si numero es SINGULAR: principal debe ser "en"
 	 * - Si numero es DUAL: principal debe ser "dva"
 	 * - Si numero es PLURAL: principal debe ser distinto de "en" y "dva"
+	 * <p>
+	 * <strong>Uso exclusivo de generadores.</strong> No filtra por SRS (proximaRevision),
+	 * ya que las palabras generadas no participan en SRS.
 	 *
 	 * @param numero Número gramatical requerido
-	 * @param caso Caso gramatical requerido
+	 * @param caso   Caso gramatical requerido
 	 * @param genero Género gramatical requerido (puede ser null)
 	 * @return NumeralFlexion que coincide, o null si no se encuentra
 	 */
 	public NumeralFlexion getNumeral(Numero numero, Caso caso, Genero genero) {
-		// Primero intentar con género específico
-		List<NumeralFlexion> candidatos = numeralFlexionRepo.findByCasoAndNumeroAndGenero(caso, numero, genero);
+		List<NumeralFlexion> candidatos = numeralFlexionRepo.findByCasoAndNumeroAndGeneroSinFiltroSRS(caso, numero, genero);
 
-		// Filtrar por principal según el número
 		List<NumeralFlexion> filtrados = candidatos.stream()
 				.filter(nf -> filterByPrincipal(nf, numero))
 				.toList();
@@ -71,19 +72,21 @@ public class NumeralService {
 			return null;
 		}
 
-		// Devolver uno aleatorio
 		return filtrados.get(ThreadLocalRandom.current().nextInt(filtrados.size()));
 	}
 
 	/**
 	 * Devuelve un numeral con cantidad ≥ 5 que coincida con el género, número y caso del sustantivo dado.
 	 * Se usa como generador en frases de cantidad grande (numerales a partir de 5).
+	 * <p>
+	 * <strong>Uso exclusivo de generadores.</strong> No filtra por SRS (proximaRevision),
+	 * ya que las palabras generadas no participan en SRS.
 	 *
-	 * @param sustantivoFlexion sustantivo del que tomar género y caso
+	 * @param sustantivoFlexion sustantivo del que tomar género, número y caso
 	 * @return NumeralFlexion con cantidad ≥ 5, o null si no se encuentra
 	 */
 	public NumeralFlexion getNumeralGrande(SustantivoFlexion sustantivoFlexion) {
-		List<NumeralFlexion> candidatos = numeralFlexionRepo.findByCasoAndNumeroAndGenero(
+		List<NumeralFlexion> candidatos = numeralFlexionRepo.findByCasoAndNumeroAndGeneroSinFiltroSRS(
 				sustantivoFlexion.getCaso(),
 				sustantivoFlexion.getNumero(),
 				sustantivoFlexion.getSustantivoBase().getGenero()

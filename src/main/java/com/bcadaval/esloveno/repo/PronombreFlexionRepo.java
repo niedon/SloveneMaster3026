@@ -34,4 +34,14 @@ public interface PronombreFlexionRepo extends JpaRepository<PronombreFlexion, In
      */
     @Query("SELECT p FROM PronombreFlexion p WHERE p.proximaRevision IS NULL AND p.significado IS NOT NULL")
     Stream<PronombreFlexion> streamNuevos();
+
+    /**
+     * Busca pronombres por persona, número y caso, excluyendo los clíticos.
+     * No filtra por campos SRS, por lo que es apto para uso en generadores.
+     */
+    @Query("SELECT p FROM PronombreFlexion p WHERE p.persona = :persona AND p.numero = :numero AND p.caso = :caso AND (p.clitico IS NULL OR p.clitico = false)")
+    List<PronombreFlexion> findByPersonaAndNumeroAndCasoAndNoClitico(
+            @Param("persona") com.bcadaval.esloveno.beans.enums.Persona persona,
+            @Param("numero") com.bcadaval.esloveno.beans.enums.Numero numero,
+            @Param("caso") com.bcadaval.esloveno.beans.enums.Caso caso);
 }

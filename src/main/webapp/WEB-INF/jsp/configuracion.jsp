@@ -86,14 +86,14 @@
                         <label for="maxTarjetasNuevas">Máximo Tarjetas Nuevas/Día</label>
                         <input type="number" id="maxTarjetasNuevas" name="maxTarjetasNuevas"
                                value="${variablesMap['MAX_TARJETAS_NUEVAS_DIA'] != null ? variablesMap['MAX_TARJETAS_NUEVAS_DIA'].valor : '20'}"
-                               min="1" max="100" step="1">
+                               min="1"step="1">
                         <div class="help-text">Límite de tarjetas nuevas por día</div>
                     </div>
                     <div class="config-item">
                         <label for="maxTarjetasRevision">Máximo Revisiones/Día</label>
                         <input type="number" id="maxTarjetasRevision" name="maxTarjetasRevision"
                                value="${variablesMap['MAX_TARJETAS_REVISION_DIA'] != null ? variablesMap['MAX_TARJETAS_REVISION_DIA'].valor : '100'}"
-                               min="1" max="500">
+                               min="1">
                         <div class="help-text">Límite de revisiones por día</div>
                     </div>
                 </div>
