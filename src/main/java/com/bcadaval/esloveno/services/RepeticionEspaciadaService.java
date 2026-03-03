@@ -140,7 +140,7 @@ public class RepeticionEspaciadaService {
             nuevoIntervalo = switch (vecesCorrectas) {
                 case 1 -> variablesService.getIntervaloInicialSegundos();
                 case 2 -> variablesService.getIntervaloSegundaSegundos();
-                default -> (long) (intervaloSegundos * factorFacilidad);
+                default -> Math.round(intervaloSegundos * factorFacilidad * (1 + (Math.random() * 0.10 - 0.05)));
             };
 
             flexion.setEnReaprendizaje(false);
