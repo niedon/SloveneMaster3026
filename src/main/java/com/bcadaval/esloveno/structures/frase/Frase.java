@@ -231,6 +231,14 @@ public abstract class Frase {
     }
 
     /**
+     * Verifica si todos los huecos (obligatorios, opcionales y de apoyo) tienen una palabra asignada.
+     * Útil para depuración y validación de generación.
+     */
+    public boolean estaRellenada() {
+        return elementos.stream().allMatch(PalabraFrase::estaAsignado);
+    }
+
+    /**
      * Calcula la media de {@code proximaRevision} de los huecos que participan en SRS.
      * <p>
      * Solo se consideran huecos rellenados por criterio (no por generador).
@@ -270,25 +278,36 @@ public abstract class Frase {
         ModoVisualizacion modo = ModoVisualizacion.aleatorio();
         log.debug("Construyendo datos con modo: {}", modo);
 
-        // 1. Rellenar opcionales no asignados con generador (fallback)
-        for (var elem : elementos) {
-            if (elem.esOpcional() && !elem.estaAsignado()) {
-                if (!generarYAsignar(elem)) {
-                    log.error("FRASE DESCARTADA '{}': el opcional '{}' no pudo ser generado",
-                            getNombreMostrar(), elem.getNombre());
-                    return null;
+        boolean huboCambio;
+        int pasada = 0;
+        while(true) {
+            huboCambio = false;
+            pasada++;
+            for(var elem : elementos) {
+                if ((elem.esOpcional() || elem.esApoyo()) && !elem.estaAsignado()) {
+                    if(generarYAsignar(elem)) {
+                        huboCambio = true;
+                        log.info("PALABRA ASIGNADA POR GENERADOR: '{}' → hueco '{}' en frase '{}'",
+                                elem.getPalabraAsignada().getFlexion(), elem.getNombre(), getNombreMostrar());
+                    }
+                    else{
+                        log.info("NO SE PUDO GENERAR PALABRA PARA hueco '{}' en frase '{}'", elem.getNombre(), getNombreMostrar());
+                    }
                 }
             }
-        }
 
-        // 2. Generar apoyos
-        for (var elem : elementos) {
-            if (elem.esApoyo() && !elem.estaAsignado()) {
-                if (!generarYAsignar(elem)) {
-                    log.error("FRASE DESCARTADA '{}': el apoyo '{}' no pudo ser generado",
-                            getNombreMostrar(), elem.getNombre());
-                    return null;
-                }
+            if(estaRellenada()) {
+                log.debug("Frase '{}' completamente rellenada tras {} pasadas", getNombreMostrar(), pasada);
+                break;
+            }
+            else if(!huboCambio) {
+                log.error("FRASE DESCARTADA '{}': No se han podido rellenar los huecos {}",
+                        getNombreMostrar(),
+                        elementos.stream()
+                                .filter(e -> !e.estaAsignado())
+                                .map(PalabraFrase::getNombre)
+                                .toList());
+                return null;
             }
         }
 
