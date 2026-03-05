@@ -116,8 +116,6 @@ public class FraseVerboTransitivoAcusativo extends Frase {
         PalabraFrase<NumeralFlexion> numero = PalabraFrase.<NumeralFlexion>builder()
                 .nombre("NUMERO")
                 .criterio(NumeralCriterioBuilder.crear()
-                        .conCaso(Caso.ACUSATIVO)
-                        .cantidadEntre(1, 4)
                         .conDependencia(DependenciaBuilder.de(cd)
                                 .si(sust -> sust.getNumero() == Numero.SINGULAR,
                                         NumeralCriterioBuilder.crear().conNumero(Numero.SINGULAR).conCantidad(1).build())
@@ -125,6 +123,12 @@ public class FraseVerboTransitivoAcusativo extends Frase {
                                         NumeralCriterioBuilder.crear().conNumero(Numero.DUAL).conCantidad(2).build())
                                 .orElse(NumeralCriterioBuilder.crear().conNumero(Numero.PLURAL).conCantidad(3, 4).build())
                         )
+                        .conDependencia(DependenciaBuilder.de(cd)
+                                .si(sust -> sust.getSustantivoBase().getGenero() == Genero.MASCULINO &&
+                                                sust.getNumero() == Numero.SINGULAR &&
+                                                sust.getSustantivoBase().getAnimacidad() == Animacidad.ANIMADO,
+                                        NumeralCriterioBuilder.crear().conCaso(Caso.GENITIVO).build())
+                                .orElse(NumeralCriterioBuilder.crear().conCaso(Caso.ACUSATIVO).build()))
                         .conDependencia(DependenciaBuilder.de(cd)
                                 .si(sust -> sust.getSustantivoBase().getGenero() == Genero.MASCULINO,
                                         NumeralCriterioBuilder.crear().conGenero(Genero.MASCULINO).build())
@@ -134,6 +138,7 @@ public class FraseVerboTransitivoAcusativo extends Frase {
                         )
                         .build())
                 .generador(cd, sust -> {
+                    //TODO revisar, algo no cuadra
                     Numero num = sust.getNumero();
                     int cantidad;
                     if (num == Numero.SINGULAR) cantidad = 1;
