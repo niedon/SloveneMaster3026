@@ -27,7 +27,7 @@ public class ExtractorParticula implements EstrategiaExtraccion<ParticulaFlexion
 
     @Override
     public Function<ParticulaFlexion, String> aEsloveno() {
-        return ParticulaFlexion::getFlexion;
+        return ParticulaFlexion::getAcentuado;
     }
 
     @Override

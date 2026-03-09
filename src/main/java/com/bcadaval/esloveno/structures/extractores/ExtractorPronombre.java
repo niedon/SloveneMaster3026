@@ -23,7 +23,7 @@ public class ExtractorPronombre implements EstrategiaExtraccion<PalabraFlexion<?
 
     @Override
     public Function<PalabraFlexion<?>, String> aEsloveno() {
-        return PalabraFlexion::getFlexion;
+        return PalabraFlexion::getAcentuado;
     }
 
     @Override

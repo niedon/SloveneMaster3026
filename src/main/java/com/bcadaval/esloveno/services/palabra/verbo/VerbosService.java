@@ -43,13 +43,17 @@ public class VerbosService {
 		return verboFlexionRepo.saveAll(conjugations);
 	}
 
+	public VerboFlexion getVerboTransitivoPresenteAleatorio() {
+		return getVerboTransitivoPresenteAleatorio(List.of());
+	}
+
 	/**
 	 * Obtiene un verbo transitivo en presente aleatorio de la base de datos.
 	 * Útil como generador fallback para elementos opcionales.
 	 *
 	 * @return VerboFlexion transitivo en presente, o null si no hay ninguno disponible
 	 */
-	public VerboFlexion getVerboTransitivoPresenteAleatorio() {
+	public VerboFlexion getVerboTransitivoPresenteAleatorio(List<String> verbosIgnorados) {
 		ExampleMatcher matcher = ExampleMatcher.matching()
 				.withIgnoreNullValues()
 				.withIgnorePaths(
@@ -64,9 +68,9 @@ public class VerbosService {
 						.negativo(false)
 						.build(), matcher))
 				.stream()
-				.filter(v -> v.getVerboBase() != null && v.getVerboBase().getTransitividad() == Transitividad.TRANSITIVO)
+				.filter(v -> !verbosIgnorados.contains(v.getVerboBase().getPrincipal())
+						&& v.getVerboBase().getTransitividad() == Transitividad.TRANSITIVO)
 				.toList();
-
 		if (candidatos.isEmpty()) {
 			return null;
 		}

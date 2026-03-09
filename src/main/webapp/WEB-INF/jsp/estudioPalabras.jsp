@@ -18,34 +18,35 @@
         <c:set var="tamanio" value="${fn:length(datos)}" />
 
         <form action="/enviarRespuestas" method="POST" id="respuestasForm">
-            <table>
+            <table class="estudio-table">
                 <tbody>
                     <!-- Fila 1: pregunta (transparente al idioma) -->
                     <tr class="row-visible">
                         <c:forEach var="dato" items="${datos}">
-                            <td class="text-center">
+                            <td class="text-center<c:if test='${dato.id != null}'> celda-srs</c:if>">
                                 <strong><c:out value="${dato.textoFila1}" /></strong>
                             </td>
                         </c:forEach>
                     </tr>
 
                     <!-- Fila 2: respuesta y botones (colapsada) -->
-                    <tr class="row-collapsed collapsed" id="row-details">
+                    <tr class="row-collapsed" id="row-details">
                         <c:forEach var="dato" items="${datos}" varStatus="status">
-                            <td class="text-center">
+                            <td class="text-center<c:if test='${dato.id != null}'> celda-srs</c:if>">
                                 <strong><c:out value="${dato.textoFila2}" /></strong>
-                                <br/>
-                                <div class="button-container">
-                                    <button type="button" class="btn-abajo btn-danger<c:if test='${dato.id == null}'> btn-invisible</c:if>" id="btn_abajo_${status.index}"
-                                            onclick="setResponse(${status.index})"
-                                            <c:if test="${dato.id == null}">disabled</c:if>>👎</button>
-                                    <button type="button" class="btn-arriba btn-success<c:if test='${dato.id == null}'> btn-invisible</c:if>" id="btn_arriba_${status.index}"
-                                            onclick="setResponse(${status.index})"
-                                            <c:if test="${dato.id == null}">disabled</c:if>>👍</button>
-                                </div>
 
-                                <!-- Contenedor para mostrar el intervalo -->
+                                <!-- Botones y próx estudio -->
                                 <c:if test="${dato.id != null}">
+                                    <br/>
+                                    <div class="button-container">
+                                        <button type="button" class="btn-abajo btn-danger<c:if test='${dato.id == null}'> btn-invisible</c:if>" id="btn_abajo_${status.index}"
+                                                onclick="setResponse(${status.index})"
+                                                <c:if test="${dato.id == null}">disabled</c:if>>👎</button>
+                                        <button type="button" class="btn-arriba btn-success<c:if test='${dato.id == null}'> btn-invisible</c:if>" id="btn_arriba_${status.index}"
+                                                onclick="setResponse(${status.index})"
+                                                <c:if test="${dato.id == null}">disabled</c:if>>👍</button>
+                                    </div>
+
                                     <div id="intervalo_${status.index}" class="intervalo-texto">
                                         <span id="intervalo_texto_${status.index}"></span>
                                     </div>
@@ -87,8 +88,7 @@
     <script>
         function showDetails() {
             const detailsRow = document.getElementById('row-details');
-            detailsRow.classList.remove('collapsed');
-            detailsRow.classList.add('visible');
+            detailsRow.classList.remove('row-collapsed');
         }
 
         function setResponse(index, respuesta) {

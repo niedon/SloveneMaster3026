@@ -16,6 +16,8 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 /**
  * Frase: Pronombre + "ne" + Verbo transitivo presente + Numeral genitivo + Sustantivo genitivo.
  * <p>
@@ -81,7 +83,7 @@ public class FraseNegacionConCD extends Frase {
                         .conNegativo(false)
                         .conPrincipalExcepto("biti", "imeti", "hoteti")
                         .build())
-                .generador(() -> verbosService.getVerboTransitivoPresenteAleatorio())
+                .generador(() -> verbosService.getVerboTransitivoPresenteAleatorio(Arrays.asList("biti", "imeti", "hoteti")))
                 .extractor(ExtractorVerbo.get())
                 .build();
 
@@ -128,13 +130,12 @@ public class FraseNegacionConCD extends Frase {
                 .nombre("NUMERO")
                 .criterio(NumeralCriterioBuilder.crear()
                         .conCaso(Caso.GENITIVO)
-                        .cantidadEntre(1, 4)
                         .conDependencia(DependenciaBuilder.de(sustantivo)
                                 .si(sust -> sust.getNumero() == Numero.SINGULAR,
                                         NumeralCriterioBuilder.crear().conNumero(Numero.SINGULAR).conCantidad(1).build())
                                 .si(sust -> sust.getNumero() == Numero.DUAL,
                                         NumeralCriterioBuilder.crear().conNumero(Numero.DUAL).conCantidad(2).build())
-                                .orElse(NumeralCriterioBuilder.crear().conNumero(Numero.PLURAL).conCantidad(3, 4).build())
+                                .orElse(NumeralCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
                         )
                         .conDependencia(DependenciaBuilder.de(sustantivo)
                                 .si(sust -> sust.getSustantivoBase().getGenero() == Genero.MASCULINO,

@@ -337,14 +337,6 @@ tr:hover td {
     filter: brightness(0.96);
 }
 
-tr.collapsed {
-    visibility: collapse;
-}
-
-tr.visible {
-    visibility: visible;
-}
-
 tr.row-visible {
     cursor: pointer;
     transition: background-color 0.3s ease;
@@ -352,6 +344,31 @@ tr.row-visible {
 
 tr.row-visible:hover {
     background-color: #f0f0f0;
+}
+
+/* ===== TABLA DE ESTUDIO ===== */
+.estudio-table {
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.estudio-table td {
+    background-color: white;
+    white-space: nowrap;
+}
+
+.estudio-table td.celda-srs {
+    background-color: #f0eeff;
+}
+
+.estudio-table tr.row-collapsed {
+    display: none;
+}
+
+.estudio-table tr:hover td {
+    filter: brightness(0.96);
 }
 
 /* ===== CONTENEDORES DE BOTONES ===== */
