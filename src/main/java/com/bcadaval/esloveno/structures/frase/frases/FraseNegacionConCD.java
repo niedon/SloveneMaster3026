@@ -135,14 +135,14 @@ public class FraseNegacionConCD extends Frase {
                                         NumeralCriterioBuilder.crear().conNumero(Numero.SINGULAR).conCantidad(1).build())
                                 .si(sust -> sust.getNumero() == Numero.DUAL,
                                         NumeralCriterioBuilder.crear().conNumero(Numero.DUAL).conCantidad(2).build())
-                                .orElse(NumeralCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
+                                .orElse(NumeralCriterioBuilder.crear().conNumero(Numero.PLURAL).conCantidadMayorQue(2).build())
                         )
                         .conDependencia(DependenciaBuilder.de(sustantivo)
                                 .si(sust -> sust.getSustantivoBase().getGenero() == Genero.MASCULINO,
-                                        NumeralCriterioBuilder.crear().conGenero(Genero.MASCULINO).build())
+                                        NumeralCriterioBuilder.crear().conGenero(Genero.MASCULINO, Genero.NULO).build())
                                 .si(sust -> sust.getSustantivoBase().getGenero() == Genero.FEMENINO,
-                                        NumeralCriterioBuilder.crear().conGenero(Genero.FEMENINO).build())
-                                .orElse(NumeralCriterioBuilder.crear().conGenero(Genero.NEUTRO).build())
+                                        NumeralCriterioBuilder.crear().conGenero(Genero.FEMENINO, Genero.NULO).build())
+                                .orElse(NumeralCriterioBuilder.crear().conGenero(Genero.NEUTRO, Genero.NULO).build())
                         )
                         .build())
                 .generador(sustantivo, sust -> numeralService.getNumeral(sust))

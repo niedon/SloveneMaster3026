@@ -14,7 +14,8 @@ public enum Genero {
 	
 	MASCULINO("M", "masculine", "♂️"),
 	FEMENINO("F", "feminine", "♀️"),
-	NEUTRO("N", "neuter", "\uD83D\uDC64");
+	NEUTRO("N", "neuter", "\uD83D\uDC64"),
+	NULO(null, "nulo", "");
 	
 	private final String code;
 	private final String xmlCode;
@@ -27,7 +28,7 @@ public enum Genero {
 	}
 
     public static Genero fromCode(String code) {
-		if (code == null || code.isBlank()) return null;
+		if (code == null || code.isBlank()) return Genero.NULO;
 		return switch (code) {
         case "M", "masculine" -> Genero.MASCULINO;
         case "F", "feminine" -> Genero.FEMENINO;
