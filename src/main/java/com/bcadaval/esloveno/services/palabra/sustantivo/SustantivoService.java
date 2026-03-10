@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.bcadaval.esloveno.beans.enums.Animacidad;
+import com.bcadaval.esloveno.beans.enums.CabezaRelacional;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -11,13 +13,9 @@ import org.springframework.stereotype.Service;
 
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
-import com.bcadaval.esloveno.repo.SustantivoRepo;
 
 @Service
 public class SustantivoService {
-	
-	@Autowired
-	private SustantivoRepo sustantivoRepo;
 	
 	@Autowired
 	private SustantivoFlexionRepo sustantivoFlexionRepo;
@@ -65,5 +63,35 @@ public class SustantivoService {
 
 		// Devolver uno aleatorio
 		return coincidentes.get(ThreadLocalRandom.current().nextInt(coincidentes.size()));
+	}
+
+	/**
+	 * Devuelve un {@link SustantivoFlexion} aleatorio apto para actuar como núcleo
+	 * de una relación nominal (caso genitivo) en función de la animacidad del sustantivo
+	 * dependiente recibido.
+	 * <ul>
+	 *   <li>Si {@code sus} es {@link Animacidad#INANIMADO}, el sustantivo devuelto debe
+	 *       ser {@link CabezaRelacional#SI} (cabeza relacional).</li>
+	 *   <li>En cualquier otro caso se devuelve cualquier sustantivo aleatorio.</li>
+	 * </ul>
+	 *
+	 * @param sus sustantivo dependiente (en genitivo) a partir del cual se determina la condición
+	 * @return sustantivo aleatorio que cumple la condición
+	 * @throws NoSuchElementException si no hay sustantivos disponibles que cumplan el criterio
+	 */
+	public SustantivoFlexion getSustantivoParaGenitivo(SustantivoFlexion sus) {
+		List<SustantivoFlexion> candidatos;
+
+		if (sus.getSustantivoBase().getAnimacidad() == Animacidad.INANIMADO) {
+			candidatos = sustantivoFlexionRepo.findByCabezaRelacional(CabezaRelacional.SI);
+		} else {
+			candidatos = sustantivoFlexionRepo.findAll();
+		}
+
+		if (candidatos.isEmpty()) {
+			throw new NoSuchElementException("No hay sustantivos activos disponibles para el genitivo");
+		}
+
+		return candidatos.get(ThreadLocalRandom.current().nextInt(candidatos.size()));
 	}
 }

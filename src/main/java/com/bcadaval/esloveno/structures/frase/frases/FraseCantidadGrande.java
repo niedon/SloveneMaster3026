@@ -11,7 +11,6 @@ import com.bcadaval.esloveno.structures.frase.Frase;
 import com.bcadaval.esloveno.structures.frase.PalabraFrase;
 import com.bcadaval.esloveno.structures.frase.criterio.NumeralCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.criterio.SustantivoCriterioBuilder;
-import com.bcadaval.esloveno.structures.frase.dependencia.DependenciaBuilder;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -69,13 +68,6 @@ public class FraseCantidadGrande extends Frase {
                 .criterio(NumeralCriterioBuilder.crear()
                         .conCaso(Caso.NOMINATIVO)
                         .conCantidadMayorQue(4)
-                        /*.conDependencia(DependenciaBuilder.de(sustantivo)
-                                .si(sust -> sust.getSustantivoBase().getGenero() == Genero.MASCULINO,
-                                        NumeralCriterioBuilder.crear().conGenero(Genero.MASCULINO).build())
-                                .si(sust -> sust.getSustantivoBase().getGenero() == Genero.FEMENINO,
-                                        NumeralCriterioBuilder.crear().conGenero(Genero.FEMENINO).build())
-                                .orElse(NumeralCriterioBuilder.crear().conGenero(Genero.NEUTRO).build())
-                        )*/
                         .build())
                 .generador(sustantivo, sust -> numeralService.getNumeralGrande(sust))
                 .extractor(ExtractorNumero.get())

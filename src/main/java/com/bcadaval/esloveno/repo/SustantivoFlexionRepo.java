@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.bcadaval.esloveno.beans.enums.CabezaRelacional;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.Genero;
 import com.bcadaval.esloveno.beans.enums.Numero;
@@ -68,4 +69,16 @@ public interface SustantivoFlexionRepo extends JpaRepository<SustantivoFlexion, 
 			@Param("numero") Numero numero,
 			@Param("genero") Genero genero
 	);
+
+	/**
+	 * Devuelve todas las flexiones cuya palabra base tiene el valor de
+	 * {@code cabezaRelacional} indicado, independientemente de si la tarjeta está activa.
+	 *
+	 * @param cabezaRelacional valor requerido de cabeza relacional
+	 * @return lista de flexiones que cumplen el criterio
+	 */
+	@Query("SELECT sf FROM SustantivoFlexion sf JOIN sf.sustantivoBase s " +
+			"WHERE s.cabezaRelacional = :cabezaRelacional")
+	List<SustantivoFlexion> findByCabezaRelacional(
+			@Param("cabezaRelacional") CabezaRelacional cabezaRelacional);
 }
