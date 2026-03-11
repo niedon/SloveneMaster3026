@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.bcadaval.esloveno.beans.enums.Animacidad;
 import com.bcadaval.esloveno.beans.enums.CabezaRelacional;
+import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -83,9 +84,9 @@ public class SustantivoService {
 		List<SustantivoFlexion> candidatos;
 
 		if (sus.getSustantivoBase().getAnimacidad() == Animacidad.INANIMADO) {
-			candidatos = sustantivoFlexionRepo.findByCabezaRelacional(CabezaRelacional.SI);
+			candidatos = sustantivoFlexionRepo.findByCabezaRelacional(Caso.NOMINATIVO, CabezaRelacional.SI);
 		} else {
-			candidatos = sustantivoFlexionRepo.findAll();
+			candidatos = sustantivoFlexionRepo.findByCaso(Caso.NOMINATIVO);
 		}
 
 		if (candidatos.isEmpty()) {

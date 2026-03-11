@@ -18,13 +18,13 @@ import lombok.Getter;
  */
 @Getter
 public enum FormaVerbal {
-    INFINITIVE("I", "infinitive"),
-    SUPINE("S", "supine"),
-    PARTICIPLE("P", "participle"),
-    PRESENT("R", "present"),
-    FUTURE("f", "future"),
-    IMPERATIVE("M", "imperative"),
-    CONDITIONAL("C", "conditional");
+    INFINITIVE("INF", "infinitive"),
+    SUPINE("SUP", "supine"),
+    PARTICIPLE("PAR", "participle"),
+    PRESENT("PRE", "present"),
+    FUTURE("FUT", "future"),
+    IMPERATIVE("IMP", "imperative"),
+    CONDITIONAL("CON", "conditional");
 
     private final String code;
     private final String xmlCode;

@@ -18,6 +18,19 @@ import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 @Repository
 public interface SustantivoFlexionRepo extends JpaRepository<SustantivoFlexion, Integer> {
 
+	/* ========================================================================== */
+	/* ============================ MÉTODOS ESTÁNDAR ============================ */
+	/* ========================================================================== */
+	/**
+	 * Encuentra flexiones por el sloleksId (sustantivo base)
+	 */
+	List<SustantivoFlexion> findBySloleksId(String sloleksId);
+
+
+	/* ========================================================================== */
+	/* ============================= MÉTODOS QUERY ============================== */
+	/* ========================================================================== */
+
 	/**
 	 * Stream de sustantivos listos para estudiar: activos y con tiempo cumplido
 	 */
@@ -42,11 +55,6 @@ public interface SustantivoFlexionRepo extends JpaRepository<SustantivoFlexion, 
 			"AND s.claseSemantica IS NOT NULL " +
 			"AND s.cabezaRelacional IS NOT NULL")
 	Stream<SustantivoFlexion> streamNuevos();
-
-	/**
-	 * Encuentra flexiones por el sloleksId (sustantivo base)
-	 */
-	List<SustantivoFlexion> findBySloleksId(String sloleksId);
 
 	/**
 	 * Busca sustantivos que coincidan en caso, número y género.
@@ -78,7 +86,11 @@ public interface SustantivoFlexionRepo extends JpaRepository<SustantivoFlexion, 
 	 * @return lista de flexiones que cumplen el criterio
 	 */
 	@Query("SELECT sf FROM SustantivoFlexion sf JOIN sf.sustantivoBase s " +
-			"WHERE s.cabezaRelacional = :cabezaRelacional")
+			"WHERE s.cabezaRelacional = :cabezaRelacional " +
+			"AND sf.caso = :caso")
 	List<SustantivoFlexion> findByCabezaRelacional(
+			@Param("caso") Caso caso,
 			@Param("cabezaRelacional") CabezaRelacional cabezaRelacional);
+
+	List<SustantivoFlexion> findByCaso(Caso caso);
 }
