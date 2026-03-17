@@ -1,8 +1,5 @@
 package com.bcadaval.esloveno.services.palabra;
 
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.Genero;
 import com.bcadaval.esloveno.beans.enums.Numero;
@@ -10,11 +7,21 @@ import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.repo.NumeralFlexionRepo;
+import com.bcadaval.esloveno.services.RandomEntitySelector;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.bcadaval.esloveno.repo.NumeralRepo;
 
+/**
+ * Servicio para gestionar numerales y sus flexiones.
+ * <p>
+ * Proporciona métodos semánticos para obtener numerales según criterios
+ * gramaticales, delegando la lógica de filtrado a Specifications JPA
+ * y usando {@link RandomEntitySelector} para la aleatoriedad eficiente.
+ */
 @Service
 public class NumeralService {
 
@@ -24,8 +31,16 @@ public class NumeralService {
 	@Autowired
 	NumeralFlexionRepo numeralFlexionRepo;
 
+	@Autowired
+	private RandomEntitySelector randomSelector;
+
 	/**
-	 * Devuelve un numeral que coincida con el adjetivo dado.
+	 * Devuelve un numeral que coincida con el adjetivo dado en número, caso y género.
+	 * <p>
+	 * <strong>Uso exclusivo de generadores.</strong> No filtra por SRS.
+	 *
+	 * @param adjetivoFlexion adjetivo del que tomar número, caso y género
+	 * @return numeral que coincide, o null si no se encuentra
 	 */
 	public NumeralFlexion getNumeral(AdjetivoFlexion adjetivoFlexion) {
 		return getNumeral(
@@ -37,6 +52,11 @@ public class NumeralService {
 
 	/**
 	 * Devuelve un numeral que coincida con el género, número y caso del sustantivo dado.
+	 * <p>
+	 * <strong>Uso exclusivo de generadores.</strong> No filtra por SRS.
+	 *
+	 * @param sustantivoFlexion sustantivo del que tomar número, caso y género
+	 * @return numeral que coincide, o null si no se encuentra
 	 */
 	public NumeralFlexion getNumeral(SustantivoFlexion sustantivoFlexion) {
 		return getNumeral(
@@ -47,80 +67,91 @@ public class NumeralService {
 	}
 
 	/**
-	 * Devuelve un numeral que coincida con el número, caso y género dados.
-	 * Lógica unificada que filtra en la base de datos y solo devuelve tarjetas inicializadas.
-	 * - Si numero es SINGULAR: principal debe ser "en"
-	 * - Si numero es DUAL: principal debe ser "dva"
-	 * - Si numero es PLURAL: principal debe ser distinto de "en" y "dva"
+	 * Devuelve un numeral aleatorio que coincida con número, caso y género,
+	 * aplicando las reglas de principal según el número:
+	 * <ul>
+	 *   <li>SINGULAR: principal = "en"</li>
+	 *   <li>DUAL: principal = "dva"</li>
+	 *   <li>PLURAL: principal ≠ "en" y ≠ "dva"</li>
+	 * </ul>
 	 * <p>
-	 * <strong>Uso exclusivo de generadores.</strong> No filtra por SRS (proximaRevision),
-	 * ya que las palabras generadas no participan en SRS.
+	 * <strong>Uso exclusivo de generadores.</strong> No filtra por SRS.
 	 *
-	 * @param numero Número gramatical requerido
-	 * @param caso   Caso gramatical requerido
-	 * @param genero Género gramatical requerido (puede ser null)
-	 * @return NumeralFlexion que coincide, o null si no se encuentra
+	 * @param numero número gramatical requerido
+	 * @param caso   caso gramatical requerido
+	 * @param genero género gramatical requerido (puede ser null)
+	 * @return numeral que coincide, o null si no se encuentra
 	 */
 	public NumeralFlexion getNumeral(Numero numero, Caso caso, Genero genero) {
-		List<NumeralFlexion> candidatos = numeralFlexionRepo.findByCasoAndNumeroAndGeneroSinFiltroSRS(caso, numero, genero);
+		Specification<NumeralFlexion> spec = Specification
+				.where(conCaso(caso))
+				.and(conNumero(numero))
+				.and(conGeneroOpcional(genero))
+				.and(filtroPrincipalPorNumero(numero));
 
-		List<NumeralFlexion> filtrados = candidatos.stream()
-				.filter(nf -> filterByPrincipal(nf, numero))
-				.toList();
-
-		if (filtrados.isEmpty()) {
-			return null;
-		}
-
-		return filtrados.get(ThreadLocalRandom.current().nextInt(filtrados.size()));
+		return randomSelector.selectRandom(numeralFlexionRepo, spec).orElse(null);
 	}
 
 	/**
-	 * Devuelve un numeral con cantidad ≥ 5 que coincida con el género, número y caso del sustantivo dado.
-	 * Se usa como generador en frases de cantidad grande (numerales a partir de 5).
+	 * Devuelve un numeral con cantidad ≥ 5 que coincida con el sustantivo dado.
 	 * <p>
-	 * <strong>Uso exclusivo de generadores.</strong> No filtra por SRS (proximaRevision),
-	 * ya que las palabras generadas no participan en SRS.
+	 * <strong>Uso exclusivo de generadores.</strong> No filtra por SRS.
 	 *
 	 * @param sustantivoFlexion sustantivo del que tomar género, número y caso
-	 * @return NumeralFlexion con cantidad ≥ 5, o null si no se encuentra
+	 * @return numeral con cantidad ≥ 5, o null si no se encuentra
 	 */
 	public NumeralFlexion getNumeralGrande(SustantivoFlexion sustantivoFlexion) {
-		List<NumeralFlexion> candidatos = numeralFlexionRepo.findByCasoAndNumeroAndGeneroSinFiltroSRS(
-				sustantivoFlexion.getCaso(),
-				sustantivoFlexion.getNumero(),
-				sustantivoFlexion.getSustantivoBase().getGenero()
-		);
+		Specification<NumeralFlexion> spec = Specification
+				.where(conCaso(sustantivoFlexion.getCaso()))
+				.and(conNumero(sustantivoFlexion.getNumero()))
+				.and(conGeneroOpcional(sustantivoFlexion.getSustantivoBase().getGenero()))
+				.and(conCantidadMinima(5));
 
-		List<NumeralFlexion> filtrados = candidatos.stream()
-				.filter(nf -> nf.getNumeralBase().getCantidad() != null && nf.getNumeralBase().getCantidad() >= 5)
-				.toList();
+		return randomSelector.selectRandom(numeralFlexionRepo, spec).orElse(null);
+	}
 
-		if (filtrados.isEmpty()) {
-			return null;
+	// ============================================
+	// Specifications privadas reutilizables
+	// ============================================
+
+	private static Specification<NumeralFlexion> conCaso(Caso caso) {
+		return (root, query, cb) -> cb.equal(root.get("caso"), caso);
+	}
+
+	private static Specification<NumeralFlexion> conNumero(Numero numero) {
+		return (root, query, cb) -> cb.equal(root.get("numero"), numero);
+	}
+
+	private static Specification<NumeralFlexion> conGeneroOpcional(Genero genero) {
+		if (genero == null) {
+			return Specification.where(null);
 		}
-
-		return filtrados.get(ThreadLocalRandom.current().nextInt(filtrados.size()));
+		return (root, query, cb) -> cb.equal(root.get("genero"), genero);
 	}
 
 	/**
-	 * Filtra los numerales según el número:
-	 * - SINGULAR: principal debe ser "en"
-	 * - DUAL: principal debe ser "dva"
-	 * - PLURAL: principal debe ser distinto de "en" y "dva"
+	 * Filtra numerales por principal según el número gramatical:
+	 * SINGULAR → "en", DUAL → "dva", PLURAL → ni "en" ni "dva".
 	 */
-	private boolean filterByPrincipal(NumeralFlexion nf, Numero numero) {
-		if (numero == null || nf.getPrincipal() == null) {
-			return false;
-		}
-
-		String principal = nf.getPrincipal();
-		return switch (numero) {
-			case SINGULAR -> "en".equals(principal);
-			case DUAL -> "dva".equals(principal);
-			case PLURAL -> !"en".equals(principal) && !"dva".equals(principal);
+	private static Specification<NumeralFlexion> filtroPrincipalPorNumero(Numero numero) {
+		return (root, query, cb) -> switch (numero) {
+			case SINGULAR -> cb.equal(root.get("principal"), "en");
+			case DUAL -> cb.equal(root.get("principal"), "dva");
+			case PLURAL -> cb.and(
+					cb.notEqual(root.get("principal"), "en"),
+					cb.notEqual(root.get("principal"), "dva")
+			);
 		};
 	}
 
+	/**
+	 * Filtra numerales cuya palabra base tiene cantidad >= al valor dado.
+	 */
+	private static Specification<NumeralFlexion> conCantidadMinima(int minimo) {
+		return (root, query, cb) ->
+				cb.greaterThanOrEqualTo(
+						root.join("numeralBase", JoinType.INNER).get("cantidad"),
+						minimo);
+	}
 }
 

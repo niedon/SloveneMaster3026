@@ -5,15 +5,15 @@ import com.bcadaval.esloveno.beans.enums.Genero;
 import com.bcadaval.esloveno.beans.enums.Numero;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.repository.query.QueryByExampleExecutor;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;
 
-public interface NumeralFlexionRepo extends JpaRepository<NumeralFlexion, Integer>, QueryByExampleExecutor<NumeralFlexion> {
+public interface NumeralFlexionRepo extends FlexionBaseRepo<NumeralFlexion, Integer> {
 
     List<NumeralFlexion> findBySloleksId(String sloleksId);
 

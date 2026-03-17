@@ -1,47 +1,53 @@
 package com.bcadaval.esloveno.services.palabra;
 
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
+import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.repo.PronombreFlexionRepo;
+import com.bcadaval.esloveno.services.RandomEntitySelector;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
-
+/**
+ * Servicio para gestionar pronombres y sus flexiones.
+ * <p>
+ * Proporciona métodos semánticos para obtener pronombres según criterios
+ * gramaticales, usando Specifications JPA y {@link RandomEntitySelector}.
+ */
 @Service
 public class PronombreService {
 
 	@Autowired
 	PronombreFlexionRepo pronombreFlexionRepo;
 
+	@Autowired
+	private RandomEntitySelector randomSelector;
+
 	/**
 	 * Devuelve un pronombre nominativo no clítico que coincide con la persona y número del verbo dado.
 	 * <p>
-	 * Usa una query JPQL directa para evitar que {@code Example.of} filtre por los campos SRS
-	 * con valores por defecto (factorFacilidad, intervaloRepeticionSegundos, etc.), lo que
-	 * excluiría incorrectamente pronombres con historial SRS ya iniciado.
-	 * </p>
+	 * Toda la lógica de filtrado se ejecuta en BD: persona, número, caso = NOMINATIVO,
+	 * y clítico = null o false.
+	 *
+	 * @param verboFlexion verbo del que tomar persona y número
+	 * @return pronombre que coincide, o null si no se encuentra
 	 */
 	public PronombreFlexion getPronombre(VerboFlexion verboFlexion) {
 		if (verboFlexion == null || verboFlexion.getPersona() == null || verboFlexion.getNumero() == null) {
 			return null;
 		}
 
-		List<PronombreFlexion> candidatos = pronombreFlexionRepo.findByPersonaAndNumeroAndCasoAndNoClitico(
-				verboFlexion.getPersona(),
-				verboFlexion.getNumero(),
-				Caso.NOMINATIVO
+		Specification<PronombreFlexion> spec = (root, query, cb) -> cb.and(
+				cb.equal(root.get("persona"), verboFlexion.getPersona()),
+				cb.equal(root.get("numero"), verboFlexion.getNumero()),
+				cb.equal(root.get("caso"), Caso.NOMINATIVO),
+				cb.or(
+						cb.isNull(root.get("clitico")),
+						cb.equal(root.get("clitico"), false)
+				)
 		);
 
-		if (candidatos.isEmpty()) {
-			return null;
-		}
-		return candidatos.get(ThreadLocalRandom.current().nextInt(candidatos.size()));
+		return randomSelector.selectRandom(pronombreFlexionRepo, spec).orElse(null);
 	}
-
 }
-
-

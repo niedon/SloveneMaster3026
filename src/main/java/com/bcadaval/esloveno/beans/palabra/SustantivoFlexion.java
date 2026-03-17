@@ -113,6 +113,13 @@ public class SustantivoFlexion implements PalabraFlexion<Sustantivo> {
     @Builder.Default
     private Boolean enReaprendizaje = false;
 
+    /**
+     * Indica si esta flexión es elegible para estudio.
+     * Calculado por ElegibilidadService.
+     */
+    @Builder.Default
+    private Boolean elegible = false;
+
     // =====================================================
     // Fin campos SRS
     // =====================================================

@@ -8,7 +8,6 @@ import com.bcadaval.esloveno.beans.enums.CabezaRelacional;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.Genero;
 import com.bcadaval.esloveno.beans.enums.Numero;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Repository;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 
 @Repository
-public interface SustantivoFlexionRepo extends JpaRepository<SustantivoFlexion, Integer> {
+public interface SustantivoFlexionRepo extends FlexionBaseRepo<SustantivoFlexion, Integer> {
 
 	/* ========================================================================== */
 	/* ============================ MÉTODOS ESTÁNDAR ============================ */

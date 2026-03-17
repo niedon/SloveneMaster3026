@@ -58,4 +58,25 @@ public interface PalabraFlexion<T extends Palabra<?>> {
 
     Boolean getEnReaprendizaje();
     PalabraFlexion<T> setEnReaprendizaje(Boolean enReaprendizaje);
+
+    // =====================================================
+    // Campo de elegibilidad
+    // =====================================================
+
+    /**
+     * Indica si esta flexión es elegible para estudio.
+     * Una flexión es elegible si su palabra base está completa y
+     * cumple al menos un criterio de las frases activas.
+     *
+     * @return {@code true} si la flexión es elegible para estudio
+     */
+    Boolean getElegible();
+
+    /**
+     * Establece la elegibilidad de esta flexión.
+     *
+     * @param elegible {@code true} si la flexión es elegible
+     * @return esta flexión para encadenamiento fluido
+     */
+    PalabraFlexion<T> setElegible(Boolean elegible);
 }

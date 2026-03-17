@@ -75,11 +75,11 @@ public class BuscarPalabrasService {
     }
 
     /**
-     * Verifica si una flexión es elegible según los criterios activos de su tipo.
+     * Verifica si una flexión es elegible usando el campo precalculado.
      */
-    private boolean esElegible(PalabraFlexion<?> flexion, List<? extends CriterioBusquedaNuevo<?>> criterios) {
-        if (criterios == null || criterios.isEmpty()) return false;
-        return criterios.stream().anyMatch(c -> c.cumpleCriteriosFijos(flexion));
+    //TODO eliminable llamar a esElegible del bean?
+    private boolean esElegible(PalabraFlexion<?> flexion) {
+        return Boolean.TRUE.equals(flexion.getElegible());
     }
 
     /**
@@ -206,7 +206,7 @@ public class BuscarPalabrasService {
         List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.VERBO, List.of());
         return verbos.stream().map(v -> {
             List<VerboFlexion> flexiones = verboFlexionRepo.findBySloleksId(v.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(f -> esElegible(f, criterios)).count();
+            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(v.getSloleksId())
                     .principal(v.getPrincipal())
@@ -234,7 +234,7 @@ public class BuscarPalabrasService {
         List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.SUSTANTIVO, List.of());
         return sustantivos.stream().map(s -> {
             List<SustantivoFlexion> flexiones = sustantivoFlexionRepo.findBySloleksId(s.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(f -> esElegible(f, criterios)).count();
+            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(s.getSloleksId())
                     .principal(s.getPrincipal())
@@ -263,7 +263,7 @@ public class BuscarPalabrasService {
         List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.ADJETIVO, List.of());
         return adjetivos.stream().map(a -> {
             List<AdjetivoFlexion> flexiones = adjetivoFlexionRepo.findBySloleksId(a.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(f -> esElegible(f, criterios)).count();
+            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(a.getSloleksId())
                     .principal(a.getPrincipal())
@@ -283,7 +283,7 @@ public class BuscarPalabrasService {
         List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.PRONOMBRE, List.of());
         return pronombres.stream().map(p -> {
             List<PronombreFlexion> flexiones = pronombreFlexionRepo.findBySloleksId(p.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(f -> esElegible(f, criterios)).count();
+            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(p.getSloleksId())
                     .principal(p.getPrincipal())
@@ -304,7 +304,7 @@ public class BuscarPalabrasService {
         List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.NUMERAL, List.of());
         return numerales.stream().map(n -> {
             List<NumeralFlexion> flexiones = numeralFlexionRepo.findBySloleksId(n.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(f -> esElegible(f, criterios)).count();
+            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(n.getSloleksId())
                     .principal(n.getPrincipal())
@@ -327,7 +327,7 @@ public class BuscarPalabrasService {
     private FlexionDetalleDTO mapearFlexionBase(PalabraFlexion<?> f, List<? extends CriterioBusquedaNuevo<?>> criterios) {
         boolean activa = f.getProximaRevision() != null;
         boolean estudioIniciado = f.getTotalRevisiones() != null && f.getTotalRevisiones() > 0;
-        boolean elegible = esElegible(f, criterios);
+        boolean elegible = esElegible(f);
         int totalRev = f.getTotalRevisiones() != null ? f.getTotalRevisiones() : 0;
         int totalAc = f.getTotalAciertos() != null ? f.getTotalAciertos() : 0;
 
@@ -398,7 +398,7 @@ public class BuscarPalabrasService {
         List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.PARTICULA, List.of());
         return particulas.stream().map(p -> {
             List<ParticulaFlexion> flexiones = particulaFlexionRepo.findBySloleksId(p.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(f -> esElegible(f, criterios)).count();
+            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(p.getSloleksId())
                     .principal(p.getPrincipal())

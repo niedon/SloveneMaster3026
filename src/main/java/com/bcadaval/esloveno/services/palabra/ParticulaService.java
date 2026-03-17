@@ -2,12 +2,11 @@ package com.bcadaval.esloveno.services.palabra;
 
 import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
 import com.bcadaval.esloveno.repo.ParticulaFlexionRepo;
+import com.bcadaval.esloveno.services.RandomEntitySelector;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Servicio para gestionar partículas.
@@ -23,22 +22,22 @@ public class ParticulaService {
     @Autowired
     private ParticulaFlexionRepo particulaFlexionRepo;
 
+    @Autowired
+    private RandomEntitySelector randomSelector;
+
     /**
      * Obtiene una flexión de partícula cuya forma principal coincide con la dada.
      * Si hay múltiples flexiones para la misma principal, devuelve una aleatoria.
+     * <p>
+     * Toda la lógica de filtrado se ejecuta en BD.
      *
      * @param principal forma principal de la partícula (ej: "ne")
      * @return flexión de la partícula, o null si no se encuentra
      */
     public ParticulaFlexion getPorPrincipal(String principal) {
-        List<ParticulaFlexion> candidatos = particulaFlexionRepo.findByPrincipal(principal);
+        Specification<ParticulaFlexion> spec = (root, query, cb) ->
+                cb.equal(root.get("principal"), principal);
 
-        if (candidatos.isEmpty()) {
-            log.warn("No se encontró ninguna flexión para la partícula '{}'", principal);
-            return null;
-        }
-
-        return candidatos.get(ThreadLocalRandom.current().nextInt(candidatos.size()));
+        return randomSelector.selectRandom(particulaFlexionRepo, spec).orElse(null);
     }
 }
-

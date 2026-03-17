@@ -280,7 +280,13 @@
             // Variables misceláneas
             formData.append('mezclarTarjetas', document.getElementById('mezclarTarjetas').checked);
 
-            // Guardar configuración de variables
+            // Estructuras de frase: añadir cada checkbox marcado como un campo individual 'estructuras'
+            const checkboxesEstructuras = document.querySelectorAll('input[name="estructuras"]:checked');
+            checkboxesEstructuras.forEach(cb => {
+                formData.append('estructuras', cb.value);
+            });
+
+            // Guardar configuración completa
             fetch('/api/guardarConfiguracion', {
                 method: 'POST',
                 body: formData
@@ -288,49 +294,16 @@
             .then(response => response.json())
             .then(data => {
                 if (data.exito) {
-                    // Ahora guardar las estructuras
-                    return guardarEstructuras();
+                     mostrarMensaje('✅ ' + data.mensaje, 'success');
                 } else {
                     throw new Error(data.mensaje);
                 }
-            })
-            .then(() => {
-                mostrarMensaje('✅ Configuración guardada correctamente', 'success');
             })
             .catch(error => {
                 mostrarMensaje('❌ Error al guardar: ' + error.message, 'error');
             });
         });
 
-        // Guarda el estado de todas las estructuras
-        function guardarEstructuras() {
-            const checkboxes = document.querySelectorAll('input[name="estructuras"]');
-            const promises = [];
-
-            checkboxes.forEach(checkbox => {
-                const identificador = checkbox.value;
-                const activa = checkbox.checked;
-
-                const formData = new FormData();
-                formData.append('identificador', identificador);
-                formData.append('activa', activa);
-
-                promises.push(
-                    fetch('/api/toggleEstructura', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (!data.exito) {
-                            throw new Error('Error en estructura ' + identificador);
-                        }
-                    })
-                );
-            });
-
-            return Promise.all(promises);
-        }
 
         function mostrarMensaje(texto, tipo) {
             const messageBox = document.getElementById('messageBox');

@@ -3,20 +3,17 @@ package com.bcadaval.esloveno.services;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
-import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
+import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
-import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
 import com.bcadaval.esloveno.repo.NumeralFlexionRepo;
@@ -38,15 +35,6 @@ public class RepeticionEspaciadaService {
 
     @Autowired
     private VariablesService variablesService;
-
-    @Lazy
-    @Autowired
-    private FraseService fraseService;
-
-
-    @Lazy
-    @Autowired
-    private ConsultaPalabrasNuevoService consultaPalabrasNuevoService;
 
     @Autowired
     private VerboFlexionRepo verboFlexionRepo;
@@ -163,28 +151,22 @@ public class RepeticionEspaciadaService {
         flexion.setTotalAciertos(totalAciertos);
     }
 
+    //TODO eliminar
     /**
-     * Obtiene estadísticas del sistema de estudio.
-     * Usa el nuevo sistema de criterios para obtener todas las tarjetas activas.
+     * Obtiene estadísticas del sistema de estudio usando el campo {@code elegible} precalculado.
+     *
+     * @deprecated Se dejará de lado para la implementación actual.
      */
+    @Deprecated
+    //TODO mandar a cagar al rehacer estadísticas
     public EstadisticasDTO obtenerEstadisticas() {
-        List<CriterioBusquedaNuevo<VerboFlexion>> criteriosVerbo = fraseService.getCriteriosPorTipo(VerboFlexion.class);
-        List<CriterioBusquedaNuevo<SustantivoFlexion>> criteriosSustantivo = fraseService.getCriteriosPorTipo(SustantivoFlexion.class);
-        List<CriterioBusquedaNuevo<AdjetivoFlexion>> criteriosAdjetivo = fraseService.getCriteriosPorTipo(AdjetivoFlexion.class);
-        List<CriterioBusquedaNuevo<NumeralFlexion>> criteriosNumeral = fraseService.getCriteriosPorTipo(NumeralFlexion.class);
-        List<CriterioBusquedaNuevo<PronombreFlexion>> criteriosPronombre = fraseService.getCriteriosPorTipo(PronombreFlexion.class);
-        List<CriterioBusquedaNuevo<ParticulaFlexion>> criteriosParticula = fraseService.getCriteriosPorTipo(ParticulaFlexion.class);
-
-        List<PalabraFlexion<?>> todasActivas = Stream.of(
-                consultaPalabrasNuevoService.listVerbosActivos(criteriosVerbo),
-                consultaPalabrasNuevoService.listSustantivosActivos(criteriosSustantivo),
-                consultaPalabrasNuevoService.listAdjetivosActivos(criteriosAdjetivo),
-                consultaPalabrasNuevoService.listNumeralesActivos(criteriosNumeral),
-                consultaPalabrasNuevoService.listPronombresActivos(criteriosPronombre),
-                consultaPalabrasNuevoService.listParticulasActivas(criteriosParticula)
-        )
-        .flatMap(List::stream)
-        .collect(Collectors.toList());
+        List<PalabraFlexion<?>> todasActivas = new ArrayList<>();
+        todasActivas.addAll(verboFlexionRepo.findAll(FlexionSpecs.<VerboFlexion>elegible()));
+        todasActivas.addAll(sustantivoFlexionRepo.findAll(FlexionSpecs.<SustantivoFlexion>elegible()));
+        todasActivas.addAll(adjetivoFlexionRepo.findAll(FlexionSpecs.<AdjetivoFlexion>elegible()));
+        todasActivas.addAll(numeralFlexionRepo.findAll(FlexionSpecs.<NumeralFlexion>elegible()));
+        todasActivas.addAll(pronombreFlexionRepo.findAll(FlexionSpecs.<PronombreFlexion>elegible()));
+        todasActivas.addAll(particulaFlexionRepo.findAll(FlexionSpecs.<ParticulaFlexion>elegible()));
 
         Instant ahora = Instant.now();
 
@@ -204,13 +186,11 @@ public class RepeticionEspaciadaService {
             totalAciertos += aciertos;
 
             if (f.getProximaRevision() == null) {
-                // Tarjeta nueva: palabra completa pero nunca introducida al SRS
                 tarjetasNuevas++;
             } else {
                 if (f.getUltimaRevision() != null) {
                     tarjetasEstudiadas++;
                 } else {
-                    // Inicializada pero nunca estudiada → también nueva funcionalmente
                     tarjetasNuevas++;
                 }
 
@@ -218,7 +198,6 @@ public class RepeticionEspaciadaService {
                     tarjetasEnReaprendizaje++;
                 }
 
-                // Disponible ahora = proximaRevision != null AND proximaRevision <= ahora
                 Instant proxima = f.getProximaRevision();
                 if (!proxima.isAfter(ahora)) {
                     tarjetasDisponiblesAhora++;
@@ -226,7 +205,6 @@ public class RepeticionEspaciadaService {
             }
         }
 
-        // Las tarjetas nuevas también son disponibles ahora (se pueden introducir al estudio)
         tarjetasDisponiblesAhora += tarjetasNuevas;
 
         double tasaAciertos = totalRevisiones > 0 ? (double) totalAciertos / totalRevisiones * 100 : 0;
@@ -244,13 +222,13 @@ public class RepeticionEspaciadaService {
     }
 
     /**
-     * Obtiene las tarjetas listas para estudiar usando el nuevo sistema de criterios.
+     * Obtiene las tarjetas listas para estudiar usando el campo {@code elegible} precalculado.
      * <p>
      * Proceso:
      * <ol>
-     *   <li>Obtiene criterios expandidos del {@link FraseService} por tipo de flexión</li>
-     *   <li>Consulta BD filtrando por criterios gramaticales, incluyendo tarjetas de revisión
-     *       (proximaRevision &lt;= ahora) y tarjetas nuevas (proximaRevision IS NULL, palabra completa)</li>
+     *   <li>Consulta cada repositorio de flexión por {@code elegible = true}
+     *       y tarjetas de revisión ({@code proximaRevision IS NOT NULL AND proximaRevision &lt;= ahora})
+     *       o tarjetas nuevas ({@code proximaRevision IS NULL})</li>
      *   <li>Separa tarjetas de revisión y nuevas, aplicando límites independientes</li>
      *   <li>Ordena: reaprendizaje primero, luego por proximaRevision ASC, nuevas al final</li>
      *   <li>Aplica Algoritmo de Desplazamiento Limitado (ventana=5) para variabilidad controlada</li>
@@ -261,24 +239,23 @@ public class RepeticionEspaciadaService {
      */
     public List<PalabraFlexion<?>> obtenerTarjetasDisponiblesNuevo(int limiteRevision) {
         int limiteNuevas = variablesService.getMaxTarjetasNuevasDia();
+        Instant ahora = Instant.now();
 
-        List<CriterioBusquedaNuevo<VerboFlexion>> criteriosVerbo = fraseService.getCriteriosPorTipo(VerboFlexion.class);
-        List<CriterioBusquedaNuevo<SustantivoFlexion>> criteriosSustantivo = fraseService.getCriteriosPorTipo(SustantivoFlexion.class);
-        List<CriterioBusquedaNuevo<AdjetivoFlexion>> criteriosAdjetivo = fraseService.getCriteriosPorTipo(AdjetivoFlexion.class);
-        List<CriterioBusquedaNuevo<NumeralFlexion>> criteriosNumeral = fraseService.getCriteriosPorTipo(NumeralFlexion.class);
-        List<CriterioBusquedaNuevo<PronombreFlexion>> criteriosPronombre = fraseService.getCriteriosPorTipo(PronombreFlexion.class);
-        List<CriterioBusquedaNuevo<ParticulaFlexion>> criteriosParticula = fraseService.getCriteriosPorTipo(ParticulaFlexion.class);
+        // Spec para tarjetas de revisión: elegible + proximaRevision <= ahora
+        List<PalabraFlexion<?>> todasLasTarjetas = new ArrayList<>();
 
-        List<PalabraFlexion<?>> todasLasTarjetas = Stream.of(
-                        consultaPalabrasNuevoService.listVerbosListos(criteriosVerbo),
-                        consultaPalabrasNuevoService.listSustantivosListos(criteriosSustantivo),
-                        consultaPalabrasNuevoService.listAdjetivosListos(criteriosAdjetivo),
-                        consultaPalabrasNuevoService.listNumeralesListos(criteriosNumeral),
-                        consultaPalabrasNuevoService.listPronombresListos(criteriosPronombre),
-                        consultaPalabrasNuevoService.listParticulasListas(criteriosParticula)
-                )
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        // Verbos
+        todasLasTarjetas.addAll(verboFlexionRepo.findAll(FlexionSpecs.<VerboFlexion>listaParaEstudiar(ahora)));
+        // Sustantivos
+        todasLasTarjetas.addAll(sustantivoFlexionRepo.findAll(FlexionSpecs.<SustantivoFlexion>listaParaEstudiar(ahora)));
+        // Adjetivos
+        todasLasTarjetas.addAll(adjetivoFlexionRepo.findAll(FlexionSpecs.<AdjetivoFlexion>listaParaEstudiar(ahora)));
+        // Numerales
+        todasLasTarjetas.addAll(numeralFlexionRepo.findAll(FlexionSpecs.<NumeralFlexion>listaParaEstudiar(ahora)));
+        // Pronombres
+        todasLasTarjetas.addAll(pronombreFlexionRepo.findAll(FlexionSpecs.<PronombreFlexion>listaParaEstudiar(ahora)));
+        // Partículas
+        todasLasTarjetas.addAll(particulaFlexionRepo.findAll(FlexionSpecs.<ParticulaFlexion>listaParaEstudiar(ahora)));
 
         // Separar tarjetas de revisión (proximaRevision != null) y nuevas (proximaRevision == null)
         List<PalabraFlexion<?>> tarjetasRevision = todasLasTarjetas.stream()
@@ -286,7 +263,7 @@ public class RepeticionEspaciadaService {
                 .sorted(Comparator
                         .comparing((PalabraFlexion<?> f) -> !Boolean.TRUE.equals(f.getEnReaprendizaje()))
                         .thenComparing((PalabraFlexion<?> f) -> f.getUltimaRevision() == null ? 1 : 0)
-                        .thenComparing((PalabraFlexion<?> f) -> f.getProximaRevision()))
+                        .thenComparing(PalabraFlexion::getProximaRevision))
                 .collect(Collectors.toList());
 
         List<PalabraFlexion<?>> tarjetasNuevas = todasLasTarjetas.stream()

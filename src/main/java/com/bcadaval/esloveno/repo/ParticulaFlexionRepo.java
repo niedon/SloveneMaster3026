@@ -1,16 +1,14 @@
 package com.bcadaval.esloveno.repo;
 
 import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.repository.query.QueryByExampleExecutor;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.stream.Stream;
 
-public interface ParticulaFlexionRepo extends JpaRepository<ParticulaFlexion, Integer>, QueryByExampleExecutor<ParticulaFlexion> {
+public interface ParticulaFlexionRepo extends FlexionBaseRepo<ParticulaFlexion, Integer> {
 
     List<ParticulaFlexion> findBySloleksId(String sloleksId);
 

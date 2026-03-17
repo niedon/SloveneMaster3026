@@ -261,7 +261,7 @@ public class XmlParseService {
 								.genero(Genero.fromCode(getNodeXPathValue(wordForm, xPath, XPATH_GENDER)))
 								.numero(Numero.fromCode(getNodeXPathValue(wordForm, xPath, XPATH_NUMBER)))
 								.caso(Caso.fromCode(getNodeXPathValue(wordForm, xPath, XPATH_CASE)))
-								.clitico(parseYesNoBoolean(getNodeXPathValue(wordForm, xPath, XPATH_CLITIC)))
+								.clitico(parseYesNoBoolean(getNodeXPathValue(wordForm, xPath, XPATH_CLITIC), false))
 								.build())
 						.filter(Objects::nonNull)
 						.filter(flexion -> StringUtils.isNotBlank(flexion.getFlexion()))

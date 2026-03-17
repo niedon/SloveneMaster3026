@@ -1,116 +1,174 @@
 package com.bcadaval.esloveno.services.palabra.verbo;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
-import com.bcadaval.esloveno.beans.enums.FormaVerbal;
-import com.bcadaval.esloveno.beans.enums.Numero;
-import com.bcadaval.esloveno.beans.enums.Persona;
-import com.bcadaval.esloveno.beans.enums.Transitividad;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.stereotype.Service;
-
-import com.bcadaval.esloveno.beans.palabra.Verbo;
+import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.repo.VerboFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboRepo;
+import com.bcadaval.esloveno.beans.palabra.Verbo;
+import com.bcadaval.esloveno.services.RandomEntitySelector;
+import jakarta.persistence.criteria.JoinType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
 
+/**
+ * Servicio para gestionar verbos y sus flexiones.
+ * <p>
+ * Proporciona métodos semánticos de alto nivel para obtener verbos
+ * según criterios gramaticales, delegando toda la lógica de filtrado
+ * a Specifications JPA ejecutadas en base de datos.
+ */
 @Service
 public class VerbosService {
 
 	@Autowired
 	private VerboRepo verboRepo;
-	
+
 	@Autowired
 	private VerboFlexionRepo verboFlexionRepo;
 
+	@Autowired
+	private RandomEntitySelector randomSelector;
+
+	/**
+	 * Obtiene todos los verbos.
+	 *
+	 * @return lista de todos los verbos en BD
+	 */
 	public List<Verbo> findAll() {
 		return verboRepo.findAll();
 	}
-	
+
+	/**
+	 * Busca un verbo por su sloleksId.
+	 *
+	 * @param sloleksId identificador Sloleks del verbo
+	 * @return el verbo encontrado
+	 * @throws VerboNotFoundException si no existe
+	 */
 	public Verbo findById(String sloleksId) throws VerboNotFoundException {
 		return verboRepo.findById(sloleksId).orElseThrow(VerboNotFoundException::new);
 	}
-	
+
+	/**
+	 * Comprueba si un verbo tiene más de 8 conjugaciones (flexiones) en BD.
+	 * Se usa para determinar si el verbo ya fue conjugado completamente.
+	 *
+	 * @param sloleksId identificador del verbo
+	 * @return {@code true} si el verbo tiene más de 8 flexiones
+	 */
 	public boolean verbHasConjugations(String sloleksId) {
-		return verboRepo.findById(sloleksId).isPresent() && verboFlexionRepo.count(Example.of(VerboFlexion.builder().sloleksId(sloleksId).build())) > 8;
+		if (verboRepo.findById(sloleksId).isEmpty()) {
+			return false;
+		}
+		Specification<VerboFlexion> spec = (root, query, cb) ->
+				cb.equal(root.get("sloleksId"), sloleksId);
+		return verboFlexionRepo.count(spec) > 8;
 	}
-	
+
+	/**
+	 * Guarda las conjugaciones de un verbo existente.
+	 *
+	 * @param conjugations lista de flexiones a guardar
+	 * @return las flexiones guardadas
+	 * @throws VerboNotFoundException si el verbo base no existe
+	 */
 	public List<VerboFlexion> saveConjugations(List<VerboFlexion> conjugations) throws VerboNotFoundException {
 		verboRepo.findById(conjugations.getFirst().getSloleksId()).orElseThrow(VerboNotFoundException::new);
 		return verboFlexionRepo.saveAll(conjugations);
 	}
 
+	/**
+	 * Obtiene un verbo transitivo en presente de forma aleatoria.
+	 * Excluye verbos negativos. No filtra por lista de ignorados.
+	 *
+	 * @return flexión de verbo transitivo en presente, o null si no hay candidatos
+	 */
 	public VerboFlexion getVerboTransitivoPresenteAleatorio() {
 		return getVerboTransitivoPresenteAleatorio(List.of());
 	}
 
 	/**
-	 * Obtiene un verbo transitivo en presente aleatorio de la base de datos.
-	 * Útil como generador fallback para elementos opcionales.
+	 * Obtiene un verbo transitivo en presente de forma aleatoria,
+	 * excluyendo los verbos cuyo principal esté en la lista de ignorados.
+	 * <p>
+	 * Toda la lógica de filtrado se ejecuta en BD mediante Specification:
+	 * forma verbal = PRESENT, negativo = false, transitividad = TRANSITIVO,
+	 * y principal NOT IN (ignorados).
 	 *
-	 * @return VerboFlexion transitivo en presente, o null si no hay ninguno disponible
+	 * @param verbosIgnorados lista de principales a excluir
+	 * @return flexión de verbo transitivo en presente, o null si no hay candidatos
 	 */
 	public VerboFlexion getVerboTransitivoPresenteAleatorio(List<String> verbosIgnorados) {
-		ExampleMatcher matcher = ExampleMatcher.matching()
-				.withIgnoreNullValues()
-				.withIgnorePaths(
-						"factorFacilidad", "intervaloRepeticionSegundos",
-						"vecesConsecutivasCorrectas", "totalRevisiones",
-						"totalAciertos", "enReaprendizaje"
-				);
+		Specification<VerboFlexion> spec = Specification
+				.where(conFormaVerbal(FormaVerbal.PRESENT))
+				.and(conNegativo(false))
+				.and(conTransitividadBase(Transitividad.TRANSITIVO));
 
-		List<VerboFlexion> candidatos = verboFlexionRepo.findAll(
-				Example.of(VerboFlexion.builder()
-						.formaVerbal(FormaVerbal.PRESENT)
-						.negativo(false)
-						.build(), matcher))
-				.stream()
-				.filter(v -> !verbosIgnorados.contains(v.getVerboBase().getPrincipal())
-						&& v.getVerboBase().getTransitividad() == Transitividad.TRANSITIVO)
-				.toList();
-		if (candidatos.isEmpty()) {
-			return null;
+		if (verbosIgnorados != null && !verbosIgnorados.isEmpty()) {
+			spec = spec.and(principalBaseNotIn(verbosIgnorados));
 		}
-		return candidatos.get(ThreadLocalRandom.current().nextInt(candidatos.size()));
+
+		return randomSelector.selectRandom(verboFlexionRepo, spec).orElse(null);
 	}
 
 	/**
-	 * Obtiene un verbo intransitivo o ambitransitivo en presente aleatorio de la base de datos,
+	 * Obtiene un verbo intransitivo o ambitransitivo en presente de forma aleatoria,
 	 * filtrado por persona y número.
-	 * Útil como generador para estructuras de frase con numerales.
+	 * <p>
+	 * Toda la lógica se ejecuta en BD: forma verbal = PRESENT, negativo = false,
+	 * transitividad IN (INTRANSITIVO, AMBITRANSITIVO), persona y número dados.
 	 *
-	 * @param persona Persona gramatical requerida (ej: TERCERA)
-	 * @param numero Número gramatical requerido (SINGULAR, DUAL, PLURAL)
-	 * @return VerboFlexion intransitivo/ambitransitivo en presente, o null si no hay ninguno disponible
+	 * @param persona persona gramatical requerida
+	 * @param numero  número gramatical requerido
+	 * @return flexión del verbo, o null si no hay candidatos
 	 */
 	public VerboFlexion getVerboIntransitivoPresenteAleatorio(Persona persona, Numero numero) {
-		ExampleMatcher matcher = ExampleMatcher.matching()
-				.withIgnoreNullValues()
-				.withIgnorePaths(
-						"factorFacilidad", "intervaloRepeticionSegundos",
-						"vecesConsecutivasCorrectas", "totalRevisiones",
-						"totalAciertos", "enReaprendizaje"
-				);
+		Specification<VerboFlexion> spec = Specification
+				.where(conFormaVerbal(FormaVerbal.PRESENT))
+				.and(conNegativo(false))
+				.and(conPersona(persona))
+				.and(conNumero(numero))
+				.and(conTransitividadBaseIn(Transitividad.INTRANSITIVO, Transitividad.AMBITRANSITIVO));
 
-		List<VerboFlexion> candidatos = verboFlexionRepo.findAll(
-				Example.of(VerboFlexion.builder()
-						.formaVerbal(FormaVerbal.PRESENT)
-						.persona(persona)
-						.numero(numero)
-						.negativo(false)
-						.build(), matcher))
-				.stream()
-				.filter(v -> v.getVerboBase() != null
-						&& (v.getVerboBase().getTransitividad() == Transitividad.INTRANSITIVO
-						|| v.getVerboBase().getTransitividad() == Transitividad.AMBITRANSITIVO))
-				.toList();
+		return randomSelector.selectRandom(verboFlexionRepo, spec).orElse(null);
+	}
 
-		if (candidatos.isEmpty()) {
-			return null;
-		}
-		return candidatos.get(ThreadLocalRandom.current().nextInt(candidatos.size()));
+	// ============================================
+	// Specifications privadas reutilizables
+	// ============================================
+
+	private static Specification<VerboFlexion> conFormaVerbal(FormaVerbal forma) {
+		return (root, query, cb) -> cb.equal(root.get("formaVerbal"), forma);
+	}
+
+	private static Specification<VerboFlexion> conNegativo(boolean negativo) {
+		return (root, query, cb) -> cb.equal(root.get("negativo"), negativo);
+	}
+
+	private static Specification<VerboFlexion> conPersona(Persona persona) {
+		return (root, query, cb) -> cb.equal(root.get("persona"), persona);
+	}
+
+	private static Specification<VerboFlexion> conNumero(Numero numero) {
+		return (root, query, cb) -> cb.equal(root.get("numero"), numero);
+	}
+
+	private static Specification<VerboFlexion> conTransitividadBase(Transitividad transitividad) {
+		return (root, query, cb) -> cb.equal(
+				root.join("verboBase", JoinType.INNER).get("transitividad"),
+				transitividad);
+	}
+
+	private static Specification<VerboFlexion> conTransitividadBaseIn(Transitividad... transitividades) {
+		return (root, query, cb) ->
+				root.join("verboBase", JoinType.INNER).get("transitividad").in((Object[]) transitividades);
+	}
+
+	private static Specification<VerboFlexion> principalBaseNotIn(List<String> principales) {
+		return (root, query, cb) ->
+				root.join("verboBase", JoinType.INNER).get("principal").in(principales).not();
 	}
 }

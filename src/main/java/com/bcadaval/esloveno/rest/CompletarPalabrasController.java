@@ -32,6 +32,7 @@ import com.bcadaval.esloveno.repo.VerboFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboRepo;
 import com.bcadaval.esloveno.rest.dto.PalabraIncompletaDTO;
 import com.bcadaval.esloveno.rest.dto.ActualizarPalabraResponse;
+import com.bcadaval.esloveno.services.ElegibilidadService;
 import com.bcadaval.esloveno.services.VariablesService;
 
 import lombok.extern.log4j.Log4j2;
@@ -80,6 +81,9 @@ public class CompletarPalabrasController {
 
     @Autowired
     private VariablesService variablesService;
+
+    @Autowired
+    private ElegibilidadService elegibilidadService;
 
     /**
      * Muestra la página para completar palabras incompletas
@@ -267,6 +271,18 @@ public class CompletarPalabrasController {
                 case PARTICULA -> particulaFlexionRepo.saveAll(lista.stream().map(f -> (com.bcadaval.esloveno.beans.palabra.ParticulaFlexion) f).toList());
             }
             log.info("Inicializadas {} flexiones de {} {}", lista.size(), tipo, id);
+
+            // Recalcular elegibilidad para esta palabra concreta
+            TipoPalabra tipoPalabraEnum = TipoPalabra.valueOf(tipo);
+            if (tipoPalabraEnum == TipoPalabra.PRONOMBRE) {
+                // Para pronombres, cada flexión es independiente; recalcular por sloleksId del pronombre
+                PronombreFlexion pf = pronombreFlexionRepo.findById(Integer.valueOf(id)).orElse(null);
+                if (pf != null) {
+                    elegibilidadService.recalcularParaPalabra(pf.getSloleksId(), tipoPalabraEnum);
+                }
+            } else {
+                elegibilidadService.recalcularParaPalabra(id, tipoPalabraEnum);
+            }
 
             return ActualizarPalabraResponse.builder()
                     .exito(true)

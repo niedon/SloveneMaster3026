@@ -2,18 +2,22 @@ package com.bcadaval.esloveno.rest;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.bcadaval.esloveno.beans.Variable;
+import com.bcadaval.esloveno.rest.dto.ConfiguracionDTO;
 import com.bcadaval.esloveno.services.FraseService;
+import com.bcadaval.esloveno.services.FraseService.FraseConfigDTO;
 import com.bcadaval.esloveno.services.VariablesService;
 
 import lombok.extern.log4j.Log4j2;
@@ -60,78 +64,71 @@ public class ConfiguracionController {
     }
 
     /**
-     * Guarda la configuración de variables
+     * Guarda la configuración de variables y estructuras
      */
     @PostMapping("/api/guardarConfiguracion")
     @ResponseBody
-    public String guardarConfiguracion(
-            @RequestParam(required = false) String intervaloInicial,
-            @RequestParam(required = false) String intervaloSegunda,
-            @RequestParam(required = false) String intervaloReaprendizaje,
-            @RequestParam(required = false) String factorFacilidadMinimo,
-            @RequestParam(required = false) String factorFacilidadInicial,
-            @RequestParam(required = false) String penalizacionFallo,
-            @RequestParam(required = false) String maxTarjetasNuevas,
-            @RequestParam(required = false) String maxTarjetasRevision,
-            @RequestParam(required = false) String mezclarTarjetas) {
+    public String guardarConfiguracion(@ModelAttribute ConfiguracionDTO dto) {
 
-        log.info("Guardando configuración");
+        log.info("Guardando configuración completa");
 
         try {
-            if (intervaloInicial != null) {
-                actualizarVariable(VariablesService.INTERVALO_INICIAL_SEGUNDOS, intervaloInicial, "LONG");
+            //TODO ver si se puede quitar if
+            // 1. Guardar variables generales
+            if (dto.getIntervaloInicial() != null) {
+                actualizarVariable(VariablesService.INTERVALO_INICIAL_SEGUNDOS, dto.getIntervaloInicial(), "LONG");
             }
-            if (intervaloSegunda != null) {
-                actualizarVariable(VariablesService.INTERVALO_SEGUNDA_SEGUNDOS, intervaloSegunda, "LONG");
+            if (dto.getIntervaloSegunda() != null) {
+                actualizarVariable(VariablesService.INTERVALO_SEGUNDA_SEGUNDOS, dto.getIntervaloSegunda(), "LONG");
             }
-            if (intervaloReaprendizaje != null) {
-                actualizarVariable(VariablesService.INTERVALO_REAPRENDIZAJE_SEGUNDOS, intervaloReaprendizaje, "LONG");
+            if (dto.getIntervaloReaprendizaje() != null) {
+                actualizarVariable(VariablesService.INTERVALO_REAPRENDIZAJE_SEGUNDOS, dto.getIntervaloReaprendizaje(), "LONG");
             }
-            if (factorFacilidadMinimo != null) {
-                actualizarVariable(VariablesService.FACTOR_FACILIDAD_MINIMO, factorFacilidadMinimo, "DOUBLE");
+            if (dto.getFactorFacilidadMinimo() != null) {
+                actualizarVariable(VariablesService.FACTOR_FACILIDAD_MINIMO, dto.getFactorFacilidadMinimo(), "DOUBLE");
             }
-            if (factorFacilidadInicial != null) {
-                actualizarVariable(VariablesService.FACTOR_FACILIDAD_INICIAL, factorFacilidadInicial, "DOUBLE");
+            if (dto.getFactorFacilidadInicial() != null) {
+                actualizarVariable(VariablesService.FACTOR_FACILIDAD_INICIAL, dto.getFactorFacilidadInicial(), "DOUBLE");
             }
-            if (penalizacionFallo != null) {
-                actualizarVariable(VariablesService.PENALIZACION_FALLO, penalizacionFallo, "DOUBLE");
+            if (dto.getPenalizacionFallo() != null) {
+                actualizarVariable(VariablesService.PENALIZACION_FALLO, dto.getPenalizacionFallo(), "DOUBLE");
             }
-            if (maxTarjetasNuevas != null) {
-                actualizarVariable(VariablesService.MAX_TARJETAS_NUEVAS_DIA, maxTarjetasNuevas, "INTEGER");
+            if (dto.getMaxTarjetasNuevas() != null) {
+                actualizarVariable(VariablesService.MAX_TARJETAS_NUEVAS_DIA, dto.getMaxTarjetasNuevas(), "INTEGER");
             }
-            if (maxTarjetasRevision != null) {
-                actualizarVariable(VariablesService.MAX_TARJETAS_REVISION_DIA, maxTarjetasRevision, "INTEGER");
+            if (dto.getMaxTarjetasRevision() != null) {
+                actualizarVariable(VariablesService.MAX_TARJETAS_REVISION_DIA, dto.getMaxTarjetasRevision(), "INTEGER");
             }
-            if (mezclarTarjetas != null) {
-                actualizarVariable(VariablesService.MEZCLAR_TARJETAS, mezclarTarjetas, "BOOLEAN");
+            if (dto.getMezclarTarjetas() != null) {
+                actualizarVariable(VariablesService.MEZCLAR_TARJETAS, dto.getMezclarTarjetas(), "BOOLEAN");
             }
+
+            // 2. Actualizar estructuras
+            // Obtener el conjunto de IDs que deben estar activos
+            Set<String> estructurasActivas = dto.getEstructuras() != null 
+                    ? Set.copyOf(dto.getEstructuras()) 
+                    : Set.of();
+            
+            // Obtener todas las estructuras posibles para actualizar su estado
+            List<FraseConfigDTO> todasLasFrases = fraseService.getTodasParaConfiguracion();
+            
+            for (FraseConfigDTO frase : todasLasFrases) {
+                String id = frase.identificador();
+                boolean debeEstarActiva = estructurasActivas.contains(id);
+                
+                // Actualizamos el estado solo si ha cambiado (para evitar escrituras innecesarias si fuera el caso)
+                // Aunque setActiva probablemente sea barato si solo hace save.
+                fraseService.setActiva(id, debeEstarActiva);
+            }
+
+            // 3. Recalcular criterios una única vez al final
+            fraseService.onConfiguracionGuardada();
 
             log.info("Configuración guardada correctamente");
             return "{\"exito\": true, \"mensaje\": \"Configuración guardada correctamente\"}";
 
         } catch (Exception e) {
             log.error("Error al guardar configuración: {}", e.getMessage(), e);
-            return "{\"exito\": false, \"mensaje\": \"Error: " + e.getMessage() + "\"}";
-        }
-    }
-
-    /**
-     * Activa o desactiva una estructura de frase
-     */
-    @PostMapping("/api/toggleEstructura")
-    @ResponseBody
-    public String toggleEstructura(
-            @RequestParam String identificador,
-            @RequestParam boolean activa) {
-
-        log.info("Cambiando estado de estructura '{}' a {}", identificador, activa);
-
-        try {
-            fraseService.setActiva(identificador, activa);
-            fraseService.onConfiguracionGuardada();
-            return "{\"exito\": true, \"mensaje\": \"Estructura actualizada\"}";
-        } catch (Exception e) {
-            log.error("Error al actualizar estructura: {}", e.getMessage(), e);
             return "{\"exito\": false, \"mensaje\": \"Error: " + e.getMessage() + "\"}";
         }
     }
@@ -154,4 +151,3 @@ public class ConfiguracionController {
         return variablesService.obtenerTodasLasVariables();
     }
 }
-

@@ -51,6 +51,10 @@ public class FraseService {
     @Autowired
     private InitializationService initializationService;
 
+    @Lazy
+    @Autowired
+    private ElegibilidadService elegibilidadService;
+
     /**
      * Flag para controlar que solo se registran una vez.
      */
@@ -213,6 +217,9 @@ public class FraseService {
                 nuevaCache.entrySet().stream()
                         .map(e -> e.getKey().getSimpleName() + "(" + e.getValue().size() + ")")
                         .toList());
+
+        // Recalcular elegibilidad en BD tras actualizar los criterios
+        elegibilidadService.recalcularTodo();
     }
 
     /**
