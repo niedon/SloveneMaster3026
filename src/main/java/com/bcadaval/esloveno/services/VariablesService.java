@@ -1,14 +1,11 @@
 package com.bcadaval.esloveno.services;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.bcadaval.esloveno.beans.Variable;
-import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.repo.VariablesRepo;
 
 import lombok.extern.log4j.Log4j2;

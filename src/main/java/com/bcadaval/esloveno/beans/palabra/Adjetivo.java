@@ -1,15 +1,11 @@
 package com.bcadaval.esloveno.beans.palabra;
 
-import java.util.List;
-
 import com.bcadaval.esloveno.beans.base.Palabra;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Transient;
 import lombok.*;
 import lombok.experimental.Accessors;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Representa un adjetivo en esloveno.
@@ -18,23 +14,15 @@ import lombok.experimental.Accessors;
  */
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
+//@AllArgsConstructor
+@SuperBuilder
 @Entity
 @Accessors(chain = true)
-@ToString
-public class Adjetivo implements Palabra<AdjetivoFlexion> {
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class Adjetivo extends Palabra<AdjetivoFlexion> {
 	
-	@Id
-	private String sloleksId;
-
-	private String principal;
-
-	private String sloleksKey;
-	
-	private String significado;
-	
-	@Transient
-	private List<AdjetivoFlexion> listaFlexiones;
+    // No fields unique to Adjetivo for now, but extending base class
+    // allows for future expansion and standard type hierarchy
 
 }

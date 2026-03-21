@@ -161,7 +161,7 @@ public class XmlParseService {
                 .listaFlexiones(
 						IntStream.range(0, wordForms.getLength())
 						.mapToObj(wordForms::item)
-						.map(wordForm -> SustantivoFlexion.builder()
+						.map(wordForm -> (SustantivoFlexion) SustantivoFlexion.builder()
 								.sloleksId(sloleksId)
 								.principal(principal)
 								.flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
@@ -187,7 +187,7 @@ public class XmlParseService {
                 .aspecto(Aspecto.fromCode(getXPathValue(doc, xPath, XPATH_HEAD_ASPECT)))
                 .listaFlexiones(IntStream.range(0, wordForms.getLength())
 						.mapToObj(wordForms::item)
-						.map(wordForm -> VerboFlexion.builder()
+						.map(wordForm -> (VerboFlexion) VerboFlexion.builder()
 								.sloleksId(sloleksId)
 								.principal(principal)
 								.flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
@@ -215,7 +215,7 @@ public class XmlParseService {
                 .sloleksKey(getXPathValue(doc, xPath, XPATH_SLOLEKS_KEY))
                 .listaFlexiones(IntStream.range(0, wordForms.getLength())
 						.mapToObj(wordForms::item)
-						.map(wordForm -> AdjetivoFlexion.builder()
+						.map(wordForm -> (AdjetivoFlexion) AdjetivoFlexion.builder()
 								.sloleksId(sloleksId)
 								.principal(principal)
 								.flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
@@ -250,7 +250,7 @@ public class XmlParseService {
                 .sloleksKey(getXPathValue(doc, xPath, XPATH_SLOLEKS_KEY))
                 .listaFlexiones(IntStream.range(0, wordForms.getLength())
 						.mapToObj(wordForms::item)
-						.map(wordForm -> PronombreFlexion.builder()
+						.map(wordForm -> (PronombreFlexion) PronombreFlexion.builder()
 								.sloleksId(sloleksId)
 								.principal(principal)
 								.flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
@@ -278,7 +278,7 @@ public class XmlParseService {
                 .sloleksKey(getXPathValue(doc, xPath, XPATH_SLOLEKS_KEY))
                 .listaFlexiones(IntStream.range(0, wordForms.getLength())
 						.mapToObj(wordForms::item)
-						.map(wordForm -> NumeralFlexion.builder()
+						.map(wordForm -> (NumeralFlexion) NumeralFlexion.builder()
 								.sloleksId(sloleksId)
 								.principal(principal)
 								.flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
@@ -306,7 +306,7 @@ public class XmlParseService {
                 .subcategoria(subcategoria != null && !subcategoria.isBlank() ? subcategoria : null)
                 .listaFlexiones(IntStream.range(0, wordForms.getLength())
                         .mapToObj(wordForms::item)
-                        .map(wordForm -> ParticulaFlexion.builder()
+                        .map(wordForm -> (ParticulaFlexion) ParticulaFlexion.builder()
                                 .sloleksId(sloleksId)
                                 .principal(principal)
                                 .flexion(getNodeXPathValue(wordForm, xPath, XPATH_FLEXION))
@@ -322,7 +322,6 @@ public class XmlParseService {
 
     // =========================================================================
     // MÉTODOS AUXILIARES
-    // =========================================================================
 
     /**
      * Parsea un string XML a Document

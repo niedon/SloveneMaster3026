@@ -6,7 +6,6 @@ import com.bcadaval.esloveno.beans.palabra.*;
 import com.bcadaval.esloveno.repo.*;
 import com.bcadaval.esloveno.rest.dto.FlexionDetalleDTO;
 import com.bcadaval.esloveno.rest.dto.PalabraGuardadaDTO;
-import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,45 +58,20 @@ public class BuscarPalabrasService {
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(ZoneId.systemDefault());
 
     /**
-     * Obtiene los criterios de elegibilidad activos para cada tipo de flexión.
-     * Una flexión es "elegible" si cumple alguno de los criterios expandidos
-     * derivados de las frases activas.
-     */
-    private Map<TipoPalabra, List<? extends CriterioBusquedaNuevo<?>>> obtenerCriteriosActivos() {
-        Map<TipoPalabra, List<? extends CriterioBusquedaNuevo<?>>> mapa = new EnumMap<>(TipoPalabra.class);
-        mapa.put(TipoPalabra.VERBO, fraseService.getCriteriosPorTipo(VerboFlexion.class));
-        mapa.put(TipoPalabra.SUSTANTIVO, fraseService.getCriteriosPorTipo(SustantivoFlexion.class));
-        mapa.put(TipoPalabra.ADJETIVO, fraseService.getCriteriosPorTipo(AdjetivoFlexion.class));
-        mapa.put(TipoPalabra.PRONOMBRE, fraseService.getCriteriosPorTipo(PronombreFlexion.class));
-        mapa.put(TipoPalabra.NUMERAL, fraseService.getCriteriosPorTipo(NumeralFlexion.class));
-        mapa.put(TipoPalabra.PARTICULA, fraseService.getCriteriosPorTipo(ParticulaFlexion.class));
-        return mapa;
-    }
-
-    /**
-     * Verifica si una flexión es elegible usando el campo precalculado.
-     */
-    //TODO eliminable llamar a esElegible del bean?
-    private boolean esElegible(PalabraFlexion<?> flexion) {
-        return Boolean.TRUE.equals(flexion.getElegible());
-    }
-
-    /**
      * Busca palabras en todos los tipos por texto (en principal o significado).
      * Si el texto está vacío, devuelve todas las palabras.
      */
     public List<PalabraGuardadaDTO> buscarPalabras(String texto) {
         List<PalabraGuardadaDTO> resultados = new ArrayList<>();
-        Map<TipoPalabra, List<? extends CriterioBusquedaNuevo<?>>> criteriosActivos = obtenerCriteriosActivos();
 
         if (texto == null || texto.isBlank()) {
             // Devolver todas las palabras
-            resultados.addAll(mapearVerbos(verboRepo.findAll(), criteriosActivos));
-            resultados.addAll(mapearSustantivos(sustantivoRepo.findAll(), criteriosActivos));
-            resultados.addAll(mapearAdjetivos(adjetivoRepo.findAll(), criteriosActivos));
-            resultados.addAll(mapearPronombres(pronombreRepo.findAll(), criteriosActivos));
-            resultados.addAll(mapearNumerales(numeralRepo.findAll(), criteriosActivos));
-            resultados.addAll(mapearParticulas(particulaRepo.findAll(), criteriosActivos));
+            resultados.addAll(mapearVerbos(verboRepo.findAll()));
+            resultados.addAll(mapearSustantivos(sustantivoRepo.findAll()));
+            resultados.addAll(mapearAdjetivos(adjetivoRepo.findAll()));
+            resultados.addAll(mapearPronombres(pronombreRepo.findAll()));
+            resultados.addAll(mapearNumerales(numeralRepo.findAll()));
+            resultados.addAll(mapearParticulas(particulaRepo.findAll()));
         } else {
             // Buscar por principal y significado, eliminar duplicados
             Set<String> idsVerbos = new LinkedHashSet<>();
@@ -108,7 +82,7 @@ public class BuscarPalabrasService {
             for (Verbo v : verboRepo.findBySignificadoContainingIgnoreCase(texto)) {
                 if (idsVerbos.add(v.getSloleksId())) verbos.add(v);
             }
-            resultados.addAll(mapearVerbos(verbos, criteriosActivos));
+            resultados.addAll(mapearVerbos(verbos));
 
             Set<String> idsSust = new LinkedHashSet<>();
             List<Sustantivo> sustantivos = new ArrayList<>();
@@ -118,7 +92,7 @@ public class BuscarPalabrasService {
             for (Sustantivo s : sustantivoRepo.findBySignificadoContainingIgnoreCase(texto)) {
                 if (idsSust.add(s.getSloleksId())) sustantivos.add(s);
             }
-            resultados.addAll(mapearSustantivos(sustantivos, criteriosActivos));
+            resultados.addAll(mapearSustantivos(sustantivos));
 
             Set<String> idsAdj = new LinkedHashSet<>();
             List<Adjetivo> adjetivos = new ArrayList<>();
@@ -128,7 +102,7 @@ public class BuscarPalabrasService {
             for (Adjetivo a : adjetivoRepo.findBySignificadoContainingIgnoreCase(texto)) {
                 if (idsAdj.add(a.getSloleksId())) adjetivos.add(a);
             }
-            resultados.addAll(mapearAdjetivos(adjetivos, criteriosActivos));
+            resultados.addAll(mapearAdjetivos(adjetivos));
 
             Set<String> idsPron = new LinkedHashSet<>();
             List<Pronombre> pronombres = new ArrayList<>();
@@ -138,7 +112,7 @@ public class BuscarPalabrasService {
             for (Pronombre p : pronombreRepo.findBySignificadoContainingIgnoreCase(texto)) {
                 if (idsPron.add(p.getSloleksId())) pronombres.add(p);
             }
-            resultados.addAll(mapearPronombres(pronombres, criteriosActivos));
+            resultados.addAll(mapearPronombres(pronombres));
 
             Set<String> idsNum = new LinkedHashSet<>();
             List<Numeral> numerales = new ArrayList<>();
@@ -148,7 +122,7 @@ public class BuscarPalabrasService {
             for (Numeral n : numeralRepo.findBySignificadoContainingIgnoreCase(texto)) {
                 if (idsNum.add(n.getSloleksId())) numerales.add(n);
             }
-            resultados.addAll(mapearNumerales(numerales, criteriosActivos));
+            resultados.addAll(mapearNumerales(numerales));
 
             Set<String> idsPart = new LinkedHashSet<>();
             List<Particula> particulas = new ArrayList<>();
@@ -158,7 +132,7 @@ public class BuscarPalabrasService {
             for (Particula p : particulaRepo.findBySignificadoContainingIgnoreCase(texto)) {
                 if (idsPart.add(p.getSloleksId())) particulas.add(p);
             }
-            resultados.addAll(mapearParticulas(particulas, criteriosActivos));
+            resultados.addAll(mapearParticulas(particulas));
         }
 
         // Ordenar por nombre principal
@@ -173,28 +147,19 @@ public class BuscarPalabrasService {
      * Calcula la elegibilidad de cada flexión según las frases activas.
      */
     public List<FlexionDetalleDTO> obtenerFlexiones(String sloleksId, TipoPalabra tipo) {
-        List<? extends CriterioBusquedaNuevo<?>> criterios = switch (tipo) {
-            case VERBO -> fraseService.getCriteriosPorTipo(VerboFlexion.class);
-            case SUSTANTIVO -> fraseService.getCriteriosPorTipo(SustantivoFlexion.class);
-            case ADJETIVO -> fraseService.getCriteriosPorTipo(AdjetivoFlexion.class);
-            case PRONOMBRE -> fraseService.getCriteriosPorTipo(PronombreFlexion.class);
-            case NUMERAL -> fraseService.getCriteriosPorTipo(NumeralFlexion.class);
-            case PARTICULA -> fraseService.getCriteriosPorTipo(ParticulaFlexion.class);
-        };
-
         return switch (tipo) {
             case VERBO -> verboFlexionRepo.findBySloleksId(sloleksId).stream()
-                    .map(f -> mapearFlexionVerbo(f, criterios)).toList();
+                    .map(this::mapearFlexionVerbo).toList();
             case SUSTANTIVO -> sustantivoFlexionRepo.findBySloleksId(sloleksId).stream()
-                    .map(f -> mapearFlexionSustantivo(f, criterios)).toList();
+                    .map(this::mapearFlexionSustantivo).toList();
             case ADJETIVO -> adjetivoFlexionRepo.findBySloleksId(sloleksId).stream()
-                    .map(f -> mapearFlexionAdjetivo(f, criterios)).toList();
+                    .map(this::mapearFlexionAdjetivo).toList();
             case PRONOMBRE -> pronombreFlexionRepo.findBySloleksId(sloleksId).stream()
-                    .map(f -> mapearFlexionPronombre(f, criterios)).toList();
+                    .map(this::mapearFlexionPronombre).toList();
             case NUMERAL -> numeralFlexionRepo.findBySloleksId(sloleksId).stream()
-                    .map(f -> mapearFlexionNumeral(f, criterios)).toList();
+                    .map(this::mapearFlexionNumeral).toList();
             case PARTICULA -> particulaFlexionRepo.findBySloleksId(sloleksId).stream()
-                    .map(f -> mapearFlexionParticula(f, criterios)).toList();
+                    .map(this::mapearFlexionParticula).toList();
         };
     }
 
@@ -202,11 +167,10 @@ public class BuscarPalabrasService {
     // Mapeo de palabras principales a DTO
     // =====================================================
 
-    private List<PalabraGuardadaDTO> mapearVerbos(List<Verbo> verbos, Map<TipoPalabra, List<? extends CriterioBusquedaNuevo<?>>> criteriosActivos) {
-        List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.VERBO, List.of());
+    private List<PalabraGuardadaDTO> mapearVerbos(List<Verbo> verbos) {
         return verbos.stream().map(v -> {
             List<VerboFlexion> flexiones = verboFlexionRepo.findBySloleksId(v.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
+            int elegibles = (int) flexiones.stream().filter(PalabraFlexion::getElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(v.getSloleksId())
                     .principal(v.getPrincipal())
@@ -230,11 +194,10 @@ public class BuscarPalabrasService {
         }).toList();
     }
 
-    private List<PalabraGuardadaDTO> mapearSustantivos(List<Sustantivo> sustantivos, Map<TipoPalabra, List<? extends CriterioBusquedaNuevo<?>>> criteriosActivos) {
-        List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.SUSTANTIVO, List.of());
+    private List<PalabraGuardadaDTO> mapearSustantivos(List<Sustantivo> sustantivos) {
         return sustantivos.stream().map(s -> {
             List<SustantivoFlexion> flexiones = sustantivoFlexionRepo.findBySloleksId(s.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
+            int elegibles = (int) flexiones.stream().filter(PalabraFlexion::getElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(s.getSloleksId())
                     .principal(s.getPrincipal())
@@ -259,11 +222,10 @@ public class BuscarPalabrasService {
         }).toList();
     }
 
-    private List<PalabraGuardadaDTO> mapearAdjetivos(List<Adjetivo> adjetivos, Map<TipoPalabra, List<? extends CriterioBusquedaNuevo<?>>> criteriosActivos) {
-        List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.ADJETIVO, List.of());
+    private List<PalabraGuardadaDTO> mapearAdjetivos(List<Adjetivo> adjetivos) {
         return adjetivos.stream().map(a -> {
             List<AdjetivoFlexion> flexiones = adjetivoFlexionRepo.findBySloleksId(a.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
+            int elegibles = (int) flexiones.stream().filter(PalabraFlexion::getElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(a.getSloleksId())
                     .principal(a.getPrincipal())
@@ -279,11 +241,10 @@ public class BuscarPalabrasService {
         }).toList();
     }
 
-    private List<PalabraGuardadaDTO> mapearPronombres(List<Pronombre> pronombres, Map<TipoPalabra, List<? extends CriterioBusquedaNuevo<?>>> criteriosActivos) {
-        List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.PRONOMBRE, List.of());
+    private List<PalabraGuardadaDTO> mapearPronombres(List<Pronombre> pronombres) {
         return pronombres.stream().map(p -> {
             List<PronombreFlexion> flexiones = pronombreFlexionRepo.findBySloleksId(p.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
+            int elegibles = (int) flexiones.stream().filter(PalabraFlexion::getElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(p.getSloleksId())
                     .principal(p.getPrincipal())
@@ -300,11 +261,10 @@ public class BuscarPalabrasService {
         }).toList();
     }
 
-    private List<PalabraGuardadaDTO> mapearNumerales(List<Numeral> numerales, Map<TipoPalabra, List<? extends CriterioBusquedaNuevo<?>>> criteriosActivos) {
-        List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.NUMERAL, List.of());
+    private List<PalabraGuardadaDTO> mapearNumerales(List<Numeral> numerales) {
         return numerales.stream().map(n -> {
             List<NumeralFlexion> flexiones = numeralFlexionRepo.findBySloleksId(n.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
+            int elegibles = (int) flexiones.stream().filter(PalabraFlexion::getElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(n.getSloleksId())
                     .principal(n.getPrincipal())
@@ -324,10 +284,10 @@ public class BuscarPalabrasService {
     // Mapeo de flexiones a DTO
     // =====================================================
 
-    private FlexionDetalleDTO mapearFlexionBase(PalabraFlexion<?> f, List<? extends CriterioBusquedaNuevo<?>> criterios) {
+    private FlexionDetalleDTO mapearFlexionBase(PalabraFlexion<?> f) {
         boolean activa = f.getProximaRevision() != null;
         boolean estudioIniciado = f.getTotalRevisiones() != null && f.getTotalRevisiones() > 0;
-        boolean elegible = esElegible(f);
+        boolean elegible = f.getElegible();
         int totalRev = f.getTotalRevisiones() != null ? f.getTotalRevisiones() : 0;
         int totalAc = f.getTotalAciertos() != null ? f.getTotalAciertos() : 0;
 
@@ -351,8 +311,8 @@ public class BuscarPalabrasService {
                 .build();
     }
 
-    private FlexionDetalleDTO mapearFlexionVerbo(VerboFlexion vf, List<? extends CriterioBusquedaNuevo<?>> criterios) {
-        FlexionDetalleDTO dto = mapearFlexionBase(vf, criterios);
+    private FlexionDetalleDTO mapearFlexionVerbo(VerboFlexion vf) {
+        FlexionDetalleDTO dto = mapearFlexionBase(vf);
         dto.setFormaVerbal(vf.getFormaVerbal() != null ? vf.getFormaVerbal().name() : null);
         dto.setPersona(vf.getPersona() != null ? vf.getPersona().name() : null);
         dto.setNumero(vf.getNumero() != null ? vf.getNumero().name() : null);
@@ -361,15 +321,15 @@ public class BuscarPalabrasService {
         return dto;
     }
 
-    private FlexionDetalleDTO mapearFlexionSustantivo(SustantivoFlexion sf, List<? extends CriterioBusquedaNuevo<?>> criterios) {
-        FlexionDetalleDTO dto = mapearFlexionBase(sf, criterios);
+    private FlexionDetalleDTO mapearFlexionSustantivo(SustantivoFlexion sf) {
+        FlexionDetalleDTO dto = mapearFlexionBase(sf);
         dto.setNumero(sf.getNumero() != null ? sf.getNumero().name() : null);
         dto.setCaso(sf.getCaso() != null ? sf.getCaso().name() : null);
         return dto;
     }
 
-    private FlexionDetalleDTO mapearFlexionAdjetivo(AdjetivoFlexion af, List<? extends CriterioBusquedaNuevo<?>> criterios) {
-        FlexionDetalleDTO dto = mapearFlexionBase(af, criterios);
+    private FlexionDetalleDTO mapearFlexionAdjetivo(AdjetivoFlexion af) {
+        FlexionDetalleDTO dto = mapearFlexionBase(af);
         dto.setGenero(af.getGenero() != null ? af.getGenero().name() : null);
         dto.setNumero(af.getNumero() != null ? af.getNumero().name() : null);
         dto.setCaso(af.getCaso() != null ? af.getCaso().name() : null);
@@ -378,27 +338,26 @@ public class BuscarPalabrasService {
         return dto;
     }
 
-    private FlexionDetalleDTO mapearFlexionPronombre(PronombreFlexion pf, List<? extends CriterioBusquedaNuevo<?>> criterios) {
-        FlexionDetalleDTO dto = mapearFlexionBase(pf, criterios);
+    private FlexionDetalleDTO mapearFlexionPronombre(PronombreFlexion pf) {
+        FlexionDetalleDTO dto = mapearFlexionBase(pf);
         dto.setNumero(pf.getNumero() != null ? pf.getNumero().name() : null);
         dto.setCaso(pf.getCaso() != null ? pf.getCaso().name() : null);
         dto.setGenero(pf.getGenero() != null ? pf.getGenero().name() : null);
         return dto;
     }
 
-    private FlexionDetalleDTO mapearFlexionNumeral(NumeralFlexion nf, List<? extends CriterioBusquedaNuevo<?>> criterios) {
-        FlexionDetalleDTO dto = mapearFlexionBase(nf, criterios);
+    private FlexionDetalleDTO mapearFlexionNumeral(NumeralFlexion nf) {
+        FlexionDetalleDTO dto = mapearFlexionBase(nf);
         dto.setNumero(nf.getNumero() != null ? nf.getNumero().name() : null);
         dto.setCaso(nf.getCaso() != null ? nf.getCaso().name() : null);
         dto.setGenero(nf.getGenero() != null ? nf.getGenero().name() : null);
         return dto;
     }
 
-    private List<PalabraGuardadaDTO> mapearParticulas(List<Particula> particulas, Map<TipoPalabra, List<? extends CriterioBusquedaNuevo<?>>> criteriosActivos) {
-        List<? extends CriterioBusquedaNuevo<?>> criterios = criteriosActivos.getOrDefault(TipoPalabra.PARTICULA, List.of());
+    private List<PalabraGuardadaDTO> mapearParticulas(List<Particula> particulas) {
         return particulas.stream().map(p -> {
             List<ParticulaFlexion> flexiones = particulaFlexionRepo.findBySloleksId(p.getSloleksId());
-            int elegibles = (int) flexiones.stream().filter(this::esElegible).count();
+            int elegibles = (int) flexiones.stream().filter(PalabraFlexion::getElegible).count();
             return PalabraGuardadaDTO.builder()
                     .sloleksId(p.getSloleksId())
                     .principal(p.getPrincipal())
@@ -414,8 +373,8 @@ public class BuscarPalabrasService {
         }).toList();
     }
 
-    private FlexionDetalleDTO mapearFlexionParticula(ParticulaFlexion paf, List<? extends CriterioBusquedaNuevo<?>> criterios) {
-        return mapearFlexionBase(paf, criterios);
+    private FlexionDetalleDTO mapearFlexionParticula(ParticulaFlexion paf) {
+        return mapearFlexionBase(paf);
     }
 
     /**

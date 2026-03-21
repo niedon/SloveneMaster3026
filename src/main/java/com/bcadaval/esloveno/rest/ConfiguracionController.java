@@ -11,7 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.bcadaval.esloveno.beans.Variable;
@@ -73,35 +72,16 @@ public class ConfiguracionController {
         log.info("Guardando configuración completa");
 
         try {
-            //TODO ver si se puede quitar if
             // 1. Guardar variables generales
-            if (dto.getIntervaloInicial() != null) {
-                actualizarVariable(VariablesService.INTERVALO_INICIAL_SEGUNDOS, dto.getIntervaloInicial(), "LONG");
-            }
-            if (dto.getIntervaloSegunda() != null) {
-                actualizarVariable(VariablesService.INTERVALO_SEGUNDA_SEGUNDOS, dto.getIntervaloSegunda(), "LONG");
-            }
-            if (dto.getIntervaloReaprendizaje() != null) {
-                actualizarVariable(VariablesService.INTERVALO_REAPRENDIZAJE_SEGUNDOS, dto.getIntervaloReaprendizaje(), "LONG");
-            }
-            if (dto.getFactorFacilidadMinimo() != null) {
-                actualizarVariable(VariablesService.FACTOR_FACILIDAD_MINIMO, dto.getFactorFacilidadMinimo(), "DOUBLE");
-            }
-            if (dto.getFactorFacilidadInicial() != null) {
-                actualizarVariable(VariablesService.FACTOR_FACILIDAD_INICIAL, dto.getFactorFacilidadInicial(), "DOUBLE");
-            }
-            if (dto.getPenalizacionFallo() != null) {
-                actualizarVariable(VariablesService.PENALIZACION_FALLO, dto.getPenalizacionFallo(), "DOUBLE");
-            }
-            if (dto.getMaxTarjetasNuevas() != null) {
-                actualizarVariable(VariablesService.MAX_TARJETAS_NUEVAS_DIA, dto.getMaxTarjetasNuevas(), "INTEGER");
-            }
-            if (dto.getMaxTarjetasRevision() != null) {
-                actualizarVariable(VariablesService.MAX_TARJETAS_REVISION_DIA, dto.getMaxTarjetasRevision(), "INTEGER");
-            }
-            if (dto.getMezclarTarjetas() != null) {
-                actualizarVariable(VariablesService.MEZCLAR_TARJETAS, dto.getMezclarTarjetas(), "BOOLEAN");
-            }
+            actualizarVariable(VariablesService.INTERVALO_INICIAL_SEGUNDOS, dto.getIntervaloInicial(), "LONG");
+            actualizarVariable(VariablesService.INTERVALO_SEGUNDA_SEGUNDOS, dto.getIntervaloSegunda(), "LONG");
+            actualizarVariable(VariablesService.INTERVALO_REAPRENDIZAJE_SEGUNDOS, dto.getIntervaloReaprendizaje(), "LONG");
+            actualizarVariable(VariablesService.FACTOR_FACILIDAD_MINIMO, dto.getFactorFacilidadMinimo(), "DOUBLE");
+            actualizarVariable(VariablesService.FACTOR_FACILIDAD_INICIAL, dto.getFactorFacilidadInicial(), "DOUBLE");
+            actualizarVariable(VariablesService.PENALIZACION_FALLO, dto.getPenalizacionFallo(), "DOUBLE");
+            actualizarVariable(VariablesService.MAX_TARJETAS_NUEVAS_DIA, dto.getMaxTarjetasNuevas(), "INTEGER");
+            actualizarVariable(VariablesService.MEZCLAR_TARJETAS, dto.getMezclarTarjetas(), "BOOLEAN");
+            actualizarVariable(VariablesService.MAX_TARJETAS_REVISION_DIA, dto.getMaxTarjetasRevision(), "INTEGER");
 
             // 2. Actualizar estructuras
             // Obtener el conjunto de IDs que deben estar activos
@@ -134,12 +114,9 @@ public class ConfiguracionController {
     }
 
     private void actualizarVariable(String clave, String valor, String tipo) {
-        Variable variable = Variable.builder()
-                .clave(clave)
-                .valor(valor)
-                .tipo(tipo)
-                .build();
-        variablesService.guardarVariable(variable);
+        if (valor != null) {
+            variablesService.guardarVariable(Variable.builder().clave(clave).valor(valor).tipo(tipo).build());
+        }
     }
 
     /**

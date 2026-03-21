@@ -99,7 +99,7 @@ public abstract class Frase {
      * </ul>
      * <p>
      * Marca la frase como inválida si encuentra errores.
-     * Este método debe llamarse al arrancar la aplicación.
+     * Esta función debe llamarse al arrancar la aplicación.
      */
     public void validar() {
         // Validar que ningún hueco carece de criterio y generador

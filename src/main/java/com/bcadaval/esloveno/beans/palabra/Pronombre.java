@@ -4,30 +4,18 @@ import com.bcadaval.esloveno.beans.base.Palabra;
 import com.bcadaval.esloveno.beans.enums.TipoPronombre;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.List;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
-@ToString
-public class Pronombre implements Palabra<PronombreFlexion> {
-
-	@Id
-	private String sloleksId;
-
-	private String principal;
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class Pronombre extends Palabra<PronombreFlexion> {
 
 	@Enumerated(EnumType.STRING)
 	private TipoPronombre tipoPronombre;
-
-	private String sloleksKey;
-
-	private String significado;
-
-	@Transient
-	private List<PronombreFlexion> listaFlexiones;
 
 }

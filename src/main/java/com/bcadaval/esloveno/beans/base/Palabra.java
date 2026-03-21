@@ -1,5 +1,12 @@
 package com.bcadaval.esloveno.beans.base;
 
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Transient;
+import lombok.*;
+import lombok.experimental.Accessors;
+import lombok.experimental.SuperBuilder;
+
 import java.util.List;
 
 /**
@@ -8,27 +15,33 @@ import java.util.List;
  *
  * @param <E> Clase que representa la flexión de la palabra.
  */
-public interface Palabra<E extends PalabraFlexion<?>> {
+@Data
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(chain = true)
+@MappedSuperclass
+public abstract class Palabra<E extends PalabraFlexion<?>> {
 
     /**
      * Obtiene el identificador único de Sloleks.
-     *
-     * @return El sloleksId de la palabra.
      */
-    String getSloleksId();
-
-    /**
-     * Obtiene la lista de flexiones asociadas a la palabra.
-     *
-     * @return Lista de flexiones de la palabra.
-     */
-    List<E> getListaFlexiones();
+    @Id
+    protected String sloleksId;
 
     /**
      * Obtiene la forma principal de la palabra.
-     *
-     * @return La forma principal de la palabra.
      */
-    String getPrincipal();
+    protected String principal;
+
+    protected String sloleksKey;
+
+    protected String significado;
+
+    /**
+     * Obtiene la lista de flexiones asociadas a la palabra.
+     */
+    @Transient
+    protected List<E> listaFlexiones;
 
 }

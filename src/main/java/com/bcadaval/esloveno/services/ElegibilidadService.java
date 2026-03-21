@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -203,7 +202,6 @@ public class ElegibilidadService {
      * @param sloleksId identificador de la palabra base
      * @param tipoPalabra tipo de palabra (para saber qué repositorio y criterios usar)
      */
-    //TODO revisar lógica, método prescindible?
     @Transactional
     public void recalcularParaPalabra(String sloleksId, com.bcadaval.esloveno.beans.enums.TipoPalabra tipoPalabra) {
         switch (tipoPalabra) {

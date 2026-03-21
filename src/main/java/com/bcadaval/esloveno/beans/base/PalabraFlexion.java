@@ -1,82 +1,77 @@
 package com.bcadaval.esloveno.beans.base;
 
 import java.time.Instant;
+import com.bcadaval.esloveno.config.InstantConverter;
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
- * Interfaz base para las flexiones de palabras.
- * Incluye métodos para el Sistema de Repetición Espaciada (SRS).
+ * Clase base abstracta para todas las flexiones.
+ * Centraliza la identificación, campos de texto comunes y el sistema SRS.
  */
-public interface PalabraFlexion<T extends Palabra<?>> {
+@Data
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@MappedSuperclass // Indica a JPA que estos campos deben incluirse en las tablas hijas
+public abstract class PalabraFlexion<T extends Palabra<?>> {
 
-    /**
-     * Obtiene el identificador único de la flexión.
-     *
-     * @return El ID de la flexión.
-     */
-    Integer getId();
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    protected Integer id;
 
-    /**
-     * Obtiene el identificador Sloleks de la palabra base.
-     *
-     * @return El sloleksId de la palabra base.
-     */
-    String getSloleksId();
+    // Solo lectura, el mapeo real de la relación está en la clase hija
+    @Column(name = "SLOLEKS_ID", insertable = false, updatable = false)
+    protected String sloleksId;
 
-    String getSignificado();
-
-    String getAcentuado();
-
-    String getFlexion();
-
-    void setPalabraBase(T palabra);
-
+    protected String principal;
+    protected String flexion;
+    protected String acentuado;
+    protected String pronunciacionIpa;
+    protected String pronunciacionSampa;
 
     // =====================================================
-    // Métodos del Sistema de Repetición Espaciada (SRS)
+    // Campos SRS (Sistema de Repetición Espaciada)
+    // =====================================================
+    
+    @Builder.Default
+    protected Double factorFacilidad = 2.5;
+
+    @Builder.Default
+    protected Long intervaloRepeticionSegundos = 0L;
+
+    @Builder.Default
+    protected Integer vecesConsecutivasCorrectas = 0;
+
+    @Convert(converter = InstantConverter.class)
+    protected Instant ultimaRevision;
+
+    @Convert(converter = InstantConverter.class)
+    protected Instant proximaRevision;
+
+    @Builder.Default
+    protected Integer totalRevisiones = 0;
+
+    @Builder.Default
+    protected Integer totalAciertos = 0;
+
+    @Builder.Default
+    protected Boolean enReaprendizaje = false;
+
+    @Builder.Default
+    protected Boolean elegible = false;
+
+    // =====================================================
+    // Métodos Abstractos
     // =====================================================
 
-    Double getFactorFacilidad();
-    PalabraFlexion<T> setFactorFacilidad(Double factor);
+    // Estos métodos dependen de la relación específica (@ManyToOne) en la clase hija
+    public String getSignificado() {
+        return getPalabraBase().getSignificado();
+    }
+    
+    public abstract void setPalabraBase(T palabra);
 
-    Long getIntervaloRepeticionSegundos();
-    PalabraFlexion<T> setIntervaloRepeticionSegundos(Long intervalo);
-
-    Integer getVecesConsecutivasCorrectas();
-    PalabraFlexion<T> setVecesConsecutivasCorrectas(Integer veces);
-
-    Instant getUltimaRevision();
-    PalabraFlexion<T> setUltimaRevision(Instant instant);
-
-    Instant getProximaRevision();
-    PalabraFlexion<T> setProximaRevision(Instant instant);
-
-    Integer getTotalRevisiones();
-    PalabraFlexion<T> setTotalRevisiones(Integer total);
-
-    Integer getTotalAciertos();
-    PalabraFlexion<T> setTotalAciertos(Integer total);
-
-    Boolean getEnReaprendizaje();
-    PalabraFlexion<T> setEnReaprendizaje(Boolean enReaprendizaje);
-
-    // =====================================================
-    // Campo de elegibilidad
-    // =====================================================
-
-    /**
-     * Indica si esta flexión es elegible para estudio.
-     * Una flexión es elegible si su palabra base está completa y
-     * cumple al menos un criterio de las frases activas.
-     *
-     * @return {@code true} si la flexión es elegible para estudio
-     */
-    Boolean getElegible();
-
-    /**
-     * Establece la elegibilidad de esta flexión.
-     *
-     * @param elegible {@code true} si la flexión es elegible
-     * @return esta flexión para encadenamiento fluido
-     */
-    PalabraFlexion<T> setElegible(Boolean elegible);
+    public abstract T getPalabraBase();
 }

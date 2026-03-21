@@ -69,13 +69,6 @@ public class NumeralService {
 	/**
 	 * Devuelve un numeral aleatorio que coincida con número, caso y género,
 	 * aplicando las reglas de principal según el número:
-	 * <ul>
-	 *   <li>SINGULAR: principal = "en"</li>
-	 *   <li>DUAL: principal = "dva"</li>
-	 *   <li>PLURAL: principal ≠ "en" y ≠ "dva"</li>
-	 * </ul>
-	 * <p>
-	 * <strong>Uso exclusivo de generadores.</strong> No filtra por SRS.
 	 *
 	 * @param numero número gramatical requerido
 	 * @param caso   caso gramatical requerido
@@ -152,6 +145,16 @@ public class NumeralService {
 				cb.greaterThanOrEqualTo(
 						root.join("numeralBase", JoinType.INNER).get("cantidad"),
 						minimo);
+	}
+
+	/**
+	 * Filtra numerales cuya palabra base tiene cantidad >= al valor dado.
+	 */
+	private static Specification<NumeralFlexion> conCantidadMaxima(int maximo) {
+		return (root, query, cb) ->
+				cb.lessThanOrEqualTo(
+						root.join("numeralBase", JoinType.INNER).get("cantidad"),
+						maximo);
 	}
 }
 

@@ -12,7 +12,7 @@ import java.util.*;
  * y las dependencias. Los builders concretos heredan de esta clase y exponen
  * únicamente los métodos gramaticales relevantes para su tipo de flexión.
  * <p>
- * Cada método de restricción acepta varargs, lo que significa "OR entre los valores dados".
+ * Cada función de restricción acepta varargs, lo que significa "OR entre los valores dados".
  * Múltiples llamadas a métodos distintos se combinan con AND.
  *
  * @param <T> Tipo concreto de {@link PalabraFlexion}

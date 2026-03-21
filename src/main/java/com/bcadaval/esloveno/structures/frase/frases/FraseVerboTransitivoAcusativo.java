@@ -137,16 +137,7 @@ public class FraseVerboTransitivoAcusativo extends Frase {
                                 .orElse(NumeralCriterioBuilder.crear().conGenero(Genero.NEUTRO).build())
                         )
                         .build())
-                .generador(cd, sust -> {
-                    //TODO revisar, algo no cuadra
-                    Numero num = sust.getNumero();
-                    int cantidad;
-                    if (num == Numero.SINGULAR) cantidad = 1;
-                    else if (num == Numero.DUAL) cantidad = 2;
-                    else cantidad = ThreadLocalRandom.current().nextBoolean() ? 3 : 4;
-                    NumeralFlexion nf = numeralService.getNumeral(sust);
-                    return nf;
-                })
+                .generador(cd, numeralService::getNumeral)
                 .extractor(ExtractorNumero.get())
                 .build();
 

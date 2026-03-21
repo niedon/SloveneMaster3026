@@ -4,40 +4,12 @@ import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.Genero;
 import com.bcadaval.esloveno.beans.enums.Numero;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.stream.Stream;
 
 public interface NumeralFlexionRepo extends FlexionBaseRepo<NumeralFlexion, Integer> {
-
-    List<NumeralFlexion> findBySloleksId(String sloleksId);
-
-    /**
-     * Stream de numerales listos para estudiar: activos y con tiempo cumplido.
-     */
-    @Query("SELECT n FROM NumeralFlexion n WHERE n.proximaRevision IS NOT NULL AND n.proximaRevision <= :ahora")
-    Stream<NumeralFlexion> streamListosParaEstudiar(@Param("ahora") Instant ahora);
-
-    /**
-     * Stream de todos los numerales activos (tienen proximaRevision).
-     */
-    @Query("SELECT n FROM NumeralFlexion n WHERE n.proximaRevision IS NOT NULL")
-    Stream<NumeralFlexion> streamActivos();
-
-    /**
-     * Stream de numerales nuevos: proximaRevision IS NULL y palabra base completa
-     * (significado y cantidad no null).
-     */
-    @Query("SELECT nf FROM NumeralFlexion nf JOIN nf.numeralBase n " +
-            "WHERE nf.proximaRevision IS NULL " +
-            "AND n.significado IS NOT NULL " +
-            "AND n.cantidad IS NOT NULL")
-    Stream<NumeralFlexion> streamNuevos();
 
     /**
      * Busca numerales que coincidan en caso y número, opcionalmente filtrando por género.

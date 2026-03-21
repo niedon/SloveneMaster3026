@@ -2,12 +2,9 @@ package com.bcadaval.esloveno.beans.palabra;
 
 import com.bcadaval.esloveno.beans.base.Palabra;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Transient;
 import lombok.*;
 import lombok.experimental.Accessors;
-
-import java.util.List;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Representa una partícula en esloveno (ej: "ne", "baje", "že").
@@ -27,20 +24,12 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
 @Accessors(chain = true)
-@ToString
-public class Particula implements Palabra<ParticulaFlexion> {
-
-    @Id
-    private String sloleksId;
-
-    private String principal;
-
-    private String sloleksKey;
-
-    private String significado;
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class Particula extends Palabra<ParticulaFlexion> {
 
     /**
      * Subcategoría del XML (ej: "pronunciation").
@@ -48,7 +37,4 @@ public class Particula implements Palabra<ParticulaFlexion> {
      */
     private String subcategoria;
 
-    @Transient
-    private List<ParticulaFlexion> listaFlexiones;
 }
-

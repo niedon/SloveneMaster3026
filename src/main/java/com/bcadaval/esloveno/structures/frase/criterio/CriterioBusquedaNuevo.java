@@ -127,7 +127,7 @@ public class CriterioBusquedaNuevo<T extends PalabraFlexion<?>> {
      * como todos los criterios aportados por dependencias ya resueltas.
      * <p>
      * Una dependencia no resuelta (cuyo hueco padre no tiene palabra asignada)
-     * provoca que este método devuelva {@code false}, ya que no se puede evaluar.
+     * provoca que esta función devuelva {@code false}, ya que no se puede evaluar.
      *
      * @param palabra la palabra candidata
      * @return {@code true} si cumple criterios fijos y todos los criterios dinámicos
@@ -316,7 +316,7 @@ public class CriterioBusquedaNuevo<T extends PalabraFlexion<?>> {
             return resultado;
         }
 
-        List<E> primeraLista = listas.get(0);
+        List<E> primeraLista = listas.getFirst();
         List<List<E>> resto = productoCartesiano(listas.subList(1, listas.size()));
 
         for (E elemento : primeraLista) {

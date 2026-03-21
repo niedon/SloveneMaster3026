@@ -22,7 +22,7 @@ import java.util.function.Predicate;
  * </ol>
  * <p>
  * El compilador fuerza que {@code .orElse()} se llame antes de poder usar la dependencia,
- * ya que {@code .si()} devuelve el builder (sin método para obtener la dependencia),
+ * ya que {@code .si()} devuelve el builder (sin función para obtener la dependencia),
  * y solo {@code .orElse()} devuelve la {@link Dependencia} construida.
  * <p>
  * <strong>Ejemplo:</strong>
@@ -88,7 +88,7 @@ public class DependenciaBuilder<S extends PalabraFlexion<?>> {
     /**
      * Establece el criterio fallback obligatorio y construye la {@link Dependencia}.
      * <p>
-     * Este método es el único que devuelve la dependencia construida,
+     * Esta función es la única que devuelve la dependencia construida,
      * forzando al compilador a exigir su invocación antes de poder usar la dependencia.
      *
      * @param criterioDefault criterio a aplicar si ninguna condición {@code .si()} se cumple

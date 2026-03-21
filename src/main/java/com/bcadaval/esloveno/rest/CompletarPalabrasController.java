@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.*;
+import com.bcadaval.esloveno.beans.palabra.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,12 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
-import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
-import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
-import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
-import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
-import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
 import com.bcadaval.esloveno.repo.AdjetivoRepo;
 import com.bcadaval.esloveno.repo.NumeralFlexionRepo;
@@ -189,6 +184,7 @@ public class CompletarPalabrasController {
         return palabras;
     }
 
+    //TODO esta función debería reformularse tras los cambios de elegibilidad?
     /**
      * Actualiza una palabra con los datos proporcionados.
      * Soporta tanto palabras incompletas como completas.
@@ -214,22 +210,22 @@ public class CompletarPalabrasController {
         try {
 
             switch (TipoPalabra.valueOf(tipo)) {
-                case SUSTANTIVO -> sustantivoRepo.save(sustantivoRepo.findById(id)
+                case SUSTANTIVO -> sustantivoRepo.save((Sustantivo) sustantivoRepo.findById(id)
                         .orElseThrow(() -> new RuntimeException("Sustantivo no encontrado: " + id))
-                        .setSignificado(significado)
                         .setAnimacidad(animacidad != null && !animacidad.isBlank() ? Animacidad.valueOf(animacidad) : null)
                         .setContabilidad(contabilidad != null && !contabilidad.isBlank() ? Contabilidad.valueOf(contabilidad) : null)
                         .setClaseSemantica(claseSemantica != null && !claseSemantica.isBlank() ? ClaseSemantica.valueOf(claseSemantica) : null)
                         .setCabezaRelacional(cabezaRelacional != null && !cabezaRelacional.isBlank() ? CabezaRelacional.valueOf(cabezaRelacional) : null)
-                );
-                case VERBO -> verboRepo.save(verboRepo.findById(id)
-                        .orElseThrow(() -> new RuntimeException("Verbo no encontrado: " + id))
                         .setSignificado(significado)
+                );
+                case VERBO -> verboRepo.save((Verbo)verboRepo.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Verbo no encontrado: " + id))
                         .setTransitividad(transitividad != null && !transitividad.isBlank() ? Transitividad.valueOf(transitividad) : null)
                         .setRequiereSujetoAnimado(requiereSujetoAnimado != null && !requiereSujetoAnimado.isBlank() ? RequiereSujetoAnimado.valueOf(requiereSujetoAnimado) : null)
                         .setRequiereObjetoAnimado(requiereObjetoAnimado != null && !requiereObjetoAnimado.isBlank() ? RequiereObjetoAnimado.valueOf(requiereObjetoAnimado) : null)
+                        .setSignificado(significado)
                 );
-                case ADJETIVO -> adjetivoRepo.save(adjetivoRepo.findById(id)
+                case ADJETIVO -> adjetivoRepo.save((Adjetivo)adjetivoRepo.findById(id)
                         .orElseThrow(() -> new RuntimeException("Adjetivo no encontrado: " + id))
                         .setSignificado(significado)
                 );
@@ -237,12 +233,12 @@ public class CompletarPalabrasController {
                         .orElseThrow(() -> new RuntimeException("Pronombre no encontrado: " + id))
                         .setSignificado(significado)
                 );
-                case NUMERAL -> numeralRepo.save(numeralRepo.findById(id)
+                case NUMERAL -> numeralRepo.save((Numeral)numeralRepo.findById(id)
                         .orElseThrow(() -> new RuntimeException("Numeral no encontrado: " + id))
-                        .setSignificado(significado)
                         .setCantidad(cantidad)
+                        .setSignificado(significado)
                 );
-                case PARTICULA -> particulaRepo.save(particulaRepo.findById(id)
+                case PARTICULA -> particulaRepo.save((Particula)particulaRepo.findById(id)
                         .orElseThrow(() -> new RuntimeException("Partícula no encontrada: " + id))
                         .setSignificado(significado)
                 );

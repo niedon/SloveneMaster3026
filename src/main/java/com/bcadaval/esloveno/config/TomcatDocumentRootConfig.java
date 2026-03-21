@@ -14,9 +14,7 @@ public class TomcatDocumentRootConfig {
 
     @Bean
     public WebServerFactoryCustomizer<TomcatServletWebServerFactory> dockerTomcatCustomizer() {
-        return factory -> {
-            factory.setDocumentRoot(new File("/app"));
-        };
+        return factory -> factory.setDocumentRoot(new File("/app"));
     }
 }
 

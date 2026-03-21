@@ -100,7 +100,7 @@ public final class FlexionSpecs {
      */
     public static <T> Specification<T> revisionVencida(Instant ahora) {
         return Specification.where(FlexionSpecs.<T>elegible())
-                .and(FlexionSpecs.<T>conProximaRevision())
+                .and(FlexionSpecs.conProximaRevision())
                 .and(FlexionSpecs.vencida(ahora));
     }
 

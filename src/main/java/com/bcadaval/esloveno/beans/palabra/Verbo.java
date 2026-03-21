@@ -1,7 +1,5 @@
 package com.bcadaval.esloveno.beans.palabra;
 
-import java.util.List;
-
 import com.bcadaval.esloveno.beans.base.Palabra;
 import com.bcadaval.esloveno.beans.enums.Aspecto;
 import com.bcadaval.esloveno.beans.enums.RequiereObjetoAnimado;
@@ -10,10 +8,9 @@ import com.bcadaval.esloveno.beans.enums.Transitividad;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Transient;
 import lombok.*;
 import lombok.experimental.Accessors;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Representa un verbo en esloveno.
@@ -25,16 +22,12 @@ import lombok.experimental.Accessors;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @Entity
 @Accessors(chain = true)
-@ToString
-public class Verbo implements Palabra<VerboFlexion> {
-
-	@Id
-	private String sloleksId;
-
-	private String principal;
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+public class Verbo extends Palabra<VerboFlexion> {
 
 	@Column
 	private Transitividad transitividad;
@@ -54,12 +47,5 @@ public class Verbo implements Palabra<VerboFlexion> {
 	 * Nullable: se asigna manualmente en la pantalla de completar palabras.
 	 */
 	private RequiereObjetoAnimado requiereObjetoAnimado;
-
-	private String significado;
-
-	private String sloleksKey;
-
-	@Transient
-	private List<VerboFlexion> listaFlexiones;
 
 }

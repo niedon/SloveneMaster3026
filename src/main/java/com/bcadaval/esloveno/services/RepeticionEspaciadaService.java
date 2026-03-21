@@ -161,12 +161,12 @@ public class RepeticionEspaciadaService {
     //TODO mandar a cagar al rehacer estadísticas
     public EstadisticasDTO obtenerEstadisticas() {
         List<PalabraFlexion<?>> todasActivas = new ArrayList<>();
-        todasActivas.addAll(verboFlexionRepo.findAll(FlexionSpecs.<VerboFlexion>elegible()));
-        todasActivas.addAll(sustantivoFlexionRepo.findAll(FlexionSpecs.<SustantivoFlexion>elegible()));
-        todasActivas.addAll(adjetivoFlexionRepo.findAll(FlexionSpecs.<AdjetivoFlexion>elegible()));
-        todasActivas.addAll(numeralFlexionRepo.findAll(FlexionSpecs.<NumeralFlexion>elegible()));
-        todasActivas.addAll(pronombreFlexionRepo.findAll(FlexionSpecs.<PronombreFlexion>elegible()));
-        todasActivas.addAll(particulaFlexionRepo.findAll(FlexionSpecs.<ParticulaFlexion>elegible()));
+        todasActivas.addAll(verboFlexionRepo.findAll(FlexionSpecs.elegible()));
+        todasActivas.addAll(sustantivoFlexionRepo.findAll(FlexionSpecs.elegible()));
+        todasActivas.addAll(adjetivoFlexionRepo.findAll(FlexionSpecs.elegible()));
+        todasActivas.addAll(numeralFlexionRepo.findAll(FlexionSpecs.elegible()));
+        todasActivas.addAll(pronombreFlexionRepo.findAll(FlexionSpecs.elegible()));
+        todasActivas.addAll(particulaFlexionRepo.findAll(FlexionSpecs.elegible()));
 
         Instant ahora = Instant.now();
 
@@ -245,17 +245,17 @@ public class RepeticionEspaciadaService {
         List<PalabraFlexion<?>> todasLasTarjetas = new ArrayList<>();
 
         // Verbos
-        todasLasTarjetas.addAll(verboFlexionRepo.findAll(FlexionSpecs.<VerboFlexion>listaParaEstudiar(ahora)));
+        todasLasTarjetas.addAll(verboFlexionRepo.findAll(FlexionSpecs.listaParaEstudiar(ahora)));
         // Sustantivos
-        todasLasTarjetas.addAll(sustantivoFlexionRepo.findAll(FlexionSpecs.<SustantivoFlexion>listaParaEstudiar(ahora)));
+        todasLasTarjetas.addAll(sustantivoFlexionRepo.findAll(FlexionSpecs.listaParaEstudiar(ahora)));
         // Adjetivos
-        todasLasTarjetas.addAll(adjetivoFlexionRepo.findAll(FlexionSpecs.<AdjetivoFlexion>listaParaEstudiar(ahora)));
+        todasLasTarjetas.addAll(adjetivoFlexionRepo.findAll(FlexionSpecs.listaParaEstudiar(ahora)));
         // Numerales
-        todasLasTarjetas.addAll(numeralFlexionRepo.findAll(FlexionSpecs.<NumeralFlexion>listaParaEstudiar(ahora)));
+        todasLasTarjetas.addAll(numeralFlexionRepo.findAll(FlexionSpecs.listaParaEstudiar(ahora)));
         // Pronombres
-        todasLasTarjetas.addAll(pronombreFlexionRepo.findAll(FlexionSpecs.<PronombreFlexion>listaParaEstudiar(ahora)));
+        todasLasTarjetas.addAll(pronombreFlexionRepo.findAll(FlexionSpecs.listaParaEstudiar(ahora)));
         // Partículas
-        todasLasTarjetas.addAll(particulaFlexionRepo.findAll(FlexionSpecs.<ParticulaFlexion>listaParaEstudiar(ahora)));
+        todasLasTarjetas.addAll(particulaFlexionRepo.findAll(FlexionSpecs.listaParaEstudiar(ahora)));
 
         // Separar tarjetas de revisión (proximaRevision != null) y nuevas (proximaRevision == null)
         List<PalabraFlexion<?>> tarjetasRevision = todasLasTarjetas.stream()
