@@ -50,4 +50,41 @@ public class PronombreService {
 
 		return randomSelector.selectRandom(pronombreFlexionRepo, spec).orElse(null);
 	}
+
+	/**
+	 * Obtiene un pronombre aleatorio que cumpla con los criterios especificados.
+	 * 
+	 * @param numero número gramatical (opcional)
+	 * @param genero género gramatical (opcional)
+	 * @param caso caso gramatical (opcional)
+	 * @param tipo tipo de pronombre (opcional)
+	 * @return PronombreFlexion que cumple los criterios, o null si no se encuentra
+	 */
+	public PronombreFlexion getAnyPronombre(com.bcadaval.esloveno.beans.enums.Numero numero, 
+											com.bcadaval.esloveno.beans.enums.Genero genero, 
+											Caso caso, 
+											com.bcadaval.esloveno.beans.enums.TipoPronombre tipo) {
+		Specification<PronombreFlexion> spec = (root, query, cb) -> {
+			jakarta.persistence.criteria.Predicate p = cb.conjunction();
+			if (numero != null) {
+				p = cb.and(p, cb.equal(root.get("numero"), numero));
+			}
+			if (genero != null) {
+				// Asumimos que si el pronombre tiene género específico debe coincidir,
+				// o si es null (común) también vale? 
+				// Por seguridad, buscamos coincidencia exacta o género nulo si eso aplica en tu modelo.
+				// Simplificación: coincidencia exacta.
+				p = cb.and(p, cb.equal(root.get("genero"), genero));
+			}
+			if (caso != null) {
+				p = cb.and(p, cb.equal(root.get("caso"), caso));
+			}
+			if (tipo != null) {
+				p = cb.and(p, cb.equal(root.get("pronombreBase").get("tipoPronombre"), tipo));
+			}
+			return p;
+		};
+		
+		return randomSelector.selectRandom(pronombreFlexionRepo, spec).orElse(null);
+	}
 }

@@ -4,6 +4,7 @@ import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
+import com.bcadaval.esloveno.services.palabra.PronombreService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtractorPronombre;
 import com.bcadaval.esloveno.structures.extractores.ExtractorSustantivo;
@@ -14,12 +15,22 @@ import com.bcadaval.esloveno.structures.frase.criterio.PronombreCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.criterio.SustantivoCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.criterio.VerboCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.dependencia.DependenciaBuilder;
+import com.bcadaval.esloveno.services.palabra.sustantivo.SustantivoService;
+import com.bcadaval.esloveno.services.palabra.verbo.VerbosService;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 @DificultadFrase(NivelDificultad.INTERMEDIO_ALTO)
 public class FraseVerboCDPasado extends Frase {
+
+    @Autowired
+    private PronombreService pronombreService;
+    @Autowired
+    private VerbosService verbosService;
+    @Autowired
+    private SustantivoService sustantivoService;
 
     @Override
     public String getIdentificador() {
@@ -62,6 +73,7 @@ public class FraseVerboCDPasado extends Frase {
                                 .orElse(PronombreCriterioBuilder.crear().conGenero(Genero.NEUTRO).build())
                         )
                         .build())
+                .generador(participio, v -> pronombreService.getAnyPronombre(v.getNumero(), v.getGenero(), Caso.NOMINATIVO, TipoPronombre.PERSONAL))
                 .extractor(ExtractorPronombre.get())
                 .build();
 
@@ -85,6 +97,7 @@ public class FraseVerboCDPasado extends Frase {
                                 .orElse( VerboCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
                         )
                         .build())
+                .generador(pronombre, p -> verbosService.getVerboAuxiliar("biti", FormaVerbal.PRESENT, p.getPersona(), p.getNumero(), false))
                 .extractor(ExtractorVerbo.get())
                 .extractorDeEspanol(v -> "\uD83D\uDD19")
                 .extractorAEspanol(v -> "\uD83D\uDD19")
@@ -96,6 +109,7 @@ public class FraseVerboCDPasado extends Frase {
                 .criterio(SustantivoCriterioBuilder.crear()
                         .conCaso(Caso.ACUSATIVO) // REQUISITO 1: Caso correcto
                         .build())
+                .generador(participio, v -> sustantivoService.getAnySustantivo(Caso.ACUSATIVO, null, null))
                 .extractor(ExtractorSustantivo.get())
                 .build();
 
@@ -105,4 +119,3 @@ public class FraseVerboCDPasado extends Frase {
         agregarElemento(cd);
     }
 }
-

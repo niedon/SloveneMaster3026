@@ -3,6 +3,8 @@ package com.bcadaval.esloveno.structures.frase.frases;
 import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
+import com.bcadaval.esloveno.services.palabra.PronombreService;
+import com.bcadaval.esloveno.services.palabra.verbo.VerbosService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtractorPronombre;
 import com.bcadaval.esloveno.structures.extractores.ExtractorVerbo;
@@ -12,11 +14,17 @@ import com.bcadaval.esloveno.structures.frase.criterio.PronombreCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.criterio.VerboCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.dependencia.DependenciaBuilder;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 @DificultadFrase(NivelDificultad.INTERMEDIO_ALTO)
 public class FraseSoloVerboPasado extends Frase {
+
+    @Autowired
+    private PronombreService pronombreService;
+    @Autowired
+    private VerbosService verbosService;
 
     @Override
     public String getIdentificador() {
@@ -45,7 +53,7 @@ public class FraseSoloVerboPasado extends Frase {
                 .criterio(PronombreCriterioBuilder.crear()
                         .conCaso(Caso.NOMINATIVO)
                         .conTipoPronombre(TipoPronombre.PERSONAL)
-                        // DEPENDENCIA 1: NÚMERO (Separada)
+                        // DEPENDENCIA 1: NÚMERO
                         .conDependencia(DependenciaBuilder.de(participio)
                                 .si(v -> v.getNumero() == Numero.SINGULAR,
                                         PronombreCriterioBuilder.crear().conNumero(Numero.SINGULAR).build())
@@ -53,7 +61,7 @@ public class FraseSoloVerboPasado extends Frase {
                                         PronombreCriterioBuilder.crear().conNumero(Numero.DUAL).build())
                                 .orElse(PronombreCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
                         )
-                        // DEPENDENCIA 2: GÉNERO (Separada)
+                        // DEPENDENCIA 2: GÉNERO
                         .conDependencia(DependenciaBuilder.de(participio)
                                 .si(v -> v.getGenero() == Genero.MASCULINO,
                                         PronombreCriterioBuilder.crear().conGenero(Genero.MASCULINO).build())
@@ -62,6 +70,7 @@ public class FraseSoloVerboPasado extends Frase {
                                 .orElse(PronombreCriterioBuilder.crear().conGenero(Genero.NEUTRO).build())
                         )
                         .build())
+                .generador(participio, v -> pronombreService.getAnyPronombre(v.getNumero(), v.getGenero(), Caso.NOMINATIVO, TipoPronombre.PERSONAL))
                 .extractor(ExtractorPronombre.get())
                 .build();
 
@@ -89,6 +98,7 @@ public class FraseSoloVerboPasado extends Frase {
                                 .orElse(VerboCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
                         )
                         .build())
+                .generador(pronombre, p -> verbosService.getVerboAuxiliar("biti", FormaVerbal.PRESENT, p.getPersona(), p.getNumero(), false))
                 .extractor(ExtractorVerbo.get())
                 .extractorDeEspanol(v -> "\uD83D\uDD19")
                 .extractorAEspanol(v -> "\uD83D\uDD19")

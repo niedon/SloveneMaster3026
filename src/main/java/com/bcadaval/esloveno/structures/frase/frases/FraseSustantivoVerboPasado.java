@@ -10,6 +10,8 @@ import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.services.palabra.NumeralService;
+import com.bcadaval.esloveno.services.palabra.sustantivo.SustantivoService;
+import com.bcadaval.esloveno.services.palabra.verbo.VerbosService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtractorNumero;
 import com.bcadaval.esloveno.structures.extractores.ExtractorSustantivo;
@@ -29,6 +31,10 @@ public class FraseSustantivoVerboPasado extends Frase {
 
     @Autowired
     private NumeralService numeralService;
+    @Autowired
+    private SustantivoService sustantivoService;
+    @Autowired
+    private VerbosService verbosService;
 
     @Override
     public String getIdentificador() {
@@ -42,16 +48,38 @@ public class FraseSustantivoVerboPasado extends Frase {
 
     @PostConstruct
     public void configurarEstructura() {
-        // 1. SUJETO (Ancla): Sustantivo en Nominativo
+        // 1. PARTICIPIO (Ancla): Define Género, Número
+        PalabraFrase<VerboFlexion> participio = PalabraFrase.<VerboFlexion>builder()
+                .nombre("VERBO")
+                .criterio(VerboCriterioBuilder.crear()
+                        .conFormaVerbal(FormaVerbal.PARTICIPLE)
+                        .build())
+                .extractor(ExtractorVerbo.get())
+                .build();
+
+        // 2. SUJETO: Depende de Participio
         PalabraFrase<SustantivoFlexion> sujeto = PalabraFrase.<SustantivoFlexion>builder()
                 .nombre("SUJETO")
                 .criterio(SustantivoCriterioBuilder.crear()
                         .conCaso(Caso.NOMINATIVO)
+                        // Dep Gen
+                        .conDependencia(DependenciaBuilder.de(participio)
+                                .si(v -> v.getGenero() == Genero.MASCULINO, SustantivoCriterioBuilder.crear().conGenero(Genero.MASCULINO).build())
+                                .si(v -> v.getGenero() == Genero.FEMENINO, SustantivoCriterioBuilder.crear().conGenero(Genero.FEMENINO).build())
+                                .orElse(SustantivoCriterioBuilder.crear().conGenero(Genero.NEUTRO).build())
+                        )
+                        // Dep Num
+                        .conDependencia(DependenciaBuilder.de(participio)
+                                .si(v -> v.getNumero() == Numero.SINGULAR, SustantivoCriterioBuilder.crear().conNumero(Numero.SINGULAR).build())
+                                .si(v -> v.getNumero() == Numero.DUAL, SustantivoCriterioBuilder.crear().conNumero(Numero.DUAL).build())
+                                .orElse(SustantivoCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
+                        )
                         .build())
+                .generador(participio, v -> sustantivoService.getAnySustantivo(Caso.NOMINATIVO, v.getGenero(), v.getNumero()))
                 .extractor(ExtractorSustantivo.get())
                 .build();
 
-
+        // 3. NUMERAL
         PalabraFrase<NumeralFlexion> numeralSujeto = PalabraFrase.<NumeralFlexion>builder()
                 .nombre("NUMERO_SUJETO")
                 .generador(sujeto, sust -> numeralService.getNumeral(sust))
@@ -59,13 +87,13 @@ public class FraseSustantivoVerboPasado extends Frase {
                 .extractorDeEsloveno(x -> "")
                 .build();
 
-        // 2. AUXILIAR: Biti (Siempre 3ª Persona)
+        // 4. AUXILIAR: Biti (Siempre 3ª Persona)
         PalabraFrase<VerboFlexion> auxiliar = PalabraFrase.<VerboFlexion>builder()
                 .nombre("VERBO_AUXILIAR")
                 .criterio(VerboCriterioBuilder.crear()
                         .conPrincipal("biti")
                         .conFormaVerbal(FormaVerbal.PRESENT)
-                        .conPersona(Persona.TERCERA) // REQUISITO 2: Siempre tercera persona
+                        .conPersona(Persona.TERCERA)
                         .conNegativo(false)
                         // DEPENDENCIA: Número concuerda con el Sujeto
                         .conDependencia(DependenciaBuilder.de(sujeto)
@@ -74,32 +102,10 @@ public class FraseSustantivoVerboPasado extends Frase {
                                 .orElse(VerboCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
                         )
                         .build())
+                .generador(sujeto, s -> verbosService.getVerboAuxiliar("biti", FormaVerbal.PRESENT, Persona.TERCERA, s.getNumero(), false))
                 .extractor(ExtractorVerbo.get())
                 .extractorDeEspanol(v -> "\uD83D\uDD19")
                 .extractorAEspanol(v -> "\uD83D\uDD19")
-                .build();
-
-        // 3. PARTICIPIO: Concuerda en Género y Número con Sujeto
-        PalabraFrase<VerboFlexion> participio = PalabraFrase.<VerboFlexion>builder()
-                .nombre("VERBO")
-                .criterio(VerboCriterioBuilder.crear()
-                        .conFormaVerbal(FormaVerbal.PARTICIPLE)
-                        // DEPENDENCIA 1: NÚMERO
-                        .conDependencia(DependenciaBuilder.de(sujeto)
-                                .si(s -> s.getNumero() == Numero.SINGULAR, VerboCriterioBuilder.crear().conNumero(Numero.SINGULAR).build())
-                                .si(s -> s.getNumero() == Numero.DUAL, VerboCriterioBuilder.crear().conNumero(Numero.DUAL).build())
-                                .orElse(VerboCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
-                        )
-                        // DEPENDENCIA 2: GÉNERO (En sustantivos, el género viene de la palabra base)
-                        .conDependencia(DependenciaBuilder.de(sujeto)
-                                .si(s -> s.getPalabraBase().getGenero() == Genero.MASCULINO, 
-                                        VerboCriterioBuilder.crear().conGenero(Genero.MASCULINO).build())
-                                .si(s -> s.getPalabraBase().getGenero() == Genero.FEMENINO, 
-                                        VerboCriterioBuilder.crear().conGenero(Genero.FEMENINO).build())
-                                .orElse(VerboCriterioBuilder.crear().conGenero(Genero.NEUTRO).build())
-                        )
-                        .build())
-                .extractor(ExtractorVerbo.get())
                 .build();
 
         agregarElemento(numeralSujeto);
@@ -108,4 +114,3 @@ public class FraseSustantivoVerboPasado extends Frase {
         agregarElemento(participio);
     }
 }
-

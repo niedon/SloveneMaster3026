@@ -90,4 +90,31 @@ public class SustantivoService {
 		return randomSelector.selectRandom(sustantivoFlexionRepo, spec)
 				.orElseThrow(() -> new NoSuchElementException("No hay sustantivos activos disponibles para el genitivo"));
 	}
+
+	/**
+	 * Obtiene un sustantivo aleatorio que cumpla con caso, género y número.
+	 *
+	 * @param caso Caso requerido (opcional)
+	 * @param genero Género requerido (opcional)
+	 * @param numero Número requerido (opcional)
+	 * @return SustantivoFlexion encontrado o null
+	 */
+	public SustantivoFlexion getAnySustantivo(Caso caso, com.bcadaval.esloveno.beans.enums.Genero genero, com.bcadaval.esloveno.beans.enums.Numero numero) {
+		Specification<SustantivoFlexion> spec = (root, query, cb) -> {
+			jakarta.persistence.criteria.Predicate p = cb.conjunction();
+			if (caso != null) {
+				p = cb.and(p, cb.equal(root.get("caso"), caso));
+			}
+			if (genero != null) {
+				// Género está en la palabra base
+				p = cb.and(p, cb.equal(root.get("sustantivoBase").get("genero"), genero));
+			}
+			if (numero != null) {
+				p = cb.and(p, cb.equal(root.get("numero"), numero));
+			}
+			return p;
+		};
+
+		return randomSelector.selectRandom(sustantivoFlexionRepo, spec).orElse(null);
+	}
 }

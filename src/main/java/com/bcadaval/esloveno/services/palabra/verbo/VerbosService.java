@@ -136,6 +136,40 @@ public class VerbosService {
 		return randomSelector.selectRandom(verboFlexionRepo, spec).orElse(null);
 	}
 
+	/**
+	 * Obtiene una forma verbal específica (ej. para auxiliares).
+	 *
+	 * @param principal palabra principal (infinitivo)
+	 * @param forma forma verbal
+	 * @param persona persona (opcional)
+	 * @param numero número (opcional)
+	 * @param negativo si es negativo (opcional)
+	 * @return VerboFlexion encontrado o null
+	 */
+	public VerboFlexion getVerboAuxiliar(String principal, FormaVerbal forma, Persona persona, Numero numero, Boolean negativo) {
+		Specification<VerboFlexion> spec = (root, query, cb) -> {
+			jakarta.persistence.criteria.Predicate p = cb.conjunction();
+			if (principal != null) {
+				p = cb.and(p, cb.equal(root.get("verboBase").get("principal"), principal));
+			}
+			if (forma != null) {
+				p = cb.and(p, cb.equal(root.get("formaVerbal"), forma));
+			}
+			if (persona != null) {
+				p = cb.and(p, cb.equal(root.get("persona"), persona));
+			}
+			if (numero != null) {
+				p = cb.and(p, cb.equal(root.get("numero"), numero));
+			}
+			if (negativo != null) {
+				p = cb.and(p, cb.equal(root.get("negativo"), negativo));
+			}
+			return p;
+		};
+
+		return randomSelector.selectRandom(verboFlexionRepo, spec).orElse(null);
+	}
+
 	// ============================================
 	// Specifications privadas reutilizables
 	// ============================================
