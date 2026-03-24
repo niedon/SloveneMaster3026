@@ -98,6 +98,13 @@ public class FraseSustantivoVerboCDPasado extends Frase {
                 .generador(participio, v -> sustantivoService.getAnySustantivo(Caso.ACUSATIVO, null, null))
                 .extractor(ExtractorSustantivo.get())
                 .build();
+
+        PalabraFrase<NumeralFlexion> numeralCD = PalabraFrase.<NumeralFlexion>builder()
+                .nombre("NUMERO_CD")
+                .generador(cd, sust -> numeralService.getNumeral(sust))
+                .extractor(ExtractorNumero.get())
+                .extractorDeEsloveno(x -> "")
+                .build();
         
         // 5. AUXILIAR (3ª Persona)
         PalabraFrase<VerboFlexion> auxiliar = PalabraFrase.<VerboFlexion>builder()
@@ -123,6 +130,7 @@ public class FraseSustantivoVerboCDPasado extends Frase {
         agregarElemento(sujeto);
         agregarElemento(auxiliar);
         agregarElemento(participio);
+        agregarElemento(numeralCD);
         agregarElemento(cd);
     }
 }

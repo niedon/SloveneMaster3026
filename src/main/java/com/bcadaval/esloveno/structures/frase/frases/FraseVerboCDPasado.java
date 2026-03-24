@@ -1,11 +1,14 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
 import com.bcadaval.esloveno.beans.enums.*;
+import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
+import com.bcadaval.esloveno.services.palabra.NumeralService;
 import com.bcadaval.esloveno.services.palabra.PronombreService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
+import com.bcadaval.esloveno.structures.extractores.ExtractorNumero;
 import com.bcadaval.esloveno.structures.extractores.ExtractorPronombre;
 import com.bcadaval.esloveno.structures.extractores.ExtractorSustantivo;
 import com.bcadaval.esloveno.structures.extractores.ExtractorVerbo;
@@ -25,6 +28,8 @@ import org.springframework.stereotype.Component;
 @DificultadFrase(NivelDificultad.INTERMEDIO_ALTO)
 public class FraseVerboCDPasado extends Frase {
 
+    @Autowired
+    private NumeralService numeralService;
     @Autowired
     private PronombreService pronombreService;
     @Autowired
@@ -113,9 +118,17 @@ public class FraseVerboCDPasado extends Frase {
                 .extractor(ExtractorSustantivo.get())
                 .build();
 
+        PalabraFrase<NumeralFlexion> numeralCD = PalabraFrase.<NumeralFlexion>builder()
+                .nombre("NUMERO_CD")
+                .generador(cd, sust -> numeralService.getNumeral(sust))
+                .extractor(ExtractorNumero.get())
+                .extractorDeEsloveno(x -> "")
+                .build();
+
         agregarElemento(pronombre);
         agregarElemento(auxiliar);
         agregarElemento(participio);
+        agregarElemento(numeralCD);
         agregarElemento(cd);
     }
 }
