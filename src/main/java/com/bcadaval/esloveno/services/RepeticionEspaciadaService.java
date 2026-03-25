@@ -9,6 +9,8 @@ import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
+import com.bcadaval.esloveno.beans.HistoricoRespuesta;
+import com.bcadaval.esloveno.rest.dto.EstadisticasDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +24,7 @@ import com.bcadaval.esloveno.repo.ParticulaFlexionRepo;
 import com.bcadaval.esloveno.repo.PronombreFlexionRepo;
 import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboFlexionRepo;
-import com.bcadaval.esloveno.rest.dto.EstadisticasDTO;
+import com.bcadaval.esloveno.repo.HistoricoRespuestaRepo;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -55,6 +57,10 @@ public class RepeticionEspaciadaService {
     @Autowired
     private ParticulaFlexionRepo particulaFlexionRepo;
 
+
+    @Autowired
+    private HistoricoRespuestaRepo historicoRespuestaRepo;
+
     /**
      * Busca una entidad de flexión por su tipo y ID.
      * Centraliza la lógica de selección de repositorio.
@@ -79,15 +85,61 @@ public class RepeticionEspaciadaService {
     }
 
     /**
-     * Procesa la respuesta del usuario y actualiza el estado de la tarjeta.
-     * Implementa el algoritmo SM-2 con precisión de segundos.
+     * Procesa la respuesta de un usuario para una tarjeta, actualizando su estado SRS
+     * y guardando el histórico.
+     *
+     * @param flexion Tarjeta que se ha evaluado.
+     * @param recordado Si el usuario recordó la tarjeta o no.
+     * @param segundosEnResponder El tiempo (opcional) en segundos.
      */
     @Transactional
-    public void procesarRespuesta(PalabraFlexion<?> flexion, boolean recordo) {
-        actualizarCamposSRS(flexion, recordo);
+    public void procesarRespuesta(PalabraFlexion<?> flexion, boolean recordado, Integer segundosEnResponder) {
+        actualizarCamposSRS(flexion, recordado);
         guardarFlexion(flexion);
+        
+        // Guardar el historial de respuestas
+        guardarHistorico(flexion, recordado, segundosEnResponder);
+        
         log.debug("{} actualizado: {} - Recordó: {}",
-            flexion.getClass().getSimpleName(), flexion.getFlexion(), recordo);
+            flexion.getClass().getSimpleName(), flexion.getFlexion(), recordado);
+    }
+    
+    /**
+     * Mantiene compatibilidad con el código anterior que no envíe segundos.
+     */
+    @Transactional
+    public void procesarRespuesta(PalabraFlexion<?> flexion, boolean recordado) {
+        procesarRespuesta(flexion, recordado, null);
+    }
+
+    /**
+     * Guarda en la base de datos el histórico de la respuesta para las estadísticas.
+     */
+    private void guardarHistorico(PalabraFlexion<?> flexion, boolean recordado, Integer segundos) {
+        try {
+            TipoPalabra tipo = findTipoByClass(flexion.getClass());
+            HistoricoRespuesta historico = HistoricoRespuesta.builder()
+                .sloleksId(flexion.getSloleksId())
+                .id(flexion.getId())
+                .tipoPalabra(tipo != null ? tipo.getXmlCode() : "desconocido")
+                .tsRespuesta(Instant.now())
+                .acierto(recordado)
+                .segundosEnResponder(segundos)
+                .build();
+            historicoRespuestaRepo.save(historico);
+        } catch (Exception e) {
+            log.error("Error al guardar el histórico para la palabra {}: {}", flexion.getSloleksId(), e.getMessage());
+        }
+    }
+    
+    private TipoPalabra findTipoByClass(Class<?> clazz) {
+        if (AdjetivoFlexion.class.isAssignableFrom(clazz)) return TipoPalabra.ADJETIVO;
+        if (SustantivoFlexion.class.isAssignableFrom(clazz)) return TipoPalabra.SUSTANTIVO;
+        if (VerboFlexion.class.isAssignableFrom(clazz)) return TipoPalabra.VERBO;
+        if (NumeralFlexion.class.isAssignableFrom(clazz)) return TipoPalabra.NUMERAL;
+        if (PronombreFlexion.class.isAssignableFrom(clazz)) return TipoPalabra.PRONOMBRE;
+        if (ParticulaFlexion.class.isAssignableFrom(clazz)) return TipoPalabra.PARTICULA;
+        return null;
     }
 
     /**
@@ -175,14 +227,10 @@ public class RepeticionEspaciadaService {
         flexion.setTotalAciertos(totalAciertos);
     }
 
-    //TODO eliminar
     /**
-     * Obtiene estadísticas del sistema de estudio usando el campo {@code elegible} precalculado.
-     *
-     * @deprecated Se dejará de lado para la implementación actual.
+     * Obtiene estadísticas generales del sistema de estudio (KPIs).
+     * Utilizado para el panel de resumen.
      */
-    @Deprecated
-    //TODO mandar a cagar al rehacer estadísticas
     public EstadisticasDTO obtenerEstadisticas() {
         List<PalabraFlexion<?>> todasActivas = new ArrayList<>();
         todasActivas.addAll(verboFlexionRepo.findAll(FlexionSpecs.elegible()));

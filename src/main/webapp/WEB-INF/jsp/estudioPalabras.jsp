@@ -18,6 +18,7 @@
         <c:set var="tamanio" value="${fn:length(datos)}" />
 
         <form action="/enviarRespuestas" method="POST" id="respuestasForm">
+            <input type="hidden" id="tiempoTotalSegundos" name="tiempoTotalSegundos" value="">
             <table class="estudio-table">
                 <tbody>
                     <!-- Fila 1: pregunta (transparente al idioma) -->
@@ -140,6 +141,11 @@
             }
         }
 
+        let tiempoInicioEstudio = null;
+        document.addEventListener("DOMContentLoaded", () => {
+            tiempoInicioEstudio = Date.now();
+        });
+
         document.getElementById('respuestasForm').addEventListener('submit', function(event) {
             const valorInputs = document.querySelectorAll('.valor-input');
             let allCompleted = true;
@@ -154,6 +160,12 @@
                 event.preventDefault();
                 alert('Quedan palabras por puntuar');
                 return false;
+            }
+
+            if (tiempoInicioEstudio) {
+                const tiempoFinEstudio = Date.now();
+                const segundos = Math.floor((tiempoFinEstudio - tiempoInicioEstudio) / 1000);
+                document.getElementById('tiempoTotalSegundos').value = segundos;
             }
         });
     </script>

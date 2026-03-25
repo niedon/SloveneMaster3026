@@ -57,6 +57,25 @@ public class RespuestasController {
 				}
 			}
 
+            // Calcular el número de palabras evaluadas y repartir el tiempo si procede
+            int numPalabrasConRespuesta = palabrasPorIndice.size();
+            Integer segundosEnResponder = null;
+
+            if (params.containsKey("tiempoTotalSegundos")) {
+                try {
+                    int tiempoTotal = Integer.parseInt(params.get("tiempoTotalSegundos"));
+                    if (tiempoTotal <= 120 && numPalabrasConRespuesta > 0) {
+                        segundosEnResponder = tiempoTotal / numPalabrasConRespuesta;
+                        log.info("Tiempo de respuesta válido. Total: {}s, Palabras: {}, Segundos/Palabra: {}s",
+                                tiempoTotal, numPalabrasConRespuesta, segundosEnResponder);
+                    } else if (tiempoTotal > 120) {
+                        log.info("Tiempo de respuesta excedido (>120s): {}s. Se descarta para el promedio.", tiempoTotal);
+                    }
+                } catch (NumberFormatException e) {
+                    log.warn("Formato inválido para tiempoTotalSegundos: {}", params.get("tiempoTotalSegundos"));
+                }
+            }
+
 			// Procesar cada palabra y actualizar el SRS
 			for (Map.Entry<Integer, Map<String, String>> entry : palabrasPorIndice.entrySet()) {
 				Integer indice = entry.getKey();
@@ -83,11 +102,14 @@ public class RespuestasController {
 
 				log.info("Procesando: tipo={} ({}), id={}, recordó={}", tipo, tipoStr, id, recordo);
 
+                // variable para ser usada dentro de la lambda
+                final Integer sEnResponder = segundosEnResponder;
+
 				repeticionEspaciadaService.findFlexionById(tipo, id).ifPresentOrElse(
 					flexion -> {
 						log.info("Flexion encontrada: {} ({}) - Recordó: {}",
 								flexion.getFlexion(), flexion.getClass().getSimpleName(), recordo);
-						repeticionEspaciadaService.procesarRespuesta(flexion, recordo);
+						repeticionEspaciadaService.procesarRespuesta(flexion, recordo, sEnResponder);
 					},
 					() -> log.warn("Flexion de tipo {} con ID {} no encontrada", tipo, id)
 				);
