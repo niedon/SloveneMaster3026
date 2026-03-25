@@ -4,10 +4,10 @@ import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
+import com.bcadaval.esloveno.beans.enums.TipoPalabra;
 import com.bcadaval.esloveno.services.RepeticionEspaciadaService;
 import com.bcadaval.esloveno.structures.DatoVisualizacion;
 import com.bcadaval.esloveno.structures.DificultadFrase;
-import com.bcadaval.esloveno.structures.FraseTipoPalabra;
 import com.bcadaval.esloveno.structures.ModoVisualizacion;
 import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
 import com.bcadaval.esloveno.structures.frase.dependencia.Dependencia;
@@ -351,7 +351,7 @@ public abstract class Frase {
                 .textoFila1(elem.getTextoFila1(modo))
                 .textoFila2(elem.getTextoFila2(modo))
                 .id(participaEnSRS ? palabra.getId() : null)
-                .tipo(participaEnSRS ? FraseTipoPalabra.fromObject(palabra) : null)
+                .tipo(participaEnSRS ? TipoPalabra.fromFlexionClass(palabra.getClass()) : null)
                 .intervaloArriba(intervaloArriba)
                 .intervaloAbajo(intervaloAbajo)
                 .build();
@@ -469,6 +469,4 @@ public abstract class Frase {
         return anotacion != null ? anotacion.value() : NivelDificultad.PRINCIPIANTE;
     }
 }
-
-
 

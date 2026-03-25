@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.bcadaval.esloveno.beans.enums.TipoPalabra;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
@@ -53,6 +54,29 @@ public class RepeticionEspaciadaService {
 
     @Autowired
     private ParticulaFlexionRepo particulaFlexionRepo;
+
+    /**
+     * Busca una entidad de flexión por su tipo y ID.
+     * Centraliza la lógica de selección de repositorio.
+     *
+     * @param tipo El TipoPalabra de la entidad
+     * @param id El identificador numérico de la flexión
+     * @return Optional con la flexión encontrada, o vacío si no existe
+     */
+    public Optional<? extends PalabraFlexion<?>> findFlexionById(TipoPalabra tipo, Integer id) {
+        if (tipo == null || id == null) {
+            return Optional.empty();
+        }
+
+        return switch (tipo) {
+            case VERBO -> verboFlexionRepo.findById(id);
+            case SUSTANTIVO -> sustantivoFlexionRepo.findById(id);
+            case ADJETIVO -> adjetivoFlexionRepo.findById(id);
+            case NUMERAL -> numeralFlexionRepo.findById(id);
+            case PRONOMBRE -> pronombreFlexionRepo.findById(id);
+            case PARTICULA -> particulaFlexionRepo.findById(id);
+        };
+    }
 
     /**
      * Procesa la respuesta del usuario y actualiza el estado de la tarjeta.

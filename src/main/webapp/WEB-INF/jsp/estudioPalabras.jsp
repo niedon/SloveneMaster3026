@@ -52,7 +52,7 @@
                                     </div>
                                     <input type="hidden" id="intervalo_arriba_${status.index}" value="${dato.intervaloArriba}">
                                     <input type="hidden" id="intervalo_abajo_${status.index}" value="${dato.intervaloAbajo}">
-                                    <input type="hidden" name="tipo_${status.index}" value="${dato.tipo.codigo}">
+                                    <input type="hidden" name="tipo_${status.index}" value="${dato.tipo.xmlCode}">
                                     <input type="hidden" name="id_${status.index}" value="${dato.id}">
                                     <input type="hidden" id="valor_${status.index}" name="valor_${status.index}" value="" class="valor-input">
                                 </c:if>

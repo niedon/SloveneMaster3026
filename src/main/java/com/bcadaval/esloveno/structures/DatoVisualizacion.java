@@ -1,5 +1,6 @@
 package com.bcadaval.esloveno.structures;
 
+import com.bcadaval.esloveno.beans.enums.TipoPalabra;
 import lombok.Builder;
 import lombok.Data;
 
@@ -32,7 +33,7 @@ public class DatoVisualizacion {
     /**
      * Tipo de palabra para identificar en RespuestasController.
      */
-    private FraseTipoPalabra tipo;
+    private TipoPalabra tipo;
 
     /**
      * Texto formateado del intervalo si la respuesta es correcta (👍).

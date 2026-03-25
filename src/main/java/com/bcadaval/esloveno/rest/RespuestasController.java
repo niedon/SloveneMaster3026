@@ -8,12 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.Map;
 import java.util.TreeMap;
 
-import com.bcadaval.esloveno.repo.VerboFlexionRepo;
-import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
-import com.bcadaval.esloveno.repo.AdjetivoFlexionRepo;
-import com.bcadaval.esloveno.repo.NumeralFlexionRepo;
-import com.bcadaval.esloveno.repo.PronombreFlexionRepo;
-import com.bcadaval.esloveno.repo.ParticulaFlexionRepo;
+import com.bcadaval.esloveno.beans.enums.TipoPalabra;
 import com.bcadaval.esloveno.services.RepeticionEspaciadaService;
 
 import lombok.extern.log4j.Log4j2;
@@ -25,31 +20,13 @@ import lombok.extern.log4j.Log4j2;
  * <p>
  * Recibe respuestas de forma: tipo_INDEX, id_INDEX, valor_INDEX
  * Donde INDEX es el índice del elemento en la lista del formulario
- * tipo es 'v', 's', 'a' o 'p' (verbo, sustantivo, adjetivo, pronombre)
+ * tipo es el xmlCode de TipoPalabra
  * id es el identificador numérico de la flexión en su tabla
  * Y valor es "arriba" (recordó) o "abajo" (no recordó)
  */
 @Log4j2
 @Controller
 public class RespuestasController {
-
-	@Autowired
-	private VerboFlexionRepo verboFlexionRepo;
-
-	@Autowired
-	private SustantivoFlexionRepo sustantivoFlexionRepo;
-
-	@Autowired
-	private AdjetivoFlexionRepo adjetivoFlexionRepo;
-
-	@Autowired
-	private NumeralFlexionRepo numeralFlexionRepo;
-
-	@Autowired
-	private PronombreFlexionRepo pronombreFlexionRepo;
-
-	@Autowired
-	private ParticulaFlexionRepo particulaFlexionRepo;
 
 	@Autowired
 	private RepeticionEspaciadaService repeticionEspaciadaService;
@@ -95,76 +72,25 @@ public class RespuestasController {
 					continue;
 				}
 
+				TipoPalabra tipo = TipoPalabra.fromXmlCode(tipoStr);
+				if (tipo == null) {
+					log.warn("Tipo de palabra desconocido: {}", tipoStr);
+					continue;
+				}
+
 				Integer id = Integer.parseInt(idStr);
 				boolean recordo = "arriba".equals(valoracion);
 
-				log.info("Procesando: tipo={}, id={}, recordó={}", tipoStr, id, recordo);
+				log.info("Procesando: tipo={} ({}), id={}, recordó={}", tipo, tipoStr, id, recordo);
 
-				// Recuperar la entidad y actualizar el SRS
-				switch (tipoStr) {
-					case "v": // Verbo
-						verboFlexionRepo.findById(id).ifPresentOrElse(
-							verbo -> {
-								log.info("VerboFlexion: {} - Recordó: {}", verbo.getFlexion(), recordo);
-								repeticionEspaciadaService.procesarRespuesta(verbo, recordo);
-							},
-							() -> log.warn("VerboFlexion con ID {} no encontrado", id)
-						);
-						break;
-
-					case "s": // Sustantivo
-						sustantivoFlexionRepo.findById(id).ifPresentOrElse(
-							sustantivo -> {
-								log.info("SustantivoFlexion: {} - Recordó: {}", sustantivo.getFlexion(), recordo);
-								repeticionEspaciadaService.procesarRespuesta(sustantivo, recordo);
-							},
-							() -> log.warn("SustantivoFlexion con ID {} no encontrado", id)
-						);
-						break;
-
-					case "a": // Adjetivo
-						adjetivoFlexionRepo.findById(id).ifPresentOrElse(
-							adjetivo -> {
-								log.info("AdjetivoFlexion: {} - Recordó: {}", adjetivo.getFlexion(), recordo);
-								repeticionEspaciadaService.procesarRespuesta(adjetivo, recordo);
-							},
-							() -> log.warn("AdjetivoFlexion con ID {} no encontrado", id)
-						);
-						break;
-
-					case "n": // Numeral
-						numeralFlexionRepo.findById(id).ifPresentOrElse(
-							numeral -> {
-								log.info("NumeralFlexion: {} - Recordó: {}", numeral.getFlexion(), recordo);
-								repeticionEspaciadaService.procesarRespuesta(numeral, recordo);
-							},
-							() -> log.warn("NumeralFlexion con ID {} no encontrado", id)
-						);
-						break;
-
-					case "p": // Pronombre (ahora con SRS)
-						pronombreFlexionRepo.findById(id).ifPresentOrElse(
-							pronombre -> {
-								log.info("PronombreFlexion: {} - Recordó: {}", pronombre.getFlexion(), recordo);
-								repeticionEspaciadaService.procesarRespuesta(pronombre, recordo);
-							},
-							() -> log.warn("PronombreFlexion con ID {} no encontrado", id)
-						);
-						break;
-
-					case "pa": // Partícula
-						particulaFlexionRepo.findById(id).ifPresentOrElse(
-							particula -> {
-								log.info("ParticulaFlexion: {} - Recordó: {}", particula.getFlexion(), recordo);
-								repeticionEspaciadaService.procesarRespuesta(particula, recordo);
-							},
-							() -> log.warn("ParticulaFlexion con ID {} no encontrado", id)
-						);
-						break;
-
-					default:
-						log.warn("Tipo de palabra desconocido: {}", tipoStr);
-				}
+				repeticionEspaciadaService.findFlexionById(tipo, id).ifPresentOrElse(
+					flexion -> {
+						log.info("Flexion encontrada: {} ({}) - Recordó: {}",
+								flexion.getFlexion(), flexion.getClass().getSimpleName(), recordo);
+						repeticionEspaciadaService.procesarRespuesta(flexion, recordo);
+					},
+					() -> log.warn("Flexion de tipo {} con ID {} no encontrada", tipo, id)
+				);
 			}
 
 			log.info("=== FIN PROCESAMIENTO ===\n");
