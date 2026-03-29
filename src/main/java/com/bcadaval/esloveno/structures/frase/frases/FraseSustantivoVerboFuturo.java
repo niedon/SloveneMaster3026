@@ -1,5 +1,6 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
+import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
@@ -11,36 +12,30 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 @Component
-@DificultadFrase(NivelDificultad.INTERMEDIO_ALTO)
-public class FraseSustantivoVerboPasado extends Frase {
+@DificultadFrase(NivelDificultad.AVANZADO)
+public class FraseSustantivoVerboFuturo extends Frase {
 
     @Override
     public String getIdentificador() {
-        return "SUSTANTIVO_VERBO_PASADO";
+        return "SUSTANTIVO_VERBO_FUTURO";
     }
 
     @Override
     public String getNombreMostrar() {
-        return "Pasado (Sujeto Sustantivo)";
+        return "Futuro (Sujeto Nominal)";
     }
 
     @PostConstruct
     public void configurarEstructura() {
-        // 1. PARTICIPIO (Ancla): Define Género, Número
         PalabraFrase<VerboFlexion> participio = palabraFraseFactory.crearVerboParticipioAncla("VERBO");
-
-        // 2. SUJETO: Depende de Participio
         PalabraFrase<SustantivoFlexion> sujeto = palabraFraseFactory.crearSustantivoDependienteParticipio("SUJETO", participio);
+        PalabraFrase<VerboFlexion> auxiliar = palabraFraseFactory.crearBitiAuxiliarFuturoParaSustantivo("VERBO_AUXILIAR", sujeto);
+        PalabraFrase<NumeralFlexion> numeraloSujeto = palabraFraseFactory.crearNumeralOpcional("NUMERAL_SUJETO", sujeto, Caso.NOMINATIVO);
 
-        // 3. NUMERAL
-        PalabraFrase<NumeralFlexion> numeralSujeto = palabraFraseFactory.crearNumeralApoyo("NUMERO_SUJETO", sujeto);
-
-        // 4. AUXILIAR: Biti (Siempre 3ª Persona)
-        PalabraFrase<VerboFlexion> auxiliar = palabraFraseFactory.crearBitiAuxiliarPasadoParaSustantivo("VERBO_AUXILIAR", sujeto);
-
-        agregarElemento(numeralSujeto);
+        agregarElemento(numeraloSujeto);
         agregarElemento(sujeto);
         agregarElemento(auxiliar);
         agregarElemento(participio);
     }
 }
+

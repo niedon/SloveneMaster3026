@@ -33,6 +33,29 @@ public class PalabraFraseFactory {
     @Autowired
     private SustantivoService sustantivoService;
 
+    public PalabraFrase<SustantivoFlexion> crearSustantivoDependienteParticipio(String nombre, PalabraFrase<VerboFlexion> participio) {
+        return PalabraFrase.<SustantivoFlexion>builder()
+                .nombre(nombre)
+                .criterio(SustantivoCriterioBuilder.crear()
+                        .conCaso(Caso.NOMINATIVO)
+                        // Dep Gen
+                        .conDependencia(DependenciaBuilder.de(participio)
+                                .si(v -> v.getGenero() == Genero.MASCULINO, SustantivoCriterioBuilder.crear().conGenero(Genero.MASCULINO).build())
+                                .si(v -> v.getGenero() == Genero.FEMENINO, SustantivoCriterioBuilder.crear().conGenero(Genero.FEMENINO).build())
+                                .orElse(SustantivoCriterioBuilder.crear().conGenero(Genero.NEUTRO).build())
+                        )
+                        // Dep Num
+                        .conDependencia(DependenciaBuilder.de(participio)
+                                .si(v -> v.getNumero() == Numero.SINGULAR, SustantivoCriterioBuilder.crear().conNumero(Numero.SINGULAR).build())
+                                .si(v -> v.getNumero() == Numero.DUAL, SustantivoCriterioBuilder.crear().conNumero(Numero.DUAL).build())
+                                .orElse(SustantivoCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
+                        )
+                        .build())
+                .generador(participio, v -> sustantivoService.getAnySustantivo(Caso.NOMINATIVO, v.getGenero(), v.getNumero()))
+                .extractor(ExtractorSustantivo.get())
+                .build();
+    }
+
     public PalabraFrase<SustantivoFlexion> crearSustantivoOpcional(String nombre, Caso caso) {
         return PalabraFrase.<SustantivoFlexion>builder()
                 .nombre(nombre)
@@ -200,6 +223,54 @@ public class PalabraFraseFactory {
                 .extractor(ExtractorVerbo.get())
                 .extractorDeEspanol(v -> "\uD83D\uDD19")
                 .extractorAEspanol(v -> "\uD83D\uDD19")
+                .build();
+    }
+
+    public PalabraFrase<VerboFlexion> crearBitiAuxiliarFuturoParaPronombre(String nombre, PalabraFrase<PronombreFlexion> pronombre) {
+        return PalabraFrase.<VerboFlexion>builder()
+                .nombre(nombre)
+                .criterio(VerboCriterioBuilder.crear()
+                        .conPrincipal("biti")
+                        .conFormaVerbal(FormaVerbal.FUTURE)
+                        .conNegativo(false)
+                        // DEPENDENCIA 1: PERSONA
+                        .conDependencia(DependenciaBuilder.de(pronombre)
+                                .si(p -> p.getPersona() == Persona.PRIMERA, VerboCriterioBuilder.crear().conPersona(Persona.PRIMERA).build())
+                                .si(p -> p.getPersona() == Persona.SEGUNDA, VerboCriterioBuilder.crear().conPersona(Persona.SEGUNDA).build())
+                                .orElse(VerboCriterioBuilder.crear().conPersona(Persona.TERCERA).build())
+                        )
+                        // DEPENDENCIA 2: NÚMERO
+                        .conDependencia(DependenciaBuilder.de(pronombre)
+                                .si(p -> p.getNumero() == Numero.SINGULAR, VerboCriterioBuilder.crear().conNumero(Numero.SINGULAR).build())
+                                .si(p -> p.getNumero() == Numero.DUAL, VerboCriterioBuilder.crear().conNumero(Numero.DUAL).build())
+                                .orElse( VerboCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
+                        )
+                        .build())
+                .generador(pronombre, p -> verbosService.getVerboAuxiliar("biti", FormaVerbal.FUTURE, p.getPersona(), p.getNumero(), false))
+                .extractor(ExtractorVerbo.get())
+                .extractorDeEspanol(v -> "🔜")
+                .extractorAEspanol(v -> "🔜")
+                .build();
+    }
+
+    public PalabraFrase<VerboFlexion> crearBitiAuxiliarFuturoParaSustantivo(String nombre, PalabraFrase<SustantivoFlexion> sustantivo) {
+        return PalabraFrase.<VerboFlexion>builder()
+                .nombre(nombre)
+                .criterio(VerboCriterioBuilder.crear()
+                        .conPrincipal("biti")
+                        .conFormaVerbal(FormaVerbal.FUTURE)
+                        .conPersona(Persona.TERCERA)
+                        .conNegativo(false)
+                        .conDependencia(DependenciaBuilder.de(sustantivo)
+                                .si(s -> s.getNumero() == Numero.SINGULAR, VerboCriterioBuilder.crear().conNumero(Numero.SINGULAR).build())
+                                .si(s -> s.getNumero() == Numero.DUAL, VerboCriterioBuilder.crear().conNumero(Numero.DUAL).build())
+                                .orElse(VerboCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
+                        )
+                        .build())
+                .generador(sustantivo, s -> verbosService.getVerboAuxiliar("biti", FormaVerbal.FUTURE, Persona.TERCERA, s.getNumero(), false))
+                .extractor(ExtractorVerbo.get())
+                .extractorDeEspanol(v -> "🔜")
+                .extractorAEspanol(v -> "🔜")
                 .build();
     }
 

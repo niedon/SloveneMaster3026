@@ -4,6 +4,7 @@ import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.enums.Transitividad;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
+import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.structures.DificultadFrase;
@@ -13,43 +14,32 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 @Component
-@DificultadFrase(NivelDificultad.INTERMEDIO_ALTO)
-public class FraseSustantivoVerboCDPasado extends Frase {
+@DificultadFrase(NivelDificultad.AVANZADO)
+public class FraseVerboCDFuturo extends Frase {
 
     @Override
     public String getIdentificador() {
-        return "SUSTANTIVO_VERBO_CD_PASADO";
+        return "VERBO_CD_FUTURO";
     }
 
     @Override
     public String getNombreMostrar() {
-        return "Pasado + CD (Sujeto Sustantivo)";
+        return "Futuro + CD (Sujeto Pronombre)";
     }
 
     @PostConstruct
     public void configurarEstructura() {
-        // 1. PARTICIPIO (Ancla): Transitivo
         PalabraFrase<VerboFlexion> participio = palabraFraseFactory.crearVerboParticipioAncla("VERBO", Transitividad.TRANSITIVO, Transitividad.AMBITRANSITIVO);
+        PalabraFrase<PronombreFlexion> pronombre = palabraFraseFactory.crearPronombreParaVerboParticipio("PRONOMBRE", participio);
+        PalabraFrase<VerboFlexion> auxiliar = palabraFraseFactory.crearBitiAuxiliarFuturoParaPronombre("VERBO_AUXILIAR", pronombre);
+        PalabraFrase<SustantivoFlexion> sustantivoCD = palabraFraseFactory.crearSustantivoOpcional("SUSTANTIVO_CD", Caso.ACUSATIVO);
+        PalabraFrase<NumeralFlexion> numeralCD = palabraFraseFactory.crearNumeralOpcional("NUMERAL_CD", sustantivoCD, Caso.ACUSATIVO);
 
-        // 2. SUJETO: Depende de Participio
-        PalabraFrase<SustantivoFlexion> sujeto = palabraFraseFactory.crearSustantivoDependienteParticipio("SUJETO", participio);
-
-        // 3. NUMERAL
-        PalabraFrase<NumeralFlexion> numeralSujeto = palabraFraseFactory.crearNumeralApoyo("NUMERO_SUJETO", sujeto);
-
-        // 4. CD: Depende de Participio (solo existencia)
-        PalabraFrase<SustantivoFlexion> cd = palabraFraseFactory.crearSustantivoOpcional("CD", Caso.ACUSATIVO);
-
-        PalabraFrase<NumeralFlexion> numeralCD = palabraFraseFactory.crearNumeralApoyo("NUMERO_CD", cd);
-
-        // 5. AUXILIAR (3ª Persona)
-        PalabraFrase<VerboFlexion> auxiliar = palabraFraseFactory.crearBitiAuxiliarPasadoParaSustantivo("VERBO_AUXILIAR", sujeto);
-
-        agregarElemento(numeralSujeto);
-        agregarElemento(sujeto);
+        agregarElemento(pronombre);
         agregarElemento(auxiliar);
         agregarElemento(participio);
         agregarElemento(numeralCD);
-        agregarElemento(cd);
+        agregarElemento(sustantivoCD);
     }
 }
+
