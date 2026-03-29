@@ -63,11 +63,6 @@ public class EstadisticasService {
         return ChartDataDTO.builder().labels(labels).datasets(datasets).build();
     }
     
-    // Función legacy que ya no se usa, o mantener para compatibilidad temporal si hubiera
-    public ChartDataDTO getAciertosFallos(Instant inicio, Instant fin, String granularidad, String zonaHoraria) {
-        return getAciertosFallosTotales(inicio, fin, granularidad, zonaHoraria);
-    }
-    
     public ChartDataDTO getTiempoPromedio(Instant inicio, Instant fin, String granularidad, String zonaHoraria) {
         ZoneId zoneId = ZoneId.of(zonaHoraria != null ? zonaHoraria : "UTC");
         boolean isMinutos = "minutos".equalsIgnoreCase(granularidad);
@@ -318,10 +313,5 @@ public class EstadisticasService {
             case "meses" -> DateTimeFormatter.ofPattern("MMM yyyy", es);
             default -> DateTimeFormatter.ofPattern("dd/MM/yyyy");
         };
-    }
-
-    private DateTimeFormatter getFormatter(String granularidad) {
-        // Mantiene compatibilidad
-        return getKeyFormatter(granularidad);
     }
 }

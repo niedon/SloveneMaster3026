@@ -27,17 +27,6 @@ public class SustantivoService {
 	private RandomEntitySelector randomSelector;
 
 	/**
-	 * Obtiene un sustantivo aleatorio de toda la base de datos.
-	 *
-	 * @return flexión aleatoria de sustantivo
-	 * @throws NoSuchElementException si no hay sustantivos disponibles
-	 */
-	public SustantivoFlexion getSustantivoAleatorio() throws NoSuchElementException {
-		return randomSelector.selectRandom(sustantivoFlexionRepo)
-				.orElseThrow(() -> new NoSuchElementException("No hay sustantivos disponibles"));
-	}
-
-	/**
 	 * Obtiene un sustantivo que coincida en caso, género y número con el adjetivo dado.
 	 * El género se obtiene del sustantivo base.
 	 * Solo devuelve sustantivos con tarjetas inicializadas (proximaRevision IS NOT NULL).
