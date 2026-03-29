@@ -1,17 +1,16 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
-import com.bcadaval.esloveno.beans.enums.*;
+import com.bcadaval.esloveno.beans.enums.Caso;
+import com.bcadaval.esloveno.beans.enums.FormaVerbal;
+import com.bcadaval.esloveno.beans.enums.NivelDificultad;
+import com.bcadaval.esloveno.beans.enums.Transitividad;
 import com.bcadaval.esloveno.beans.palabra.*;
-import com.bcadaval.esloveno.services.palabra.NumeralService;
-import com.bcadaval.esloveno.services.palabra.ParticulaService;
-import com.bcadaval.esloveno.services.palabra.PronombreService;
 import com.bcadaval.esloveno.services.palabra.verbo.VerbosService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
-import com.bcadaval.esloveno.structures.extractores.*;
+import com.bcadaval.esloveno.structures.extractores.ExtractorVerbo;
 import com.bcadaval.esloveno.structures.frase.Frase;
 import com.bcadaval.esloveno.structures.frase.PalabraFrase;
-import com.bcadaval.esloveno.structures.frase.criterio.*;
-import com.bcadaval.esloveno.structures.frase.dependencia.DependenciaBuilder;
+import com.bcadaval.esloveno.structures.frase.criterio.VerboCriterioBuilder;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -42,16 +41,7 @@ import java.util.Arrays;
 public class FraseNegacionConCD extends Frase {
 
     @Autowired
-    private PronombreService pronombreService;
-
-    @Autowired
-    private ParticulaService particulaService;
-
-    @Autowired
     private VerbosService verbosService;
-
-    @Autowired
-    private NumeralService numeralService;
 
     @Override
     public String getIdentificador() {
@@ -66,13 +56,7 @@ public class FraseNegacionConCD extends Frase {
     @PostConstruct
     public void configurarEstructura() {
         // Sustantivo en genitivo - elemento nuclear (obligatorio)
-        PalabraFrase<SustantivoFlexion> sustantivo = PalabraFrase.<SustantivoFlexion>builder()
-                .nombre("SUSTANTIVO")
-                .criterio(SustantivoCriterioBuilder.crear()
-                        .conCaso(Caso.GENITIVO)
-                        .build())
-                .extractor(ExtractorSustantivo.get())
-                .build();
+        PalabraFrase<SustantivoFlexion> sustantivoCD = palabraFraseFactory.crearSustantivoAncla("SUSTANTIVO", Caso.GENITIVO);
 
         // Verbo transitivo en presente (opcional, con generador)
         PalabraFrase<VerboFlexion> verbo = PalabraFrase.<VerboFlexion>builder()
@@ -88,72 +72,19 @@ public class FraseNegacionConCD extends Frase {
                 .build();
 
         // Pronombre (opcional, depende del verbo)
-        PalabraFrase<PronombreFlexion> pronombre = PalabraFrase.<PronombreFlexion>builder()
-                .nombre("PRONOMBRE")
-                .criterio(PronombreCriterioBuilder.crear()
-                        .conCaso(Caso.NOMINATIVO)
-                        .conClitico(false, null)
-                        .conTipoPronombre(TipoPronombre.PERSONAL)
-                        .conDependencia(DependenciaBuilder.de(verbo)
-                                .si(v -> v.getPersona() == Persona.PRIMERA && v.getNumero() == Numero.SINGULAR,
-                                        PronombreCriterioBuilder.crear().conPersona(Persona.PRIMERA).conNumero(Numero.SINGULAR).build())
-                                .si(v -> v.getPersona() == Persona.PRIMERA && v.getNumero() == Numero.DUAL,
-                                        PronombreCriterioBuilder.crear().conPersona(Persona.PRIMERA).conNumero(Numero.DUAL).build())
-                                .si(v -> v.getPersona() == Persona.PRIMERA && v.getNumero() == Numero.PLURAL,
-                                        PronombreCriterioBuilder.crear().conPersona(Persona.PRIMERA).conNumero(Numero.PLURAL).build())
-                                .si(v -> v.getPersona() == Persona.SEGUNDA && v.getNumero() == Numero.SINGULAR,
-                                        PronombreCriterioBuilder.crear().conPersona(Persona.SEGUNDA).conNumero(Numero.SINGULAR).build())
-                                .si(v -> v.getPersona() == Persona.SEGUNDA && v.getNumero() == Numero.DUAL,
-                                        PronombreCriterioBuilder.crear().conPersona(Persona.SEGUNDA).conNumero(Numero.DUAL).build())
-                                .si(v -> v.getPersona() == Persona.SEGUNDA && v.getNumero() == Numero.PLURAL,
-                                        PronombreCriterioBuilder.crear().conPersona(Persona.SEGUNDA).conNumero(Numero.PLURAL).build())
-                                .si(v -> v.getPersona() == Persona.TERCERA && v.getNumero() == Numero.SINGULAR,
-                                        PronombreCriterioBuilder.crear().conPersona(Persona.TERCERA).conNumero(Numero.SINGULAR).build())
-                                .si(v -> v.getPersona() == Persona.TERCERA && v.getNumero() == Numero.DUAL,
-                                        PronombreCriterioBuilder.crear().conPersona(Persona.TERCERA).conNumero(Numero.DUAL).build())
-                                .orElse(PronombreCriterioBuilder.crear().conPersona(Persona.TERCERA).conNumero(Numero.PLURAL).build())
-                        )
-                        .build())
-                .generador(verbo, v -> pronombreService.getPronombre(v))
-                .extractor(ExtractorPronombre.get())
-                .build();
+        PalabraFrase<PronombreFlexion> pronombre = palabraFraseFactory.crearPronombreParaVerboPresente("PRONOMBRE", verbo);
 
         // Partícula "ne" (apoyo)
-        PalabraFrase<ParticulaFlexion> particula = PalabraFrase.<ParticulaFlexion>builder()
-                .nombre("PARTICULA_NE")
-                .generador(() -> particulaService.getPorPrincipal("ne"))
-                .extractor(ExtractorParticula.get())
-                .build();
+        PalabraFrase<ParticulaFlexion> particula = palabraFraseFactory.crearParticulaNe("PARTICULA_NE", verbo);
 
         // Numeral en genitivo (opcional, depende del sustantivo)
-        PalabraFrase<NumeralFlexion> numeral = PalabraFrase.<NumeralFlexion>builder()
-                .nombre("NUMERO")
-                .criterio(NumeralCriterioBuilder.crear()
-                        .conCaso(Caso.GENITIVO)
-                        .conDependencia(DependenciaBuilder.de(sustantivo)
-                                .si(sust -> sust.getNumero() == Numero.SINGULAR,
-                                        NumeralCriterioBuilder.crear().conNumero(Numero.SINGULAR).conCantidad(1).build())
-                                .si(sust -> sust.getNumero() == Numero.DUAL,
-                                        NumeralCriterioBuilder.crear().conNumero(Numero.DUAL).conCantidad(2).build())
-                                .orElse(NumeralCriterioBuilder.crear().conNumero(Numero.PLURAL).conCantidadMayorQue(2).build())
-                        )
-                        .conDependencia(DependenciaBuilder.de(sustantivo)
-                                .si(sust -> sust.getSustantivoBase().getGenero() == Genero.MASCULINO,
-                                        NumeralCriterioBuilder.crear().conGenero(Genero.MASCULINO, Genero.NULO).build())
-                                .si(sust -> sust.getSustantivoBase().getGenero() == Genero.FEMENINO,
-                                        NumeralCriterioBuilder.crear().conGenero(Genero.FEMENINO, Genero.NULO).build())
-                                .orElse(NumeralCriterioBuilder.crear().conGenero(Genero.NEUTRO, Genero.NULO).build())
-                        )
-                        .build())
-                .generador(sustantivo, sust -> numeralService.getNumeral(sust))
-                .extractor(ExtractorNumero.get())
-                .build();
+        PalabraFrase<NumeralFlexion> numeral = palabraFraseFactory.crearNumeralOpcional("NUMERO", sustantivoCD, Caso.GENITIVO);
 
         agregarElemento(pronombre);
         agregarElemento(particula);
         agregarElemento(verbo);
         agregarElemento(numeral);
-        agregarElemento(sustantivo);
+        agregarElemento(sustantivoCD);
     }
 }
 

@@ -1,10 +1,6 @@
 package com.bcadaval.esloveno.services.palabra.sustantivo;
 
-import java.util.NoSuchElementException;
-
-import com.bcadaval.esloveno.beans.enums.Animacidad;
-import com.bcadaval.esloveno.beans.enums.CabezaRelacional;
-import com.bcadaval.esloveno.beans.enums.Caso;
+import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.repo.SustantivoFlexionRepo;
@@ -12,6 +8,8 @@ import com.bcadaval.esloveno.services.RandomEntitySelector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.util.NoSuchElementException;
 
 /**
  * Servicio para gestionar sustantivos y sus flexiones.
@@ -92,6 +90,16 @@ public class SustantivoService {
 	}
 
 	/**
+	 * Obtiene un sustantivo aleatorio que cumpla con caso
+	 *
+	 * @param caso Caso requerido (opcional)
+	 * @return SustantivoFlexion encontrado o null
+	 */
+	public SustantivoFlexion getAnySustantivo(Caso caso) {
+		return getAnySustantivo (caso, null, null);
+	}
+
+	/**
 	 * Obtiene un sustantivo aleatorio que cumpla con caso, género y número.
 	 *
 	 * @param caso Caso requerido (opcional)
@@ -99,7 +107,7 @@ public class SustantivoService {
 	 * @param numero Número requerido (opcional)
 	 * @return SustantivoFlexion encontrado o null
 	 */
-	public SustantivoFlexion getAnySustantivo(Caso caso, com.bcadaval.esloveno.beans.enums.Genero genero, com.bcadaval.esloveno.beans.enums.Numero numero) {
+	public SustantivoFlexion getAnySustantivo(Caso caso, Genero genero, Numero numero) {
 		Specification<SustantivoFlexion> spec = (root, query, cb) -> {
 			jakarta.persistence.criteria.Predicate p = cb.conjunction();
 			if (caso != null) {

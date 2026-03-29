@@ -1,13 +1,10 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
-import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.structures.DificultadFrase;
-import com.bcadaval.esloveno.structures.extractores.ExtractorVerbo;
 import com.bcadaval.esloveno.structures.frase.Frase;
 import com.bcadaval.esloveno.structures.frase.PalabraFrase;
-import com.bcadaval.esloveno.structures.frase.criterio.VerboCriterioBuilder;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
@@ -37,13 +34,7 @@ public class FraseSoloVerboInfinitivo extends Frase {
 
     @PostConstruct
     public void configurarEstructura() {
-        PalabraFrase<VerboFlexion> verbo = PalabraFrase.<VerboFlexion>builder()
-                .nombre("VERBO")
-                .criterio(VerboCriterioBuilder.crear()
-                        .conFormaVerbal(FormaVerbal.INFINITIVE)
-                        .build())
-                .extractor(ExtractorVerbo.get())
-                .build();
+        PalabraFrase<VerboFlexion> verbo = palabraFraseFactory.crearVerboInfinitivoAncla();
 
         agregarElemento(verbo);
     }

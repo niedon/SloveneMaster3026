@@ -13,6 +13,7 @@ import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
 import com.bcadaval.esloveno.structures.frase.dependencia.Dependencia;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.util.*;
@@ -49,6 +50,9 @@ import java.util.*;
  */
 @Log4j2
 public abstract class Frase {
+
+    @Autowired
+    protected PalabraFraseFactory palabraFraseFactory;
 
     /**
      * Lista ordenada de todos los huecos (determina el orden de visualización).

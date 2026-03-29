@@ -1,25 +1,18 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
 import com.bcadaval.esloveno.beans.enums.Caso;
-import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 import com.bcadaval.esloveno.beans.enums.Genero;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.enums.Numero;
-import com.bcadaval.esloveno.beans.enums.Persona;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
-import com.bcadaval.esloveno.services.palabra.NumeralService;
 import com.bcadaval.esloveno.services.palabra.sustantivo.SustantivoService;
-import com.bcadaval.esloveno.services.palabra.verbo.VerbosService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
-import com.bcadaval.esloveno.structures.extractores.ExtractorNumero;
 import com.bcadaval.esloveno.structures.extractores.ExtractorSustantivo;
-import com.bcadaval.esloveno.structures.extractores.ExtractorVerbo;
 import com.bcadaval.esloveno.structures.frase.Frase;
 import com.bcadaval.esloveno.structures.frase.PalabraFrase;
 import com.bcadaval.esloveno.structures.frase.criterio.SustantivoCriterioBuilder;
-import com.bcadaval.esloveno.structures.frase.criterio.VerboCriterioBuilder;
 import com.bcadaval.esloveno.structures.frase.dependencia.DependenciaBuilder;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,11 +23,7 @@ import org.springframework.stereotype.Component;
 public class FraseSustantivoVerboPasado extends Frase {
 
     @Autowired
-    private NumeralService numeralService;
-    @Autowired
     private SustantivoService sustantivoService;
-    @Autowired
-    private VerbosService verbosService;
 
     @Override
     public String getIdentificador() {
@@ -49,13 +38,7 @@ public class FraseSustantivoVerboPasado extends Frase {
     @PostConstruct
     public void configurarEstructura() {
         // 1. PARTICIPIO (Ancla): Define Género, Número
-        PalabraFrase<VerboFlexion> participio = PalabraFrase.<VerboFlexion>builder()
-                .nombre("VERBO")
-                .criterio(VerboCriterioBuilder.crear()
-                        .conFormaVerbal(FormaVerbal.PARTICIPLE)
-                        .build())
-                .extractor(ExtractorVerbo.get())
-                .build();
+        PalabraFrase<VerboFlexion> participio = palabraFraseFactory.crearVerboParticipioAncla("VERBO");
 
         // 2. SUJETO: Depende de Participio
         PalabraFrase<SustantivoFlexion> sujeto = PalabraFrase.<SustantivoFlexion>builder()
@@ -80,33 +63,10 @@ public class FraseSustantivoVerboPasado extends Frase {
                 .build();
 
         // 3. NUMERAL
-        PalabraFrase<NumeralFlexion> numeralSujeto = PalabraFrase.<NumeralFlexion>builder()
-                .nombre("NUMERO_SUJETO")
-                .generador(sujeto, sust -> numeralService.getNumeral(sust))
-                .extractor(ExtractorNumero.get())
-                .extractorDeEsloveno(x -> "")
-                .build();
+        PalabraFrase<NumeralFlexion> numeralSujeto = palabraFraseFactory.crearNumeralApoyo("NUMERO_SUJETO", sujeto);
 
         // 4. AUXILIAR: Biti (Siempre 3ª Persona)
-        PalabraFrase<VerboFlexion> auxiliar = PalabraFrase.<VerboFlexion>builder()
-                .nombre("VERBO_AUXILIAR")
-                .criterio(VerboCriterioBuilder.crear()
-                        .conPrincipal("biti")
-                        .conFormaVerbal(FormaVerbal.PRESENT)
-                        .conPersona(Persona.TERCERA)
-                        .conNegativo(false)
-                        // DEPENDENCIA: Número concuerda con el Sujeto
-                        .conDependencia(DependenciaBuilder.de(sujeto)
-                                .si(s -> s.getNumero() == Numero.SINGULAR, VerboCriterioBuilder.crear().conNumero(Numero.SINGULAR).build())
-                                .si(s -> s.getNumero() == Numero.DUAL, VerboCriterioBuilder.crear().conNumero(Numero.DUAL).build())
-                                .orElse(VerboCriterioBuilder.crear().conNumero(Numero.PLURAL).build())
-                        )
-                        .build())
-                .generador(sujeto, s -> verbosService.getVerboAuxiliar("biti", FormaVerbal.PRESENT, Persona.TERCERA, s.getNumero(), false))
-                .extractor(ExtractorVerbo.get())
-                .extractorDeEspanol(v -> "\uD83D\uDD19")
-                .extractorAEspanol(v -> "\uD83D\uDD19")
-                .build();
+        PalabraFrase<VerboFlexion> auxiliar = palabraFraseFactory.crearBitiAuxiliarPasadoParaSustantivo("VERBO_AUXILIAR", sujeto);
 
         agregarElemento(numeralSujeto);
         agregarElemento(sujeto);

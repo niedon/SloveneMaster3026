@@ -254,15 +254,12 @@ public class EstadisticasService {
             return datasets.getOrDefault(key, new ArrayList<>());
         }
     }
-    
-    private static class LabelPair {
-        String key; // Para buscar en Map
-        String displayLabel; // Para mostrar en Gráfica
 
-        LabelPair(String key, String displayLabel) {
-            this.key = key;
-            this.displayLabel = displayLabel;
-        }
+    /**
+     * @param key          Para buscar en Map
+     * @param displayLabel Para mostrar en Gráfica
+     */
+    private record LabelPair(String key, String displayLabel) {
     }
 
     private List<LabelPair> generarEtiquetas(Instant inicio, Instant fin, String granularidad, ZoneId zoneId) {
@@ -313,7 +310,7 @@ public class EstadisticasService {
     }
     
     private DateTimeFormatter getDisplayFormatter(String granularidad) {
-        Locale es = new Locale("es", "ES");
+        Locale es = new Locale.Builder().setLanguage("es").setRegion("ES").build();
         return switch (granularidad.toLowerCase()) {
             case "minutos" -> DateTimeFormatter.ofPattern("HH:mm");
             case "horas" -> DateTimeFormatter.ofPattern("HH:00");

@@ -7,10 +7,8 @@ import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
-import com.bcadaval.esloveno.services.palabra.NumeralService;
 import com.bcadaval.esloveno.services.palabra.sustantivo.SustantivoService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
-import com.bcadaval.esloveno.structures.extractores.ExtractorNumero;
 import com.bcadaval.esloveno.structures.extractores.ExtractorSustantivo;
 import com.bcadaval.esloveno.structures.frase.Frase;
 import com.bcadaval.esloveno.structures.frase.PalabraFrase;
@@ -49,9 +47,6 @@ import org.springframework.stereotype.Component;
 @Component
 @DificultadFrase(NivelDificultad.INTERMEDIO)
 public class FraseRelacionNominal extends Frase {
-
-    @Autowired
-    private NumeralService numeralService;
 
     @Autowired
     private SustantivoService sustantivoService;
@@ -97,20 +92,9 @@ public class FraseRelacionNominal extends Frase {
      */
     @PostConstruct
     public void configurarEstructura() {
-        PalabraFrase<SustantivoFlexion> sustantivoDependiente = PalabraFrase.<SustantivoFlexion>builder()
-                .nombre("SUSTANTIVO_DEPENDIENTE")
-                .criterio(SustantivoCriterioBuilder.crear()
-                        .conCaso(Caso.GENITIVO)
-                        .build())
-                .extractor(ExtractorSustantivo.get())
-                .build();
+        PalabraFrase<SustantivoFlexion> sustantivoDependiente =  palabraFraseFactory.crearSustantivoAncla("SUSTANTIVO_DEPENDIENTE", Caso.GENITIVO);
 
-        PalabraFrase<NumeralFlexion> numeralDependiente = PalabraFrase.<NumeralFlexion>builder()
-                .nombre("NUMERO_DEPENDIENTE")
-                .generador(sustantivoDependiente, sust -> numeralService.getNumeral(sust))
-                .extractor(ExtractorNumero.get())
-                .extractorDeEsloveno(x -> "")
-                .build();
+        PalabraFrase<NumeralFlexion> numeralDependiente = palabraFraseFactory.crearNumeralApoyo("NUMERO_DEPENDIENTE", sustantivoDependiente);
 
         PalabraFrase<ParticulaFlexion> particulaDe = PalabraFrase.<ParticulaFlexion>builder()
                 .nombre("PARTICULA_DE")
@@ -126,7 +110,7 @@ public class FraseRelacionNominal extends Frase {
                 .criterio(SustantivoCriterioBuilder.crear()
                         .conCaso(Caso.NOMINATIVO)
                         .conDependencia(DependenciaBuilder.de(sustantivoDependiente)
-                                .si(sust -> sust.getSustantivoBase().getAnimacidad()== Animacidad.INANIMADO,
+                                .si(sust -> sust.getSustantivoBase().getAnimacidad() == Animacidad.INANIMADO,
                                         SustantivoCriterioBuilder.crear().conCabezaRelacional(CabezaRelacional.SI).build())
                                 .orElse(SustantivoCriterioBuilder.crear().build()))
                         .build())
@@ -134,12 +118,7 @@ public class FraseRelacionNominal extends Frase {
                 .extractor(ExtractorSustantivo.get())
                 .build();
 
-        PalabraFrase<NumeralFlexion> numeralNucleo = PalabraFrase.<NumeralFlexion>builder()
-                .nombre("NUMERO_NUCLEO")
-                .generador(sustantivoNucleo, sust -> numeralService.getNumeral(sust))
-                .extractor(ExtractorNumero.get())
-                .extractorDeEsloveno(x -> "")
-                .build();
+        PalabraFrase<NumeralFlexion> numeralNucleo = palabraFraseFactory.crearNumeralApoyo("NUMERO_NUCLEO", sustantivoNucleo);
 
         agregarElemento(numeralNucleo);
         agregarElemento(sustantivoNucleo);
