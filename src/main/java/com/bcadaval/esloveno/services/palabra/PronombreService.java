@@ -41,7 +41,7 @@ public class PronombreService {
 			}
 
 			if (verboFlexion.getGenero() != null) {
-				cb.and(p, cb.or(
+				p = cb.and(p, cb.or(
 						cb.isNull(root.get("genero")),
 						cb.equal(root.get("genero"), verboFlexion.getGenero())
 				));
