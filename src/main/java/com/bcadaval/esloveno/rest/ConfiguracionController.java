@@ -50,8 +50,8 @@ public class ConfiguracionController {
         model.addAttribute("variablesMap", variablesMap);
 
 
-        // Estructuras de frase agrupadas por nivel de dificultad
-        model.addAttribute("estructurasPorDificultad", fraseService.getFrasesAgrupadasPorDificultad());
+        // Estructuras de frase agrupadas por nivel de dificultad y categoría
+        model.addAttribute("estructurasAgrupadas", fraseService.getFrasesAgrupadasPorNivelYCategoria());
 
         // Casos activos derivados de las estructuras activas (solo para mostrar info)
         model.addAttribute("casosActivos", fraseService.getCasosActivos());

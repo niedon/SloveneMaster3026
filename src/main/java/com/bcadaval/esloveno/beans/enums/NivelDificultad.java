@@ -8,12 +8,12 @@ import lombok.Getter;
  */
 @Getter
 public enum NivelDificultad {
-    PRINCIPIANTE(0, "🌱 Principiante", "Estructuras básicas para empezar"),
-    ELEMENTAL(1, "📗 Elemental", "Nivel A1-A2 del MCER"),
-    INTERMEDIO(2, "📘 Intermedio", "Nivel B1 del MCER"),
-    INTERMEDIO_ALTO(3, "📙 Intermedio Alto", "Nivel B2 del MCER"),
-    AVANZADO(4, "🎓 Avanzado", "Nivel C1 del MCER"),
-    MAESTRO(5, "🏆 Maestro", "Nivel C2 - Dominio completo");
+    NIVEL_1(1, "🌱 Nivel 1", "Etapa 1 - Fundamentos"),
+    NIVEL_2(2, "📗 Nivel 2", "Etapa 2 - Consolidación"),
+    NIVEL_3(3, "📘 Nivel 3", "Etapa 3 - Desarrollo"),
+    NIVEL_4(4, "📙 Nivel 4", "Etapa 4 - Expansión"),
+    NIVEL_5(5, "🎓 Nivel 5", "Etapa 5 - Fluidez"),
+    NIVEL_6(6, "🌍 Nivel 6", "Etapa 6 - Siguientes");
 
     /**
      * Orden numérico para ordenar las secciones (0 = primero)
@@ -36,4 +36,3 @@ public enum NivelDificultad {
         this.descripcion = descripcion;
     }
 }
-

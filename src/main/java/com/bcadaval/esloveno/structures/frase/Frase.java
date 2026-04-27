@@ -4,6 +4,7 @@ import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
+import com.bcadaval.esloveno.beans.enums.CategoriaFrase;
 import com.bcadaval.esloveno.beans.enums.TipoPalabra;
 import com.bcadaval.esloveno.services.RepeticionEspaciadaService;
 import com.bcadaval.esloveno.structures.DatoVisualizacion;
@@ -461,16 +462,22 @@ public abstract class Frase {
     }
 
     /**
-     * Obtiene el nivel de dificultad de esta frase.
-     * Si no tiene la anotación {@link DificultadFrase}, devuelve PRINCIPIANTE por defecto.
+     * Obtiene la categoría a la que pertenece esta frase.
+     * Si no tiene la anotación {@link DificultadFrase}, lanza una excepción de validación.
      */
-    public NivelDificultad getDificultad() {
+    public CategoriaFrase getCategoria() {
         DificultadFrase anotacion = this.getClass().getAnnotation(DificultadFrase.class);
         if (anotacion == null) {
-            log.warn("La frase '{}' no tiene anotación @DificultadFrase, asignando PRINCIPIANTE por defecto",
-                    getNombre());
+            throw new IllegalStateException("La frase '" + getNombre() + "' no está catalogada. Falta @DificultadFrase");
         }
-        return anotacion != null ? anotacion.value() : NivelDificultad.PRINCIPIANTE;
+        return anotacion.categoria();
+    }
+
+    /**
+     * Obtiene el nivel de dificultad de esta frase basado en su categoría.
+     */
+    public NivelDificultad getDificultad() {
+        return getCategoria().getNivelDificultad();
     }
 }
 

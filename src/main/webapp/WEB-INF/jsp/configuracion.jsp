@@ -118,41 +118,66 @@
             <!-- Sección de estructuras de frase -->
             <div class="config-section">
                 <h2>📝 Estructuras de Frase</h2>
-                <p>Activa o desactiva las estructuras de frase que deseas estudiar.</p>
+                <p>Activa o desactiva las categorías enteras. Todas las frases dentro se activarán o desactivarán.</p>
 
-                <c:forEach var="entry" items="${estructurasPorDificultad}">
+                <c:forEach var="entryNivel" items="${estructurasAgrupadas}">
                     <div class="dificultad-section">
                         <h3>
-                            ${entry.key.titulo}
-                            <span>${entry.key.descripcion}</span>
+                            ${entryNivel.key.titulo}
+                            <span>${entryNivel.key.descripcion}</span>
                         </h3>
+
                         <div class="casos-grid">
-                            <c:forEach var="estructura" items="${entry.value}">
+                            <c:forEach var="entryCategoria" items="${entryNivel.value}">
+                                <c:set var="categoriaActiva" value="false" />
+                                <c:set var="categoriaInvalida" value="false" />
+                                <c:set var="motivoInvalido" value="" />
+                                <c:set var="casosAcumulados" value="" />
+                                <c:set var="formasVerbalesAcumuladas" value="" />
+
+                                <!-- Analizar estado de la categoría en base a sus frases -->
+                                <c:forEach var="frase" items="${entryCategoria.value}">
+                                    <c:if test="${frase.activa}"><c:set var="categoriaActiva" value="true" /></c:if>
+                                    <c:if test="${frase.invalida}">
+                                        <c:set var="categoriaInvalida" value="true" />
+                                        <c:set var="motivoInvalido" value="${frase.motivoInvalidez}" />
+                                    </c:if>
+
+                                    <!-- Acumular metadatos para UI -->
+                                    <c:forEach var="caso" items="${frase.casosUsados}">
+                                        <c:set var="casosAcumulados" value="${casosAcumulados}${caso.name()}," />
+                                    </c:forEach>
+                                    <c:forEach var="fv" items="${frase.formasVerbalesUsadas}">
+                                        <c:set var="formasVerbalesAcumuladas" value="${formasVerbalesAcumuladas}${fv.name()}," />
+                                    </c:forEach>
+                                </c:forEach>
+
                                 <c:choose>
-                                    <c:when test="${estructura.invalida}">
+                                    <c:when test="${categoriaInvalida}">
                                         <div class="caso-item invalida"
-                                             title="⚠️ ${estructura.motivoInvalidez}"
-                                             data-identificador="${estructura.identificador}"
-                                             data-casos=""
-                                             data-formas-verbales="">
-                                            <input type="checkbox" id="est_${estructura.identificador}"
-                                                   name="estructuras"
-                                                   value="${estructura.identificador}"
-                                                   disabled>
-                                            <label for="est_${estructura.identificador}">❌ ${estructura.nombreMostrar}</label>
+                                             title="⚠️ Contiene frase inválida: ${motivoInvalido}">
+                                            <input type="checkbox" disabled>
+                                            <label>❌ ${entryCategoria.key.titulo}</label>
                                         </div>
                                     </c:when>
                                     <c:otherwise>
-                                        <div class="caso-item <c:if test='${estructura.activa}'>selected</c:if>"
-                                             onclick="toggleEstructuraLocal('${estructura.identificador}', this)"
-                                             data-identificador="${estructura.identificador}"
-                                             data-casos="<c:forEach var='caso' items='${estructura.casosUsados}' varStatus='st'>${caso.name()}<c:if test='${!st.last}'>,</c:if></c:forEach>"
-                                             data-formas-verbales="<c:forEach var='fv' items='${estructura.formasVerbalesUsadas}' varStatus='st'>${fv.name()}<c:if test='${!st.last}'>,</c:if></c:forEach>">
-                                            <input type="checkbox" id="est_${estructura.identificador}"
-                                                   name="estructuras"
-                                                   value="${estructura.identificador}"
-                                                   <c:if test="${estructura.activa}">checked</c:if>>
-                                            <label for="est_${estructura.identificador}">${estructura.nombreMostrar}</label>
+                                        <div class="caso-item categoria-card <c:if test='${categoriaActiva}'>selected</c:if>"
+                                             onclick="toggleCategoriaLocal(this)"
+                                             data-casos="${casosAcumulados}"
+                                             data-formas-verbales="${formasVerbalesAcumuladas}">
+
+                                            <!-- Checkbox visual de la categoría -->
+                                            <input type="checkbox" class="categoria-checkbox"
+                                                   <c:if test="${categoriaActiva}">checked</c:if>>
+                                            <label>${entryCategoria.key.titulo}</label>
+
+                                            <!-- Inputs ocultos reales que se enviarán al servidor -->
+                                            <div class="hidden-inputs-container" style="display:none;">
+                                                <c:forEach var="estructura" items="${entryCategoria.value}">
+                                                    <input type="checkbox" name="estructuras" value="${estructura.identificador}"
+                                                           <c:if test="${categoriaActiva}">checked</c:if>>
+                                                </c:forEach>
+                                            </div>
                                         </div>
                                     </c:otherwise>
                                 </c:choose>
@@ -220,24 +245,30 @@
         document.getElementById('intervaloReaprendizaje').addEventListener('input', actualizarTiempos);
         actualizarTiempos();
 
-        // Toggle de estructura de frase (LOCAL, no guarda hasta Submit)
-        function toggleEstructuraLocal(identificador, element) {
-            const checkbox = element.querySelector('input[type="checkbox"]');
-            checkbox.checked = !checkbox.checked;
-            element.classList.toggle('selected', checkbox.checked);
+        // Toggle de CATEGORÍA entera
+        function toggleCategoriaLocal(element) {
+            const checkboxVisial = element.querySelector('.categoria-checkbox');
+            checkboxVisial.checked = !checkboxVisial.checked;
+            element.classList.toggle('selected', checkboxVisial.checked);
+
+            // Sincronizar inputs ocultos hijos
+            const hiddenInputs = element.querySelectorAll('.hidden-inputs-container input[type="checkbox"]');
+            hiddenInputs.forEach(input => {
+                input.checked = checkboxVisial.checked;
+            });
 
             // Actualizar casos y formas verbales activas dinámicamente
             actualizarFiltrosActivos();
         }
 
-        // Calcula y actualiza la lista de casos y formas verbales activas según las estructuras seleccionadas
+        // Calcula y actualiza la lista de casos y formas verbales activas según las CATEGORIAS seleccionadas
         function actualizarFiltrosActivos() {
-            const estructurasSeleccionadas = document.querySelectorAll('.caso-item input[type="checkbox"]:checked');
+            const categoriasSeleccionadas = document.querySelectorAll('.categoria-card input.categoria-checkbox:checked');
             const casosSet = new Set();
             const formasVerbalesSet = new Set();
 
-            estructurasSeleccionadas.forEach(checkbox => {
-                const casoItem = checkbox.closest('.caso-item');
+            categoriasSeleccionadas.forEach(checkbox => {
+                const casoItem = checkbox.closest('.categoria-card');
 
                 // Obtener casos
                 const casos = casoItem.getAttribute('data-casos');
@@ -317,4 +348,6 @@
     </script>
 </body>
 </html>
+
+
 

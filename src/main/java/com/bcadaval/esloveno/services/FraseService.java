@@ -5,6 +5,7 @@ import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
+import com.bcadaval.esloveno.beans.enums.CategoriaFrase;
 import com.bcadaval.esloveno.repo.EstructuraFraseConfigRepo;
 import com.bcadaval.esloveno.structures.frase.Frase;
 import com.bcadaval.esloveno.structures.frase.criterio.CriterioBusquedaNuevo;
@@ -261,6 +262,7 @@ public class FraseService {
                         estadoBD.getOrDefault(f.getIdentificador(), true),
                         f.getCasosUsados(),
                         f.getFormasVerbalesUsadas(),
+                        f.getCategoria(),
                         f.getDificultad(),
                         f.isInvalida(),
                         f.getMotivoInvalidez()
@@ -270,14 +272,18 @@ public class FraseService {
     }
 
     /**
-     * Obtiene las frases agrupadas por nivel de dificultad.
+     * Obtiene las frases agrupadas por nivel de dificultad y luego por categoría.
      */
-    public Map<NivelDificultad, List<FraseConfigDTO>> getFrasesAgrupadasPorDificultad() {
+    public Map<NivelDificultad, Map<CategoriaFrase, List<FraseConfigDTO>>> getFrasesAgrupadasPorNivelYCategoria() {
         return getTodasParaConfiguracion().stream()
                 .collect(Collectors.groupingBy(
-                        FraseConfigDTO::dificultad,
+                        FraseConfigDTO::getDificultad,
                         () -> new TreeMap<>(Comparator.comparingInt(NivelDificultad::getOrden)),
-                        Collectors.toList()
+                        Collectors.groupingBy(
+                                FraseConfigDTO::getCategoria,
+                                () -> new TreeMap<>(Comparator.comparingInt(CategoriaFrase::getOrden)),
+                                Collectors.toList()
+                        )
                 ));
     }
 
@@ -333,18 +339,17 @@ public class FraseService {
     @SuppressWarnings("unused")
     public record FraseConfigDTO(String identificador, String nombreMostrar, boolean activa,
                                  Set<Caso> casosUsados, Set<FormaVerbal> formasVerbalesUsadas,
-                                 NivelDificultad dificultad, boolean invalida, String motivoInvalidez) {
+                                 CategoriaFrase categoria, NivelDificultad dificultad,
+                                 boolean invalida, String motivoInvalidez) {
 
         public String getIdentificador() { return identificador; }
         public String getNombreMostrar() { return nombreMostrar; }
         public boolean isActiva() { return activa; }
         public Set<Caso> getCasosUsados() { return casosUsados; }
         public Set<FormaVerbal> getFormasVerbalesUsadas() { return formasVerbalesUsadas; }
+        public CategoriaFrase getCategoria() { return categoria; }
         public NivelDificultad getDificultad() { return dificultad; }
         public boolean isInvalida() { return invalida; }
         public String getMotivoInvalidez() { return motivoInvalidez; }
     }
 }
-
-
-

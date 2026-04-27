@@ -1,9 +1,6 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
-import com.bcadaval.esloveno.beans.enums.Caso;
-import com.bcadaval.esloveno.beans.enums.FormaVerbal;
-import com.bcadaval.esloveno.beans.enums.NivelDificultad;
-import com.bcadaval.esloveno.beans.enums.Transitividad;
+import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.*;
 import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtractorVerbo;
@@ -30,7 +27,7 @@ import org.springframework.stereotype.Component;
  * </ol>
  */
 @Component
-@DificultadFrase(NivelDificultad.INTERMEDIO)
+@DificultadFrase(categoria = CategoriaFrase.NEGACION_PRESENTE_CON_CD)
 public class FraseNegacionConCDEspecial extends Frase {
 
     @Override

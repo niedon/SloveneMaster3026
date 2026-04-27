@@ -1,5 +1,6 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
+import com.bcadaval.esloveno.beans.enums.CategoriaFrase;
 import com.bcadaval.esloveno.beans.enums.FormaVerbal;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Component;
  * </ol>
  */
 @Component
-@DificultadFrase(NivelDificultad.PRINCIPIANTE)
+@DificultadFrase(categoria = CategoriaFrase.PRESENTE)
 public class FraseSoloVerboPresente extends Frase {
 
     @Override

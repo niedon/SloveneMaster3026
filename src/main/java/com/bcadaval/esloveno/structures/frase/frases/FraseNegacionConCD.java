@@ -1,9 +1,6 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
-import com.bcadaval.esloveno.beans.enums.Caso;
-import com.bcadaval.esloveno.beans.enums.FormaVerbal;
-import com.bcadaval.esloveno.beans.enums.NivelDificultad;
-import com.bcadaval.esloveno.beans.enums.Transitividad;
+import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.*;
 import com.bcadaval.esloveno.services.palabra.verbo.VerbosService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
@@ -37,7 +34,7 @@ import java.util.Arrays;
  * </ol>
  */
 @Component
-@DificultadFrase(NivelDificultad.INTERMEDIO)
+@DificultadFrase(categoria = CategoriaFrase.NEGACION_PRESENTE_CON_CD)
 public class FraseNegacionConCD extends Frase {
 
     @Autowired

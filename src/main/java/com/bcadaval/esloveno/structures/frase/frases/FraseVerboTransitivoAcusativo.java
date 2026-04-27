@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
  * </ol>
  */
 @Component
-@DificultadFrase(NivelDificultad.ELEMENTAL)
+@DificultadFrase(categoria = CategoriaFrase.PRESENTE_CON_CD)
 public class FraseVerboTransitivoAcusativo extends Frase {
 
     @Autowired

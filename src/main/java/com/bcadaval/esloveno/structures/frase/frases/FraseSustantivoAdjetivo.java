@@ -1,6 +1,7 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
 import com.bcadaval.esloveno.beans.enums.Caso;
+import com.bcadaval.esloveno.beans.enums.CategoriaFrase;
 import com.bcadaval.esloveno.beans.enums.Grado;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Component;
  * </ol>
  */
 @Component
-@DificultadFrase(NivelDificultad.ELEMENTAL)
+@DificultadFrase(categoria = CategoriaFrase.EN_PROCESO)
 public class FraseSustantivoAdjetivo extends Frase {
 
     @Autowired

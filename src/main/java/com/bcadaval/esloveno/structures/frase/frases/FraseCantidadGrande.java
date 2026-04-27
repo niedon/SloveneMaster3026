@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
  * si hay un numeral disponible para SRS se usa, si no, se genera por el generador.
  */
 @Component
-@DificultadFrase(NivelDificultad.INTERMEDIO)
+@DificultadFrase(categoria = CategoriaFrase.CANTIDADES_MAYOR_5)
 public class FraseCantidadGrande extends Frase {
 
     @Autowired

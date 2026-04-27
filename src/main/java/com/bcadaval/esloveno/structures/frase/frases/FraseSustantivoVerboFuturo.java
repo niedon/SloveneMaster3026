@@ -1,6 +1,7 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
 import com.bcadaval.esloveno.beans.enums.Caso;
+import com.bcadaval.esloveno.beans.enums.CategoriaFrase;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
@@ -12,7 +13,7 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 @Component
-@DificultadFrase(NivelDificultad.AVANZADO)
+@DificultadFrase(categoria = CategoriaFrase.FUTURO_SIMPLE)
 public class FraseSustantivoVerboFuturo extends Frase {
 
     @Override
