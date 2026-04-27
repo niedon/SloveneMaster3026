@@ -62,11 +62,6 @@ public class PalabraIncompletaDTO {
      */
     private String claseSemantica;
 
-    /**
-     * Cabeza relacional del sustantivo (SI/NO, puede ser null)
-     */
-    private String cabezaRelacional;
-
     // =====================================================
     // Campos específicos de verbo
     // =====================================================

@@ -109,12 +109,10 @@ public class CompletarPalabrasController {
                         .animacidad(sustantivo.getAnimacidad() != null ? sustantivo.getAnimacidad().name() : null)
                         .contabilidad(sustantivo.getContabilidad() != null ? sustantivo.getContabilidad().name() : null)
                         .claseSemantica(sustantivo.getClaseSemantica() != null ? sustantivo.getClaseSemantica().name() : null)
-                        .cabezaRelacional(sustantivo.getCabezaRelacional() != null ? sustantivo.getCabezaRelacional().name() : null)
                         .completa(sustantivo.getSignificado() != null
                                 && sustantivo.getAnimacidad() != null
                                 && sustantivo.getContabilidad() != null
-                                && sustantivo.getClaseSemantica() != null
-                                && sustantivo.getCabezaRelacional() != null)
+                                && sustantivo.getClaseSemantica() != null)
                         .build())
                 .forEach(palabras::add);
 
@@ -200,7 +198,6 @@ public class CompletarPalabrasController {
             @RequestParam(required = false) String animacidad,
             @RequestParam(required = false) String contabilidad,
             @RequestParam(required = false) String claseSemantica,
-            @RequestParam(required = false) String cabezaRelacional,
             @RequestParam(required = false) String requiereSujetoAnimado,
             @RequestParam(required = false) String requiereObjetoAnimado,
             @RequestParam(required = false) Integer cantidad) {
@@ -215,7 +212,6 @@ public class CompletarPalabrasController {
                         .setAnimacidad(animacidad != null && !animacidad.isBlank() ? Animacidad.valueOf(animacidad) : null)
                         .setContabilidad(contabilidad != null && !contabilidad.isBlank() ? Contabilidad.valueOf(contabilidad) : null)
                         .setClaseSemantica(claseSemantica != null && !claseSemantica.isBlank() ? ClaseSemantica.valueOf(claseSemantica) : null)
-                        .setCabezaRelacional(cabezaRelacional != null && !cabezaRelacional.isBlank() ? CabezaRelacional.valueOf(cabezaRelacional) : null)
                         .setSignificado(significado)
                 );
                 case VERBO -> verboRepo.save((Verbo)verboRepo.findById(id)

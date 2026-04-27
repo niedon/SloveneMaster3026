@@ -87,7 +87,7 @@ public class PalabraFraseFactory {
                                         NumeralCriterioBuilder.crear().conNumero(Numero.SINGULAR).conCantidad(1).build())
                                 .si(sust -> sust.getNumero() == Numero.DUAL,
                                         NumeralCriterioBuilder.crear().conNumero(Numero.DUAL).conCantidad(2).build())
-                                .orElse(NumeralCriterioBuilder.crear().conNumero(Numero.PLURAL).conCantidadMayorQue(2).build())
+                                .orElse(NumeralCriterioBuilder.crear().conNumero(Numero.PLURAL).conCantidad(3, 4).build())
                         )
                         .conDependencia(DependenciaBuilder.de(sustantivo)
                                 .si(sust -> sust.getSustantivoBase().getGenero() == Genero.MASCULINO,

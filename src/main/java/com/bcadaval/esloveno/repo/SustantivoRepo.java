@@ -11,12 +11,6 @@ import com.bcadaval.esloveno.beans.palabra.Sustantivo;
 public interface SustantivoRepo extends JpaRepository<Sustantivo, String> {
 
     /**
-     * Encuentra sustantivos incompletos: significado, animacidad, contabilidad,
-     * claseSemantica o cabezaRelacional null
-     */
-    List<Sustantivo> findBySignificadoIsNullOrAnimacidadIsNullOrContabilidadIsNullOrClaseSemanticaIsNullOrCabezaRelacionalIsNull();
-
-    /**
      * Busca sustantivos cuya forma principal contenga el texto (case-insensitive)
      */
     List<Sustantivo> findByPrincipalContainingIgnoreCase(String texto);

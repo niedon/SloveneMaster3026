@@ -2,7 +2,6 @@ package com.bcadaval.esloveno.beans.palabra;
 
 import com.bcadaval.esloveno.beans.base.Palabra;
 import com.bcadaval.esloveno.beans.enums.Animacidad;
-import com.bcadaval.esloveno.beans.enums.CabezaRelacional;
 import com.bcadaval.esloveno.beans.enums.ClaseSemantica;
 import com.bcadaval.esloveno.beans.enums.Contabilidad;
 import com.bcadaval.esloveno.beans.enums.Genero;
@@ -15,8 +14,8 @@ import lombok.experimental.SuperBuilder;
 /**
  * Representa un sustantivo en esloveno.
  * Contiene la forma principal del sustantivo, su acentuación,
- * género, animacidad, contabilidad, clase semántica, cabeza relacional,
- * identificadores en Sloleks, significado en español y una lista de sus flexiones.
+ * género, animacidad, contabilidad, clase semántica, identificadores
+ * en Sloleks, significado en español y una lista de sus flexiones.
  */
 @Data
 @NoArgsConstructor
@@ -47,11 +46,5 @@ public class Sustantivo extends Palabra<SustantivoFlexion> {
 	 * Nullable: se asigna manualmente en la pantalla de completar palabras.
 	 */
 	private ClaseSemantica claseSemantica;
-
-	/**
-	 * Indica si el sustantivo es cabeza relacional.
-	 * Nullable: se asigna manualmente en la pantalla de completar palabras.
-	 */
-	private CabezaRelacional cabezaRelacional;
 
 }

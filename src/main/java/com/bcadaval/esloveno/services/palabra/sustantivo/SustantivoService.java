@@ -50,35 +50,6 @@ public class SustantivoService {
 	}
 
 	/**
-	 * Devuelve un sustantivo aleatorio apto para actuar como núcleo de una relación
-	 * nominal (caso genitivo) en función de la animacidad del sustantivo dependiente.
-	 * <ul>
-	 *   <li>Si el sustantivo es {@link Animacidad#INANIMADO}, el resultado debe ser
-	 *       {@link CabezaRelacional#SI}.</li>
-	 *   <li>En cualquier otro caso se devuelve cualquier sustantivo en nominativo.</li>
-	 * </ul>
-	 *
-	 * @param sus sustantivo dependiente (en genitivo)
-	 * @return sustantivo aleatorio que cumple la condición
-	 * @throws NoSuchElementException si no hay candidatos
-	 */
-	public SustantivoFlexion getSustantivoParaGenitivo(SustantivoFlexion sus) {
-		Specification<SustantivoFlexion> spec;
-
-		if (sus.getSustantivoBase().getAnimacidad() == Animacidad.INANIMADO) {
-			spec = (root, query, cb) -> cb.and(
-					cb.equal(root.get("caso"), Caso.NOMINATIVO),
-					cb.equal(root.join("sustantivoBase").get("cabezaRelacional"), CabezaRelacional.SI)
-			);
-		} else {
-			spec = (root, query, cb) -> cb.equal(root.get("caso"), Caso.NOMINATIVO);
-		}
-
-		return randomSelector.selectRandom(sustantivoFlexionRepo, spec)
-				.orElseThrow(() -> new NoSuchElementException("No hay sustantivos activos disponibles para el genitivo"));
-	}
-
-	/**
 	 * Obtiene un sustantivo aleatorio que cumpla con caso
 	 *
 	 * @param caso Caso requerido (opcional)

@@ -143,7 +143,7 @@ public final class FlexionSpecs {
     // ============================================
 
     /**
-     * Sustantivo base completo: significado, animacidad, contabilidad, claseSemantica y cabezaRelacional no null.
+     * Sustantivo base completo: significado, animacidad, contabilidad y claseSemantica no null.
      */
     public static Specification<SustantivoFlexion> sustantivoBaseCompleto() {
         return (root, query, cb) -> {
@@ -152,8 +152,7 @@ public final class FlexionSpecs {
                     cb.isNotNull(base.get("significado")),
                     cb.isNotNull(base.get("animacidad")),
                     cb.isNotNull(base.get("contabilidad")),
-                    cb.isNotNull(base.get("claseSemantica")),
-                    cb.isNotNull(base.get("cabezaRelacional"))
+                    cb.isNotNull(base.get("claseSemantica"))
             );
         };
     }

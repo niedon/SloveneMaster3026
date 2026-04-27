@@ -2,10 +2,13 @@ spring:
   application:
     name: com.bcadaval.esloveno
   datasource:
-    url: jdbc:sqlite:/data/esloveno.db
+    url: ${SPRING_DATASOURCE_URL:jdbc:sqlite:/app-data/db/esloveno.db}
     driver-class-name: org.sqlite.JDBC
     username: sa
     password: sa
+    hikari:
+      maximum-pool-size: 1
+      connection-test-query: SELECT 1
   sql:
     init:
       mode: always
@@ -25,9 +28,9 @@ server:
 
 app:
   db:
-    path: /data/esloveno.db
+    path: /app-data/db/esloveno.db
   xml:
-    path: /data/xml
+    path: /app-data/xml
 
 hibernate:
   dialect: org.hibernate.community.dialect.SQLiteDialect
@@ -41,7 +44,3 @@ logging:
     org:
       springframework:
         web: INFO  # Desactivar logs DEBUG de requests HTTP
-
-
-
-

@@ -85,11 +85,6 @@ public class PalabraGuardadaDTO {
     private String claseSemantica;
 
     /**
-     * Cabeza relacional del sustantivo (SI, NO)
-     */
-    private String cabezaRelacional;
-
-    /**
      * Si el verbo requiere sujeto animado (SI, NO)
      */
     private String requiereSujetoAnimado;

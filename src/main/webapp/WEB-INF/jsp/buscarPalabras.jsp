@@ -417,7 +417,6 @@
                 if (p.animacidad) propsHtml += '<span class="detalle-prop-tag">' + (p.animacidad === 'ANIMADO' ? 'Animado' : 'Inanimado') + '</span>';
                 if (p.contabilidad) propsHtml += '<span class="detalle-prop-tag">' + (p.contabilidad === 'CONTABLE' ? 'Contable' : 'Incontable') + '</span>';
                 if (p.claseSemantica) propsHtml += '<span class="detalle-prop-tag">' + p.claseSemantica + '</span>';
-                if (p.cabezaRelacional) propsHtml += '<span class="detalle-prop-tag">Cab.rel: ' + p.cabezaRelacional + '</span>';
             }
             if (p.tipo === 'pronoun' && p.tipoPronombre) {
                 propsHtml += '<span class="detalle-prop-tag">' + p.tipoPronombre + '</span>';

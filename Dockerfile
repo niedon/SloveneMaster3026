@@ -1,40 +1,36 @@
-# Dockerfile Simplificado - Una sola etapa
+# Dockerfile Multi-stage - Construcción y Ejecución
+# ETAPA 1: Construcción (Builder)
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
+WORKDIR /build
+
+# Copiar solo el pom.xml primero para aprovechar la caché de Docker
+COPY pom.xml .
+# Descargar todas las dependencias sin compilar todavía
+RUN mvn dependency:go-offline
+
+# Ahora copiamos el código fuente (se ejecutará solo si el código cambia)
+COPY src ./src
+# Compilar el JAR
+RUN mvn clean package -DskipTests -q
+
+# ETAPA 2: Ejecución
 FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
-# Instalar Maven
-RUN apk add --no-cache maven
+# Copiar el JAR desde la etapa 1
+COPY --from=builder /build/target/slovenemaster3026-1.0-SNAPSHOT.jar /app/app.jar
 
-# Copiar archivos necesarios para la compilación
-COPY pom.xml .
-COPY src ./src
-
-# Compilar el proyecto
-RUN mvn clean package -DskipTests -q
-
-# Verificar que el JAR existe
-RUN echo "=== JAR creado ===" && \
-    ls -la /app/target/*.jar && \
-    echo "=== Contenido app.jar ===" && \
-    jar tf /app/target/slovenemaster3026-1.0-SNAPSHOT.jar | head -20
-
-# Copiar el JAR a la raíz (lo hacemos aquí mismo, no desde builder)
-RUN cp /app/target/slovenemaster3026-1.0-SNAPSHOT.jar /app/app.jar && \
-    ls -la /app/app.jar
-
-# Copiar los recursos estáticos (JSP, CSS, JS, imágenes)
+# Copiar las vistas JSP y recursos estáticos
 COPY src/main/webapp/WEB-INF /app/WEB-INF
 
-# Crear directorios para datos con permisos de escritura
-RUN mkdir -p /data/xml && chmod 777 /data /data/xml
+# Crear directorios independientes para los volúmenes, con permisos no exclusivos
+RUN mkdir -p /app-data/xml /app-data/db && chmod 777 -R /app-data
 
-# Variables de entorno
-ENV XML_PATH=/data/xml
+# Variables de entorno por defecto
+ENV XML_PATH=/app-data/xml
 ENV SPRING_PROFILES_ACTIVE=docker
 
-# Exponer puerto
-EXPOSE 8080
+EXPOSE 8080 5005
 
-# Ejecutar - Mostrar que JSP existen antes de ejecutar
-CMD ["sh", "-c", "echo '=== Verificando JSP antes de ejecutar ===' && find /app/WEB-INF -name '*.jsp' && echo '=== Iniciando aplicación ===' && java -Dspring.profiles.active=docker -jar /app/app.jar"]
+CMD ["java", "-Dspring.profiles.active=docker", "-jar", "/app/app.jar"]

@@ -9,13 +9,12 @@ services:
       - "8080:8080"
       - "5005:5005"
     environment:
-      - XML_PATH=/data/xml
-      - SPRING_DATASOURCE_URL=jdbc:sqlite:/data/esloveno.db
+      - XML_PATH=/app-data/xml
+      - SPRING_DATASOURCE_URL=jdbc:sqlite:/app-data/db/esloveno.db
+      - APP_DB_PATH=/app-data/db/esloveno.db
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
     volumes:
-      # Montar volumen para archivos XML
-      - C:\Users\bcada\proyectos\esloveno\docker\xml:/data/xml
-      # Montar volumen para base de datos
-      - C:\Users\bcada\proyectos\esloveno\docker\db:/data
+      # Volúmenes en rutas locales relativas al proyecto, independientes
+      - ./data/xml:/app-data/xml
+      - ./data/db:/app-data/db
     restart: unless-stopped
-

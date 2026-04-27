@@ -56,7 +56,7 @@ import lombok.extern.log4j.Log4j2;
 @Service
 public class XmlParseService {
 
-    @Value("${app.xml.path:/data/xml}")
+    @Value("${app.xml.path:/app-data/xml}")
     private String xmlPath;
 
 	// =========================================================================

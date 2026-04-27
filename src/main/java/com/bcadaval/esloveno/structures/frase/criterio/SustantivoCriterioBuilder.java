@@ -14,7 +14,6 @@ import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
  *   <li>{@link #conAnimacidad(Animacidad...)} — Animacidad (campo de la palabra base {@code Sustantivo})</li>
  *   <li>{@link #conContabilidad(Contabilidad...)} — Contabilidad (campo de la palabra base {@code Sustantivo})</li>
  *   <li>{@link #conClaseSemantica(ClaseSemantica...)} — Clase semántica (campo de la palabra base {@code Sustantivo})</li>
- *   <li>{@link #conCabezaRelacional(CabezaRelacional...)} — Cabeza relacional (campo de la palabra base {@code Sustantivo})</li>
  * </ul>
  * <p>
  * Ejemplo de uso:
@@ -105,16 +104,5 @@ public class SustantivoCriterioBuilder extends CriterioBuilderBase<SustantivoFle
      */
     public SustantivoCriterioBuilder conClaseSemantica(ClaseSemantica... clases) {
         return agregarRestriccion("base.claseSemantica", (Object[]) clases);
-    }
-
-    /**
-     * Restringe si el sustantivo es cabeza relacional (campo de la palabra base {@code Sustantivo}).
-     * Varios valores se interpretan como OR.
-     *
-     * @param valores valores aceptados
-     * @return este builder
-     */
-    public SustantivoCriterioBuilder conCabezaRelacional(CabezaRelacional... valores) {
-        return agregarRestriccion("base.cabezaRelacional", (Object[]) valores);
     }
 }

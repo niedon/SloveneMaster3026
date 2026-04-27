@@ -207,13 +207,11 @@ public class BuscarPalabrasService {
                     .completa(s.getSignificado() != null
                             && s.getAnimacidad() != null
                             && s.getContabilidad() != null
-                            && s.getClaseSemantica() != null
-                            && s.getCabezaRelacional() != null)
+                            && s.getClaseSemantica() != null)
                     .genero(s.getGenero() != null ? s.getGenero().name() : null)
                     .animacidad(s.getAnimacidad() != null ? s.getAnimacidad().name() : null)
                     .contabilidad(s.getContabilidad() != null ? s.getContabilidad().name() : null)
                     .claseSemantica(s.getClaseSemantica() != null ? s.getClaseSemantica().name() : null)
-                    .cabezaRelacional(s.getCabezaRelacional() != null ? s.getCabezaRelacional().name() : null)
                     .totalFlexiones(flexiones.size())
                     .flexionesActivas((int) flexiones.stream().filter(f -> f.getProximaRevision() != null).count())
                     .flexionesElegibles(elegibles)

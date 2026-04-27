@@ -128,16 +128,6 @@
                     </select>
                 </div>
 
-                <!-- Campo CabezaRelacional (solo sustantivos) -->
-                <div class="form-group hidden" id="cabezaRelacionalGroup">
-                    <label for="cabezaRelacional">¿Cabeza relacional? *</label>
-                    <select id="cabezaRelacional" name="cabezaRelacional">
-                        <option value="">Seleccione...</option>
-                        <option value="SI">Sí</option>
-                        <option value="NO">No</option>
-                    </select>
-                </div>
-
                 <!-- Campo Cantidad (solo numerales) -->
                 <div class="form-group hidden" id="cantidadGroup">
                     <label for="cantidad">Cantidad (valor numérico) *</label>
@@ -301,14 +291,13 @@
             // Ocultar todos los campos específicos
             var gruposEspecificos = [
                 'transitividadGroup', 'requiereSujetoAnimadoGroup', 'requiereObjetoAnimadoGroup',
-                'animacidadGroup', 'contabilidadGroup', 'claseSemanticaGroup', 'cabezaRelacionalGroup',
-                'cantidadGroup'
+                'animacidadGroup', 'contabilidadGroup', 'claseSemanticaGroup', 'cantidadGroup'
             ];
             gruposEspecificos.forEach(function(g) { document.getElementById(g).classList.add('hidden'); });
 
             // Resetear required
             ['transitividad', 'requiereSujetoAnimado', 'requiereObjetoAnimado',
-             'animacidad', 'contabilidad', 'claseSemantica', 'cabezaRelacional'].forEach(function(id) {
+             'animacidad', 'contabilidad', 'claseSemantica'].forEach(function(id) {
                 document.getElementById(id).required = false;
             });
             document.getElementById('cantidad').required = false;
@@ -324,7 +313,7 @@
                 document.getElementById('requiereObjetoAnimado').value = palabra.requiereObjetoAnimado || '';
                 document.getElementById('requiereObjetoAnimado').required = true;
             } else if (tipoEnum === ENUM_SUSTANTIVO) {
-                ['animacidadGroup', 'contabilidadGroup', 'claseSemanticaGroup', 'cabezaRelacionalGroup'].forEach(function(g) {
+                ['animacidadGroup', 'contabilidadGroup', 'claseSemanticaGroup'].forEach(function(g) {
                     document.getElementById(g).classList.remove('hidden');
                 });
                 document.getElementById('animacidad').value = palabra.animacidad || '';
@@ -333,8 +322,6 @@
                 document.getElementById('contabilidad').required = true;
                 document.getElementById('claseSemantica').value = palabra.claseSemantica || '';
                 document.getElementById('claseSemantica').required = true;
-                document.getElementById('cabezaRelacional').value = palabra.cabezaRelacional || '';
-                document.getElementById('cabezaRelacional').required = true;
             } else if (tipoEnum === ENUM_NUMERAL) {
                 document.getElementById('cantidadGroup').classList.remove('hidden');
                 document.getElementById('cantidad').value = palabra.cantidad != null ? palabra.cantidad : '';
@@ -373,7 +360,6 @@
                 if (!formData.get('animacidad')) { mostrarMensaje('La animacidad es obligatoria para sustantivos', 'error'); return; }
                 if (!formData.get('contabilidad')) { mostrarMensaje('La contabilidad es obligatoria para sustantivos', 'error'); return; }
                 if (!formData.get('claseSemantica')) { mostrarMensaje('La clase semántica es obligatoria para sustantivos', 'error'); return; }
-                if (!formData.get('cabezaRelacional')) { mostrarMensaje('Cabeza relacional es obligatorio para sustantivos', 'error'); return; }
             }
 
             if (tipo === ENUM_NUMERAL) {

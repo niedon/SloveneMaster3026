@@ -1,7 +1,5 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
-import com.bcadaval.esloveno.beans.enums.Animacidad;
-import com.bcadaval.esloveno.beans.enums.CabezaRelacional;
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
@@ -9,11 +7,8 @@ import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.services.palabra.sustantivo.SustantivoService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
-import com.bcadaval.esloveno.structures.extractores.ExtractorSustantivo;
 import com.bcadaval.esloveno.structures.frase.Frase;
 import com.bcadaval.esloveno.structures.frase.PalabraFrase;
-import com.bcadaval.esloveno.structures.frase.criterio.SustantivoCriterioBuilder;
-import com.bcadaval.esloveno.structures.frase.dependencia.DependenciaBuilder;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,11 +23,7 @@ import org.springframework.stereotype.Component;
  *   [NUMERO_NUCLEO] SUSTANTIVO_NUCLEO [PARTICULA_DE] [NUMERO_DEPENDIENTE] SUSTANTIVO_DEPENDIENTE
  * </pre>
  * <ul>
- *   <li><strong>SUSTANTIVO_NUCLEO</strong>: núcleo de la frase, en caso
- *       {@link com.bcadaval.esloveno.beans.enums.Caso#NOMINATIVO NOMINATIVO}.
- *       Si el sustantivo dependiente es
- *       {@link com.bcadaval.esloveno.beans.enums.Animacidad#INANIMADO INANIMADO},
- *       el núcleo debe tener {@link com.bcadaval.esloveno.beans.enums.CabezaRelacional CabezaRelacional} activa.</li>
+ *   <li><strong>SUSTANTIVO_NUCLEO</strong>: núcleo de la frase.</li>
  *   <li><strong>NUMERO_NUCLEO</strong>: numeral que acompaña al núcleo, derivado automáticamente de él.</li>
  *   <li><strong>PARTICULA_DE</strong>: partícula fija «de» que actúa como nexo entre los dos sustantivos.</li>
  *   <li><strong>SUSTANTIVO_DEPENDIENTE</strong>: modificador del núcleo, en caso
@@ -78,10 +69,7 @@ public class FraseRelacionNominal extends Frase {
      * <p>Los huecos creados son, por orden de registro:
      * <ol>
      *   <li><strong>NUMERO_DEPENDIENTE</strong>: numeral generado a partir de {@code SUSTANTIVO_DEPENDIENTE}.</li>
-     *   <li><strong>SUSTANTIVO_NUCLEO</strong>: sustantivo principal en nominativo. Su criterio de
-     *       {@link com.bcadaval.esloveno.beans.enums.CabezaRelacional CabezaRelacional} depende de la
-     *       {@link com.bcadaval.esloveno.beans.enums.Animacidad animacidad} de
-     *       {@code SUSTANTIVO_DEPENDIENTE}.</li>
+     *   <li><strong>SUSTANTIVO_NUCLEO</strong>: sustantivo principal en nominativo.</li>
      *   <li><strong>PARTICULA_DE</strong>: partícula fija «de» sin búsqueda en la base de datos.</li>
      *   <li><strong>NUMERO_NUCLEO</strong>: numeral generado a partir de {@code SUSTANTIVO_NUCLEO}.</li>
      *   <li><strong>SUSTANTIVO_DEPENDIENTE</strong>: sustantivo modificador en genitivo.</li>
@@ -105,18 +93,7 @@ public class FraseRelacionNominal extends Frase {
                 .extractorAEsloveno(x -> "")
                 .build();
 
-        PalabraFrase<SustantivoFlexion> sustantivoNucleo = PalabraFrase.<SustantivoFlexion>builder()
-                .nombre("SUSTANTIVO_NUCLEO")
-                .criterio(SustantivoCriterioBuilder.crear()
-                        .conCaso(Caso.NOMINATIVO)
-                        .conDependencia(DependenciaBuilder.de(sustantivoDependiente)
-                                .si(sust -> sust.getSustantivoBase().getAnimacidad() == Animacidad.INANIMADO,
-                                        SustantivoCriterioBuilder.crear().conCabezaRelacional(CabezaRelacional.SI).build())
-                                .orElse(SustantivoCriterioBuilder.crear().build()))
-                        .build())
-                .generador(sustantivoDependiente, sus -> sustantivoService.getSustantivoParaGenitivo(sus))
-                .extractor(ExtractorSustantivo.get())
-                .build();
+        PalabraFrase<SustantivoFlexion> sustantivoNucleo =palabraFraseFactory.crearSustantivoOpcional("SUSTANTIVO_NUCLEO", Caso.NOMINATIVO);
 
         PalabraFrase<NumeralFlexion> numeralNucleo = palabraFraseFactory.crearNumeralApoyo("NUMERO_NUCLEO", sustantivoNucleo);
 
