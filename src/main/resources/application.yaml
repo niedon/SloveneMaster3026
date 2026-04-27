@@ -7,6 +7,12 @@ spring:
     driver-class-name: org.sqlite.JDBC
     username: sa
     password: sa
+    hikari:
+      maximum-pool-size: 6
+      minimum-idle: 1
+      connection-timeout: 60000
+      idle-timeout: 300000
+      max-lifetime: 1800000
   sql:
     init:
       mode: always

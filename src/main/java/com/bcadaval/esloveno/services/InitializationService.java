@@ -4,22 +4,23 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.sql.Connection;
-import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javax.sql.DataSource;
-
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import com.bcadaval.esloveno.repo.IndiceXmlDao;
+import com.bcadaval.esloveno.services.IndexStateService.IndexStatus;
+import com.bcadaval.esloveno.services.xml.XmlParseService;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
@@ -39,12 +40,19 @@ public class InitializationService {
     @Value("${app.xml.path:/data/xml}")
     private String xmlPath;
 
-    @Lazy
     @Autowired
-    private DatosInicialesService datosInicialesService;
+    private IndiceXmlDao indiceXmlDao;
 
     @Autowired
-    private DataSource dataSource;
+    private XmlParseService xmlParseService;
+
+    @Autowired
+    private IndexStateService indexStateService;
+
+    @Autowired
+    private SqlLogSilencerService sqlLogSilencerService;
+
+    private final AtomicBoolean indexingInProgress = new AtomicBoolean(false);
 
     public enum InitStatus {
         PENDING, IN_PROGRESS, COMPLETED, ERROR
@@ -65,6 +73,17 @@ public class InitializationService {
     @PostConstruct
     public void init() {
         log.info("InitializationService configurado - DB: {}, XML: {}", dbPath, xmlPath);
+        ensureBackgroundIndexing();
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        ensureBackgroundIndexing();
+    }
+
+    @Scheduled(fixedDelayString = "${app.index.watchdog-ms:30000}")
+    public void indexingWatchdog() {
+        ensureBackgroundIndexing();
     }
 
     /**
@@ -96,17 +115,7 @@ public class InitializationService {
      * (BD existe, XMLs existen, y BD tiene datos)
      */
     public boolean isFullyReady() {
-        if (!isDatabaseReady() || !isXmlReady()) {
-            return false;
-        }
-
-        // Verificar si hay datos en la BD
-        try {
-            return datosInicialesService.hayDatosEnBD();
-        } catch (Exception e) {
-            log.warn("Error verificando datos en BD: {}", e.getMessage());
-            return false;
-        }
+        return isDatabaseReady() && isXmlReady();
     }
 
     /**
@@ -143,24 +152,11 @@ public class InitializationService {
                 downloadAndExtractXml();
             } else {
                 log.info("XMLs ya existen, omitiendo descarga");
-                progress.set(100);
+                progress.set(85);
             }
 
-            // Cargar datos iniciales si la BD está vacía
-            message.set("Verificando datos iniciales...");
-            progress.set(90);
-            boolean datosInicalesCargados = datosInicialesService.cargarDatosInicialesSiNecesario(
-                progress::set,      // Callback para actualizar el progreso
-                message::set        // Callback para actualizar el mensaje
-            );
-
-            // Si se cargaron datos iniciales, ejecutar script de actualización de pronombres
-            if (datosInicalesCargados) {
-                message.set("Actualizando significados de pronombres...");
-                progress.set(95);
-                ejecutarScriptUpdatePronombres();
-                log.info("Script updatePronombres.sql ejecutado exitosamente");
-            }
+            // Indexación no bloqueante: se relanza automáticamente si se interrumpe.
+            ensureBackgroundIndexing();
 
             status.set(InitStatus.COMPLETED);
             message.set("¡Inicialización completada!");
@@ -172,6 +168,50 @@ public class InitializationService {
             status.set(InitStatus.ERROR);
             errorMessage.set(e.getMessage());
             message.set("Error: " + e.getMessage());
+        }
+    }
+
+    private void ensureBackgroundIndexing() {
+        if (!isDatabaseReady() || !isXmlReady()) {
+            return;
+        }
+
+        IndexStatus status = indexStateService.getStatus();
+        boolean hasIndexData = indiceXmlDao.count() > 0;
+
+        if (status == IndexStatus.READY && hasIndexData) {
+            return;
+        }
+
+        if (!indexingInProgress.compareAndSet(false, true)) {
+            return;
+        }
+
+        Thread indexThread = new Thread(this::runIndexingInBackground, "XmlIndexingThread");
+        indexThread.setDaemon(true);
+        indexThread.start();
+    }
+
+    private void runIndexingInBackground() {
+        try {
+            indexStateService.markBuilding();
+            try (AutoCloseable ignored = sqlLogSilencerService.silenceForIndexing()) {
+                xmlParseService.indexarTodosLosXmlResumible(
+                        value -> progress.set(Math.max(progress.get(), value)),
+                        text -> {
+                            if (status.get() == InitStatus.IN_PROGRESS) {
+                                message.set("Indexando XML: " + text);
+                            }
+                        }
+                );
+            }
+            indexStateService.markReady();
+            log.info("Indexación XML completada");
+        } catch (Exception e) {
+            indexStateService.markError(e.getMessage());
+            log.error("Error durante la indexación XML en segundo plano", e);
+        } finally {
+            indexingInProgress.set(false);
         }
     }
 
@@ -338,56 +378,6 @@ public class InitializationService {
         }
     }
 
-    /**
-     * Ejecuta el script updatePronombres.sql sobre la base de datos.
-     * Esta función solo debe llamarse después de haber cargado los datos iniciales.
-     */
-    private void ejecutarScriptUpdatePronombres() throws IOException {
-        log.info("Ejecutando script updatePronombres.sql...");
-
-        try {
-            // Leer el script desde el classpath
-            ClassPathResource scriptResource = new ClassPathResource("updatePronombres.sql");
-            String scriptContent;
-
-            try (InputStream is = scriptResource.getInputStream();
-                 BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
-                scriptContent = reader.lines()
-                    .filter(line -> !line.trim().isEmpty() && !line.trim().startsWith("--"))
-                    .reduce((a, b) -> a + "\n" + b)
-                    .orElse("");
-            }
-
-            if (scriptContent.isEmpty()) {
-                log.warn("El script updatePronombres.sql está vacío");
-                return;
-            }
-
-            // Ejecutar cada sentencia SQL
-            try (Connection conn = dataSource.getConnection();
-                 Statement stmt = conn.createStatement()) {
-
-                // Dividir por líneas y ejecutar cada UPDATE
-                String[] statements = scriptContent.split("\n");
-                int executedCount = 0;
-
-                for (String sql : statements) {
-                    String trimmedSql = sql.trim();
-                    if (!trimmedSql.isEmpty()) {
-                        log.debug("Ejecutando: {}", trimmedSql);
-                        stmt.executeUpdate(trimmedSql);
-                        executedCount++;
-                    }
-                }
-
-                log.info("Script updatePronombres.sql ejecutado: {} sentencias", executedCount);
-            }
-
-        } catch (Exception e) {
-            log.error("Error ejecutando script updatePronombres.sql", e);
-            throw new IOException("Error ejecutando script updatePronombres.sql: " + e.getMessage(), e);
-        }
-    }
 
     /**
      * Obtiene el estado actual como DTO para la API

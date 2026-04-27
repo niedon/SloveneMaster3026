@@ -3,13 +3,18 @@ package com.bcadaval.esloveno.services.xml;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -19,8 +24,13 @@ import javax.xml.xpath.XPathException;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import com.bcadaval.esloveno.repo.IndiceXmlDao;
+import com.bcadaval.esloveno.repo.IndiceXmlDTO;
+import com.bcadaval.esloveno.services.IndexStateService;
+
 import com.bcadaval.esloveno.beans.enums.*;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -58,6 +68,12 @@ public class XmlParseService {
 
     @Value("${app.xml.path:/app-data/xml}")
     private String xmlPath;
+
+    @Autowired
+    private IndiceXmlDao indiceXmlDao;
+
+    @Autowired
+    private IndexStateService indexStateService;
 
 	// =========================================================================
 	// CONSTANTES XPATH
@@ -377,52 +393,225 @@ public class XmlParseService {
         return result != null ? result : defaultValue;
     }
 
+    /**
+     * Indexa todos los archivos XML en la base de datos de manera masiva
+     */
+    public void indexarTodosLosXml(java.util.function.IntConsumer progressCallback) throws IOException {
+        indexarTodosLosXmlResumible(progressCallback, null);
+    }
 
     /**
-     * Busca TODAS las entradas con el lema dado en los XMLs
+     * Indexa XML de forma reanudable. Si la app cae, continúa desde el último archivo completado.
+     */
+    public void indexarTodosLosXmlResumible(java.util.function.IntConsumer progressCallback,
+                                            Consumer<String> messageCallback) throws IOException {
+        List<Path> archivosXml;
+        try (Stream<Path> stream = Files.list(Paths.get(xmlPath))) {
+            archivosXml = stream
+                .filter(p -> p.toString().endsWith(".xml"))
+                .sorted(Comparator.comparing(Path::getFileName))
+                .toList();
+        }
+
+        int lastCompletedFile = indexStateService.getLastFileNum();
+        if (lastCompletedFile > 0 && indiceXmlDao.count() == 0) {
+            // Si la tabla quedó vacía por limpieza/recreación, reiniciar checkpoint para reconstruir todo.
+            lastCompletedFile = 0;
+            indexStateService.setLastFileNum(0);
+        }
+        int totalArchivos = archivosXml.size();
+        int procesados = 0;
+
+        for (Path p : archivosXml) {
+            String fileName = p.getFileName().toString();
+            int fileNum = extraerNumeroArchivo(fileName);
+            if (fileNum < 0) {
+                log.warn("El archivo {} no sigue el patrón esperado nnn, omitiendo índice", fileName);
+                continue;
+            }
+
+            // Si ya fue completado en ejecuciones previas, se omite.
+            if (fileNum <= lastCompletedFile) {
+                procesados++;
+                continue;
+            }
+
+            if (messageCallback != null) {
+                messageCallback.accept("Indexando " + fileName + "...");
+            }
+
+            try {
+                List<IndiceXmlDTO> batchInsert = extraerEntradasIndiceDesdeArchivo(p, fileNum);
+                // Reemplazo atómico por archivo para evitar inconsistencias tras caída.
+                indiceXmlDao.replaceArchivoIndex(fileNum, batchInsert);
+                indexStateService.setLastFileNum(fileNum);
+            } catch (Exception e) {
+                log.error("Error indexando el archivo {}", p, e);
+                throw new IOException("Error indexando " + fileName + ": " + e.getMessage(), e);
+            }
+
+            procesados++;
+            if (progressCallback != null && totalArchivos > 0) {
+                progressCallback.accept(15 + (procesados * 75 / totalArchivos));
+            }
+        }
+    }
+
+    private int extraerNumeroArchivo(String fileName) {
+        try {
+            String numStr = fileName.substring(fileName.lastIndexOf('_') + 1, fileName.lastIndexOf('.'));
+            return Integer.parseInt(numStr);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    private List<IndiceXmlDTO> extraerEntradasIndiceDesdeArchivo(Path filePath, int fileNum) throws IOException, VTDException {
+        List<IndiceXmlDTO> batchInsert = new ArrayList<>();
+        VTDGen vg = new VTDGen();
+        vg.setDoc(Files.readAllBytes(filePath));
+        vg.parse(true);
+        VTDNav vn = vg.getNav();
+        AutoPilot ap = new AutoPilot(vn);
+        ap.selectXPath("/lexicon/entry");
+
+        while (ap.evalXPath() != -1) {
+            long l = vn.getContentFragment();
+            String entryXml = "<entry>" + vn.toString((int) l, (int) (l >> 32)) + "</entry>";
+            String tipo = extractCategory(entryXml);
+            String sloleksId = extraerSloleksId(entryXml);
+            String lema = extraerLema(entryXml);
+
+            if (lema != null && !lema.isBlank() && tipo != null && !tipo.isBlank() && sloleksId != null && !sloleksId.isBlank()) {
+                batchInsert.add(new IndiceXmlDTO(lema, tipo, sloleksId, fileNum));
+            }
+        }
+
+        return batchInsert;
+    }
+    
+    private String extraerLema(String xml) {
+        try {
+            Document doc = parseXmlString(xml);
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            return getXPathValue(doc, xPath, "/entry/head/headword/lemma/text()");
+        } catch (Exception e) {
+            log.warn("No se pudo extraer Lema: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Busca TODAS las entradas con el lema dado en los XMLs usando el índice
      */
     private List<ResultadoBusqueda> getAllXmlStrings(String word) throws IOException {
-        // Usar parallel stream para procesar múltiples archivos simultáneamente
+        IndexStateService.IndexStatus indexStatus = indexStateService.getStatus();
+
+        // Si el índice está listo, consulta siempre por índice.
+        if (indexStatus == IndexStateService.IndexStatus.READY) {
+            return getAllXmlStringsFromIndex(word);
+        }
+
+        // Mientras el índice no está completo, mezcla índice parcial + fallback legado.
+        List<ResultadoBusqueda> fromIndex = getAllXmlStringsFromIndex(word);
+        List<ResultadoBusqueda> fromLegacy = getAllXmlStringsLegacy(word);
+
+        LinkedHashMap<String, ResultadoBusqueda> merged = new LinkedHashMap<>();
+        for (ResultadoBusqueda result : fromIndex) {
+            merged.put(buildResultKey(result), result);
+        }
+        for (ResultadoBusqueda result : fromLegacy) {
+            merged.putIfAbsent(buildResultKey(result), result);
+        }
+
+        return new ArrayList<>(merged.values());
+    }
+
+    private String buildResultKey(ResultadoBusqueda result) {
+        return (result.getSloleksId() != null ? result.getSloleksId() : "") + "|" +
+            (result.getTipo() != null ? result.getTipo() : "") + "|" +
+            (result.getLema() != null ? result.getLema() : "");
+    }
+
+    private List<ResultadoBusqueda> getAllXmlStringsFromIndex(String word) throws IOException {
+        List<IndiceXmlDTO> indices = indiceXmlDao.buscarPorLema(word);
+        List<ResultadoBusqueda> resultados = new ArrayList<>();
+
+        for (IndiceXmlDTO idx : indices) {
+            String fileName = String.format("sloleks_3.0_%03d.xml", idx.archivoNum());
+            Path p = Paths.get(xmlPath, fileName);
+            
+            if (!Files.exists(p)) {
+                log.warn("El archivo indexado {} no existe en la ruta {}", fileName, xmlPath);
+                continue;
+            }
+
+            VTDGen vtdGenerator = new VTDGen();
+            try {
+                vtdGenerator.setDoc(Files.readAllBytes(p));
+                vtdGenerator.parse(true);
+                VTDNav vtdNavigator = vtdGenerator.getNav();
+                AutoPilot autoPilot = new AutoPilot(vtdNavigator);
+                // Buscar directamente por el ID que nos dio el índice
+                autoPilot.selectXPath("/lexicon/entry[head/lexicalUnit/@sloleksId = '" + idx.sloleksId() + "']");
+
+                if (autoPilot.evalXPath() != -1) {
+                    long l = vtdNavigator.getContentFragment();
+                    String xmlContent = "<entry>" + vtdNavigator.toString((int) l, (int) (l >> 32)) + "</entry>";
+
+                    resultados.add(ResultadoBusqueda.builder()
+                            .lema(word)
+                            .tipo(idx.tipo())
+                            .tipoEspanol(traducirTipo(idx.tipo()))
+                            .soportado(TipoPalabra.fromXmlCode(idx.tipo()) != null)
+                            .sloleksId(idx.sloleksId())
+                            .xmlContent(xmlContent)
+                            .build());
+                }
+            } catch (IOException | VTDException e) {
+                log.warn("Error leyendo el archivo {} para la palabra {}", p, word, e);
+            }
+        }
+        
+        return resultados;
+    }
+
+    private List<ResultadoBusqueda> getAllXmlStringsLegacy(String word) throws IOException {
         try (var stream = Files.walk(Paths.get(xmlPath), 5)) {
             return stream
-                    .filter(p -> p.toFile().isFile())
-                    .parallel() // Procesamiento paralelo
-                    .flatMap(p -> {
-                        log.debug("Buscando en archivo {}", p);
-                        List<ResultadoBusqueda> resultadosArchivo = new ArrayList<>();
+                .filter(p -> p.toFile().isFile())
+                .parallel()
+                .flatMap(p -> {
+                    List<ResultadoBusqueda> resultadosArchivo = new ArrayList<>();
+                    VTDGen vtdGenerator = new VTDGen();
 
-                        // Cada thread tiene su propio VTDGen para evitar problemas de concurrencia
-                        VTDGen vtdGenerator = new VTDGen();
+                    try {
+                        vtdGenerator.setDoc(Files.readAllBytes(p));
+                        vtdGenerator.parse(true);
+                        VTDNav vtdNavigator = vtdGenerator.getNav();
+                        AutoPilot autoPilot = new AutoPilot(vtdNavigator);
+                        autoPilot.selectXPath("/lexicon/entry[head/headword/lemma = '" + word + "']");
 
-                        try {
-                            vtdGenerator.setDoc(Files.readAllBytes(p));
-                            vtdGenerator.parse(true);
-                            VTDNav vtdNavigator = vtdGenerator.getNav();
-                            AutoPilot autoPilot = new AutoPilot(vtdNavigator);
-                            autoPilot.selectXPath("/lexicon/entry[head/headword/lemma = '" + word + "']");
-
-                            while (autoPilot.evalXPath() != -1) {
-                                long l = vtdNavigator.getContentFragment();
-                                String xmlContent = "<entry>" + vtdNavigator.toString((int) l, (int) (l >> 32)) + "</entry>";
-
-                                String tipo = extractCategory(xmlContent);
-                                log.debug("Categoría extraída: {}", tipo);
-                                resultadosArchivo.add(ResultadoBusqueda.builder()
-                                        .lema(word)
-                                        .tipo(tipo)
-                                        .tipoEspanol(traducirTipo(tipo))
-                                        .soportado(TipoPalabra.fromXmlCode(tipo) != null)
-                                        .sloleksId(extraerSloleksId(xmlContent))
-                                        .xmlContent(xmlContent)
-                                        .build());
-                            }
-                        } catch (IOException | VTDException e) {
-                            log.warn("Error reading the file {}", p, e);
+                        while (autoPilot.evalXPath() != -1) {
+                            long l = vtdNavigator.getContentFragment();
+                            String xmlContent = "<entry>" + vtdNavigator.toString((int) l, (int) (l >> 32)) + "</entry>";
+                            String tipo = extractCategory(xmlContent);
+                            resultadosArchivo.add(ResultadoBusqueda.builder()
+                                    .lema(word)
+                                    .tipo(tipo)
+                                    .tipoEspanol(traducirTipo(tipo))
+                                    .soportado(TipoPalabra.fromXmlCode(tipo) != null)
+                                    .sloleksId(extraerSloleksId(xmlContent))
+                                    .xmlContent(xmlContent)
+                                    .build());
                         }
+                    } catch (IOException | VTDException e) {
+                        log.warn("Error leyendo el archivo {}", p, e);
+                    }
 
-                        return resultadosArchivo.stream();
-                    })
-                    .toList();
+                    return resultadosArchivo.stream();
+                })
+                .toList();
         }
     }
 
@@ -472,4 +661,6 @@ public class XmlParseService {
         };
     }
 }
+
+
 
