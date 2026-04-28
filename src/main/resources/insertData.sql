@@ -14,6 +14,12 @@ OR REPLACE INTO variables (clave, valor, tipo, descripcion) VALUES
 ('MAX_TARJETAS_NUEVAS_DIA', '20', 'INTEGER', 'Máximo de tarjetas nuevas por día'),
 ('MAX_TARJETAS_REVISION_DIA', '100', 'INTEGER', 'Máximo de revisiones por día');
 
+-- Mensaje inicial
+INSERT INTO MENSAJES_FLOTANTES (MENSAJE, LEIDO)
+SELECT 'Para empezar a estudiar, rellena las palabras necesarias entrando en Menú → Completar', 0
+WHERE NOT EXISTS (SELECT 1 FROM MENSAJES_FLOTANTES);
+
+-- Palabras
 
 INSERT INTO ADJETIVO (SLOLEKS_ID, PRINCIPAL, SLOLEKS_KEY, SIGNIFICADO) VALUES('LE_6ca59c38ee7f7e489a6c13cd1c322726', 'velik', 'P_velik', NULL);
 

@@ -46,3 +46,60 @@ document.addEventListener('click', function(e) {
     }
 });
 </script>
+
+<div id="toast-container" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let checkInterval = 30000;
+
+        fetch('/api/mensajes/config')
+            .then(res => res.json())
+            .then(data => {
+                checkInterval = data.intervaloSegundos * 1000;
+                iniciarPolling();
+            }).catch(() => iniciarPolling());
+
+        function iniciarPolling() {
+            comprobarMensajes();
+            setInterval(comprobarMensajes, checkInterval);
+        }
+
+        function comprobarMensajes() {
+            fetch('/api/mensajes/noleidos')
+                .then(res => res.json())
+                .then(mensajes => {
+                    const container = document.getElementById('toast-container');
+                    container.innerHTML = '';
+
+                    mensajes.forEach(msg => mostrarMensaje(msg));
+                });
+        }
+
+        function mostrarMensaje(msg) {
+            const container = document.getElementById('toast-container');
+            const alertBox = document.createElement('div');
+
+            alertBox.style.cssText = "background: #fff; border-left: 4px solid #007bff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 15px 20px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; min-width: 250px;";
+
+            const texto = document.createElement('span');
+            texto.textContent = msg.mensaje;
+            texto.style.color = "#333";
+            texto.style.fontFamily = "inherit";
+
+            const btnClose = document.createElement('button');
+            btnClose.innerHTML = "&times;";
+            btnClose.style.cssText = "background: none; border: none; font-size: 20px; cursor: pointer; color: #999; margin-left: 15px;";
+
+            btnClose.onclick = function() {
+                fetch(`/api/mensajes/${msg.id}/marcar-leido`, { method: 'POST' })
+                    .then(() => {
+                        alertBox.remove();
+                    });
+            };
+
+            alertBox.appendChild(texto);
+            alertBox.appendChild(btnClose);
+            container.appendChild(alertBox);
+        }
+    });
+</script>
