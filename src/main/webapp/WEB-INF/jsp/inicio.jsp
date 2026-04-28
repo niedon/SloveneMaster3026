@@ -105,9 +105,11 @@
 
                 updateProgress(data.progress, data.message);
 
-                if (data.ready || data.status === 'COMPLETED') {
+                if (data.ready || data.status === 'COMPLETED' || data.progress >= 100) {
                     stopPolling();
-                    showReady();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
                 } else if (data.status === 'ERROR') {
                     stopPolling();
                     showError(data.error);

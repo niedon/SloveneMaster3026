@@ -117,7 +117,7 @@ public class FraseService {
                     .filter(f -> !existentesEnBD.contains(f.getIdentificador()))
                     .map(f -> EstructuraFraseConfig.builder()
                             .identificador(f.getIdentificador())
-                            .activa(true)
+                            .activa(f.getDificultad() == NivelDificultad.NIVEL_1)
                             .build())
                     .toList();
 
