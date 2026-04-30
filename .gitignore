@@ -6,6 +6,7 @@ target/
 .idea/*.xml
 *.bat
 /src/main/resources/sloleks/
+data/
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

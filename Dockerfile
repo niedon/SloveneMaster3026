@@ -21,9 +21,6 @@ WORKDIR /app
 # Copiar el JAR desde la etapa 1
 COPY --from=builder /build/target/slovenemaster3026-1.0-SNAPSHOT.jar /app/app.jar
 
-# Copiar las vistas JSP y recursos estáticos
-COPY src/main/webapp/WEB-INF /app/WEB-INF
-
 # Crear directorios independientes para los volúmenes, con permisos no exclusivos
 RUN mkdir -p /app-data/xml /app-data/db && chmod 777 -R /app-data
 

@@ -1,22 +1,14 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.bcadaval.esloveno.beans.enums.TipoPalabra" %>
-<%@ page import="com.bcadaval.esloveno.beans.enums.Transitividad" %>
-<%@ page import="com.bcadaval.esloveno.beans.enums.Aspecto" %>
-<%@ page import="com.bcadaval.esloveno.beans.enums.Genero" %>
-<%@ page import="com.bcadaval.esloveno.beans.enums.TipoPronombre" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buscar Palabras - Esloveno</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css?v=${cssVersion}">
-    <%@ include file="head-favicon.jsp" %>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <th:block th:replace="~{fragments/head-favicon :: head-favicon}"></th:block>
 </head>
 <body>
-    <c:set var="pageTitle" value="🔍 Buscar Palabras" scope="request"/>
-    <%@ include file="navbar.jsp" %>
+    <div th:replace="~{fragments/navbar :: navbar('🔍 Buscar Palabras')}"></div>
     <div class="container container-extra-wide">
         <div class="buscar-layout">
 
@@ -587,4 +579,5 @@
     </script>
 </body>
 </html>
+
 

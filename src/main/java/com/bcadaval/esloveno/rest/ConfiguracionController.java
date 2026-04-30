@@ -28,6 +28,18 @@ import lombok.extern.log4j.Log4j2;
 @Controller
 public class ConfiguracionController {
 
+    public record CategoriaUI(
+            String titulo,
+            boolean activa,
+            boolean invalida,
+            String motivoInvalidez,
+            String dataCasos,
+            String dataFormasVerbales,
+            List<String> idsEstructuras
+    ) {}
+
+    public record NivelUI(String titulo, String descripcion, List<CategoriaUI> categorias) {}
+
     @Autowired
     private VariablesService variablesService;
 
@@ -43,21 +55,60 @@ public class ConfiguracionController {
 
         List<Variable> variables = variablesService.obtenerTodasLasVariables();
 
-        // Convertir lista a mapa para fácil acceso en JSP
+        // Convertir lista a mapa para fácil acceso en JSP/Thymeleaf
         Map<String, Variable> variablesMap = variables.stream()
                 .collect(Collectors.toMap(Variable::getClave, v -> v));
 
         model.addAttribute("variablesMap", variablesMap);
 
-
         // Estructuras de frase agrupadas por nivel de dificultad y categoría
-        model.addAttribute("estructurasAgrupadas", fraseService.getFrasesAgrupadasPorNivelYCategoria());
+        var estructurasAgrupadas = fraseService.getFrasesAgrupadasPorNivelYCategoria();
+        
+        List<NivelUI> nivelesUI = estructurasAgrupadas.entrySet().stream().map(entryNivel -> {
+            var nivel = entryNivel.getKey();
+            var categoriasMap = entryNivel.getValue();
 
-        // Casos activos derivados de las estructuras activas (solo para mostrar info)
-        model.addAttribute("casosActivos", fraseService.getCasosActivos());
+            List<CategoriaUI> categoriasUI = categoriasMap.entrySet().stream().map(entryCat -> {
+                var categoria = entryCat.getKey();
+                var frases = entryCat.getValue();
 
-        // Formas verbales activas derivadas de las estructuras activas
-        model.addAttribute("formasVerbalesActivas", fraseService.getFormasVerbalesActivas());
+                boolean activa = frases.stream().anyMatch(FraseConfigDTO::activa);
+                
+                var fraseInvalidaOpt = frases.stream().filter(FraseConfigDTO::invalida).findFirst();
+                boolean invalida = fraseInvalidaOpt.isPresent();
+                String motivoInvalidez = invalida ? fraseInvalidaOpt.get().motivoInvalidez() : "";
+
+                String dataCasos = frases.stream()
+                        .flatMap(f -> f.casosUsados().stream())
+                        .map(Enum::name)
+                        .distinct()
+                        .collect(Collectors.joining(","));
+
+                String dataFormasVerbales = frases.stream()
+                        .flatMap(f -> f.formasVerbalesUsadas().stream())
+                        .map(Enum::name)
+                        .distinct()
+                        .collect(Collectors.joining(","));
+
+                List<String> idsEstructuras = frases.stream()
+                        .map(FraseConfigDTO::identificador)
+                        .toList();
+
+                return new CategoriaUI(
+                        categoria.getTitulo(),
+                        activa,
+                        invalida,
+                        motivoInvalidez,
+                        dataCasos,
+                        dataFormasVerbales,
+                        idsEstructuras
+                );
+            }).toList();
+
+            return new NivelUI(nivel.getTitulo(), nivel.getDescripcion(), categoriasUI);
+        }).toList();
+
+        model.addAttribute("nivelesUI", nivelesUI);
 
         return "configuracion";
     }

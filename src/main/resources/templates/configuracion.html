@@ -1,19 +1,15 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuración - Esloveno</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css?v=${cssVersion}">
-    <%@ include file="head-favicon.jsp" %>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <th:block th:replace="~{fragments/head-favicon :: head-favicon}"></th:block>
 </head>
 <body>
-    <c:set var="pageTitle" value="⚙️ Configuración" scope="request"/>
-    <%@ include file="navbar.jsp" %>
+    <div th:replace="~{fragments/navbar :: navbar('⚙️ Configuración')}"></div>
     <div class="container container-wide">
-
 
         <!-- Mensaje de resultado -->
         <div class="message" id="messageBox"></div>
@@ -26,7 +22,7 @@
                     <div class="config-item">
                         <label for="intervaloInicial">Primera Repetición (segundos)</label>
                         <input type="number" id="intervaloInicial" name="intervaloInicial"
-                               value="${variablesMap['INTERVALO_INICIAL_SEGUNDOS'] != null ? variablesMap['INTERVALO_INICIAL_SEGUNDOS'].valor : '600'}"
+                               th:value="${variablesMap['INTERVALO_INICIAL_SEGUNDOS']?.valor ?: '600'}"
                                min="10" step="10">
                         <div class="help-text">Tiempo antes de la primera repetición</div>
                         <div class="tiempo-display" id="tiempoInicial"></div>
@@ -34,7 +30,7 @@
                     <div class="config-item">
                         <label for="intervaloSegunda">Segunda Repetición (segundos)</label>
                         <input type="number" id="intervaloSegunda" name="intervaloSegunda"
-                               value="${variablesMap['INTERVALO_SEGUNDA_SEGUNDOS'] != null ? variablesMap['INTERVALO_SEGUNDA_SEGUNDOS'].valor : '3600'}"
+                               th:value="${variablesMap['INTERVALO_SEGUNDA_SEGUNDOS']?.valor ?: '3600'}"
                                min="60" step="60">
                         <div class="help-text">Tiempo antes de la segunda repetición</div>
                         <div class="tiempo-display" id="tiempoSegunda"></div>
@@ -42,7 +38,7 @@
                     <div class="config-item">
                         <label for="intervaloReaprendizaje">Reaprendizaje (segundos)</label>
                         <input type="number" id="intervaloReaprendizaje" name="intervaloReaprendizaje"
-                               value="${variablesMap['INTERVALO_REAPRENDIZAJE_SEGUNDOS'] != null ? variablesMap['INTERVALO_REAPRENDIZAJE_SEGUNDOS'].valor : '30'}"
+                               th:value="${variablesMap['INTERVALO_REAPRENDIZAJE_SEGUNDOS']?.valor ?: '30'}"
                                min="5" step="5">
                         <div class="help-text">Tiempo tras fallar una tarjeta</div>
                         <div class="tiempo-display" id="tiempoReaprendizaje"></div>
@@ -57,21 +53,21 @@
                     <div class="config-item">
                         <label for="factorFacilidadInicial">Factor Inicial</label>
                         <input type="number" id="factorFacilidadInicial" name="factorFacilidadInicial"
-                               value="${variablesMap['FACTOR_FACILIDAD_INICIAL'] != null ? variablesMap['FACTOR_FACILIDAD_INICIAL'].valor : '2.5'}"
+                               th:value="${variablesMap['FACTOR_FACILIDAD_INICIAL']?.valor ?: '2.5'}"
                                min="1.0" max="5.0" step="0.1">
                         <div class="help-text">Factor de facilidad inicial (2.5 recomendado)</div>
                     </div>
                     <div class="config-item">
                         <label for="factorFacilidadMinimo">Factor Mínimo</label>
                         <input type="number" id="factorFacilidadMinimo" name="factorFacilidadMinimo"
-                               value="${variablesMap['FACTOR_FACILIDAD_MINIMO'] != null ? variablesMap['FACTOR_FACILIDAD_MINIMO'].valor : '1.3'}"
+                               th:value="${variablesMap['FACTOR_FACILIDAD_MINIMO']?.valor ?: '1.3'}"
                                min="1.0" max="3.0" step="0.1">
                         <div class="help-text">Factor mínimo (tarjetas más difíciles)</div>
                     </div>
                     <div class="config-item">
                         <label for="penalizacionFallo">Penalización por Fallo</label>
                         <input type="number" id="penalizacionFallo" name="penalizacionFallo"
-                               value="${variablesMap['PENALIZACION_FALLO'] != null ? variablesMap['PENALIZACION_FALLO'].valor : '0.2'}"
+                               th:value="${variablesMap['PENALIZACION_FALLO']?.valor ?: '0.2'}"
                                min="0.05" max="0.5" step="0.05">
                         <div class="help-text">Cuánto se reduce el factor al fallar</div>
                     </div>
@@ -85,14 +81,14 @@
                     <div class="config-item">
                         <label for="maxTarjetasNuevas">Máximo Tarjetas Nuevas/Día</label>
                         <input type="number" id="maxTarjetasNuevas" name="maxTarjetasNuevas"
-                               value="${variablesMap['MAX_TARJETAS_NUEVAS_DIA'] != null ? variablesMap['MAX_TARJETAS_NUEVAS_DIA'].valor : '20'}"
+                               th:value="${variablesMap['MAX_TARJETAS_NUEVAS_DIA']?.valor ?: '20'}"
                                min="1"step="1">
                         <div class="help-text">Límite de tarjetas nuevas por día</div>
                     </div>
                     <div class="config-item">
                         <label for="maxTarjetasRevision">Máximo Revisiones/Día</label>
                         <input type="number" id="maxTarjetasRevision" name="maxTarjetasRevision"
-                               value="${variablesMap['MAX_TARJETAS_REVISION_DIA'] != null ? variablesMap['MAX_TARJETAS_REVISION_DIA'].valor : '100'}"
+                               th:value="${variablesMap['MAX_TARJETAS_REVISION_DIA']?.valor ?: '100'}"
                                min="1">
                         <div class="help-text">Límite de revisiones por día</div>
                     </div>
@@ -106,7 +102,7 @@
                     <div class="config-item">
                         <label for="mezclarTarjetas">
                             <input type="checkbox" id="mezclarTarjetas" name="mezclarTarjetas"
-                                   <c:if test="${variablesMap['MEZCLAR_TARJETAS'] != null && variablesMap['MEZCLAR_TARJETAS'].valor == 'true'}">checked</c:if>
+                                   th:checked="${variablesMap['MEZCLAR_TARJETAS']?.valor == 'true'}"
                                    class="config-checkbox">
                             Mezclar tarjetas
                         </label>
@@ -120,87 +116,57 @@
                 <h2>📝 Estructuras de Frase</h2>
                 <p>Activa o desactiva las categorías enteras. Todas las frases dentro se activarán o desactivarán.</p>
 
-                <c:forEach var="entryNivel" items="${estructurasAgrupadas}">
+                <th:block th:each="nivel : ${nivelesUI}">
                     <div class="dificultad-section">
                         <h3>
-                            ${entryNivel.key.titulo}
-                            <span>${entryNivel.key.descripcion}</span>
+                            [[${nivel.titulo}]]
+                            <span>[[${nivel.descripcion}]]</span>
                         </h3>
 
                         <div class="casos-grid">
-                            <c:forEach var="entryCategoria" items="${entryNivel.value}">
-                                <c:set var="categoriaActiva" value="false" />
-                                <c:set var="categoriaInvalida" value="false" />
-                                <c:set var="motivoInvalido" value="" />
-                                <c:set var="casosAcumulados" value="" />
-                                <c:set var="formasVerbalesAcumuladas" value="" />
+                            <th:block th:each="categoria : ${nivel.categorias}">
 
-                                <!-- Analizar estado de la categoría en base a sus frases -->
-                                <c:forEach var="frase" items="${entryCategoria.value}">
-                                    <c:if test="${frase.activa}"><c:set var="categoriaActiva" value="true" /></c:if>
-                                    <c:if test="${frase.invalida}">
-                                        <c:set var="categoriaInvalida" value="true" />
-                                        <c:set var="motivoInvalido" value="${frase.motivoInvalidez}" />
-                                    </c:if>
+                                <th:block th:if="${categoria.invalida}">
+                                    <div class="caso-item invalida"
+                                         th:title="'⚠️ Contiene frase inválida: ' + ${categoria.motivoInvalidez}">
+                                        <input type="checkbox" disabled>
+                                        <label th:text="'❌ ' + ${categoria.titulo}"></label>
+                                    </div>
+                                </th:block>
 
-                                    <!-- Acumular metadatos para UI -->
-                                    <c:forEach var="caso" items="${frase.casosUsados}">
-                                        <c:set var="casosAcumulados" value="${casosAcumulados}${caso.name()}," />
-                                    </c:forEach>
-                                    <c:forEach var="fv" items="${frase.formasVerbalesUsadas}">
-                                        <c:set var="formasVerbalesAcumuladas" value="${formasVerbalesAcumuladas}${fv.name()}," />
-                                    </c:forEach>
-                                </c:forEach>
+                                <th:block th:unless="${categoria.invalida}">
+                                    <div class="caso-item categoria-card"
+                                         th:classappend="${categoria.activa ? 'selected' : ''}"
+                                         onclick="toggleCategoriaLocal(this)"
+                                         th:data-casos="${categoria.dataCasos}"
+                                         th:data-formas-verbales="${categoria.dataFormasVerbales}">
 
-                                <c:choose>
-                                    <c:when test="${categoriaInvalida}">
-                                        <div class="caso-item invalida"
-                                             title="⚠️ Contiene frase inválida: ${motivoInvalido}">
-                                            <input type="checkbox" disabled>
-                                            <label>❌ ${entryCategoria.key.titulo}</label>
+                                        <!-- Checkbox visual de la categoría -->
+                                        <input type="checkbox" class="categoria-checkbox"
+                                               th:checked="${categoria.activa}">
+                                        <label th:text="${categoria.titulo}"></label>
+
+                                        <!-- Inputs ocultos reales que se enviarán al servidor -->
+                                        <div class="hidden-inputs-container" style="display:none;">
+                                            <th:block th:each="estructuraId : ${categoria.idsEstructuras}">
+                                                <input type="checkbox" name="estructuras" th:value="${estructuraId}"
+                                                       th:checked="${categoria.activa}">
+                                            </th:block>
                                         </div>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <div class="caso-item categoria-card <c:if test='${categoriaActiva}'>selected</c:if>"
-                                             onclick="toggleCategoriaLocal(this)"
-                                             data-casos="${casosAcumulados}"
-                                             data-formas-verbales="${formasVerbalesAcumuladas}">
+                                    </div>
+                                </th:block>
 
-                                            <!-- Checkbox visual de la categoría -->
-                                            <input type="checkbox" class="categoria-checkbox"
-                                                   <c:if test="${categoriaActiva}">checked</c:if>>
-                                            <label>${entryCategoria.key.titulo}</label>
-
-                                            <!-- Inputs ocultos reales que se enviarán al servidor -->
-                                            <div class="hidden-inputs-container" style="display:none;">
-                                                <c:forEach var="estructura" items="${entryCategoria.value}">
-                                                    <input type="checkbox" name="estructuras" value="${estructura.identificador}"
-                                                           <c:if test="${categoriaActiva}">checked</c:if>>
-                                                </c:forEach>
-                                            </div>
-                                        </div>
-                                    </c:otherwise>
-                                </c:choose>
-                            </c:forEach>
+                            </th:block>
                         </div>
                     </div>
-                </c:forEach>
+                </th:block>
+
                 <div class="info-box">
                     <div class="mb-10">
-                        <strong>📌 Casos activos:</strong> <span id="casosActivosDisplay">
-                        <c:forEach var="caso" items="${casosActivos}" varStatus="status">
-                            ${caso.name()}<c:if test="${!status.last}">, </c:if>
-                        </c:forEach>
-                        <c:if test="${empty casosActivos}">Ninguno</c:if>
-                        </span>
+                        <strong>📌 Casos activos:</strong> <span id="casosActivosDisplay">Cargando...</span>
                     </div>
                     <div>
-                        <strong>🔤 Formas verbales activas:</strong> <span id="formasVerbalesActivasDisplay">
-                        <c:forEach var="fv" items="${formasVerbalesActivas}" varStatus="status">
-                            ${fv.name()}<c:if test="${!status.last}">, </c:if>
-                        </c:forEach>
-                        <c:if test="${empty formasVerbalesActivas}">Ninguna</c:if>
-                        </span>
+                        <strong>🔤 Formas verbales activas:</strong> <span id="formasVerbalesActivasDisplay">Cargando...</span>
                     </div>
                     <div class="help-text">Los casos y formas verbales se determinan automáticamente según las estructuras activas</div>
                 </div>
@@ -294,6 +260,11 @@
             formasVerbalesDisplayElement.textContent = formasVerbalesArray.length === 0 ? 'Ninguna' : formasVerbalesArray.join(', ');
         }
 
+        // Ejecutar el cálculo dinámico por primera vez una vez el DOM esté cargado
+        document.addEventListener("DOMContentLoaded", function() {
+            actualizarFiltrosActivos();
+        });
+
         // Enviar formulario (variables + estructuras)
         document.getElementById('configForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -348,6 +319,5 @@
     </script>
 </body>
 </html>
-
 
 

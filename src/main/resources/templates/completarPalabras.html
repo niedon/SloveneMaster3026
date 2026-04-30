@@ -1,18 +1,14 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.bcadaval.esloveno.beans.enums.TipoPalabra" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Completar Palabras - Esloveno</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css?v=${cssVersion}">
-    <%@ include file="head-favicon.jsp" %>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <th:block th:replace="~{fragments/head-favicon :: head-favicon}"></th:block>
 </head>
 <body>
-    <c:set var="pageTitle" value="📝 Completar Palabras" scope="request"/>
-    <%@ include file="navbar.jsp" %>
+    <div th:replace="~{fragments/navbar :: navbar('📝 Completar Palabras')}"></div>
     <div class="container">
 
         <!-- Mensaje de resultado -->
@@ -33,14 +29,15 @@
                     <input type="checkbox" id="filtroIncompletas" checked>
                     Solo incompletas
                 </label>
-                <select id="filtroTipo" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc;">
+                <select id="filtroTipo" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc;"
+                        th:with="TipoPalabra=${T(com.bcadaval.esloveno.beans.enums.TipoPalabra)}">
                     <option value="">Todos los tipos</option>
-                    <option value="<%= TipoPalabra.SUSTANTIVO.getXmlCode() %>">Sustantivos</option>
-                    <option value="<%= TipoPalabra.VERBO.getXmlCode() %>">Verbos</option>
-                    <option value="<%= TipoPalabra.ADJETIVO.getXmlCode() %>">Adjetivos</option>
-                    <option value="<%= TipoPalabra.PRONOMBRE.getXmlCode() %>">Pronombres</option>
-                    <option value="<%= TipoPalabra.NUMERAL.getXmlCode() %>">Numerales</option>
-                    <option value="<%= TipoPalabra.PARTICULA.getXmlCode() %>">Partículas</option>
+                    <option th:value="${TipoPalabra.SUSTANTIVO.getXmlCode()}">Sustantivos</option>
+                    <option th:value="${TipoPalabra.VERBO.getXmlCode()}">Verbos</option>
+                    <option th:value="${TipoPalabra.ADJETIVO.getXmlCode()}">Adjetivos</option>
+                    <option th:value="${TipoPalabra.PRONOMBRE.getXmlCode()}">Pronombres</option>
+                    <option th:value="${TipoPalabra.NUMERAL.getXmlCode()}">Numerales</option>
+                    <option th:value="${TipoPalabra.PARTICULA.getXmlCode()}">Partículas</option>
                 </select>
             </div>
         </div>
@@ -143,45 +140,28 @@
         </div>
     </div>
 
-    <script>
+    <script th:inline="javascript"
+            th:with="TP=${T(com.bcadaval.esloveno.beans.enums.TipoPalabra)}">
         let palabrasCompletas = [];
         let palabrasFiltradas = [];
         let palabraSeleccionada = null;
 
-        // Constantes del enum TipoPalabra desde Java
-        const ENUM_SUSTANTIVO = '<%= TipoPalabra.SUSTANTIVO.name() %>';
-        const ENUM_VERBO = '<%= TipoPalabra.VERBO.name() %>';
-        const ENUM_ADJETIVO = '<%= TipoPalabra.ADJETIVO.name() %>';
-        const ENUM_PRONOMBRE = '<%= TipoPalabra.PRONOMBRE.name() %>';
-        const ENUM_NUMERAL = '<%= TipoPalabra.NUMERAL.name() %>';
-        const ENUM_PARTICULA = '<%= TipoPalabra.PARTICULA.name() %>';
+        // Constantes del enum
+        const ENUM_SUSTANTIVO = [[${TP.SUSTANTIVO.name()}]];
+        const ENUM_VERBO      = [[${TP.VERBO.name()}]];
+        const ENUM_ADJETIVO   = [[${TP.ADJETIVO.name()}]];
+        const ENUM_PRONOMBRE  = [[${TP.PRONOMBRE.name()}]];
+        const ENUM_NUMERAL    = [[${TP.NUMERAL.name()}]];
+        const ENUM_PARTICULA  = [[${TP.PARTICULA.name()}]];
 
-        // Valores del enum TipoPalabra desde Java
+        // Valores del enum
         const TIPO_PALABRA = {
-            '<%= TipoPalabra.SUSTANTIVO.getXmlCode() %>': {
-                enum: ENUM_SUSTANTIVO,
-                nombre: '<%= TipoPalabra.SUSTANTIVO.getNombreEspanol() %>'
-            },
-            '<%= TipoPalabra.VERBO.getXmlCode() %>': {
-                enum: ENUM_VERBO,
-                nombre: '<%= TipoPalabra.VERBO.getNombreEspanol() %>'
-            },
-            '<%= TipoPalabra.ADJETIVO.getXmlCode() %>': {
-                enum: ENUM_ADJETIVO,
-                nombre: '<%= TipoPalabra.ADJETIVO.getNombreEspanol() %>'
-            },
-            '<%= TipoPalabra.PRONOMBRE.getXmlCode() %>': {
-                enum: ENUM_PRONOMBRE,
-                nombre: '<%= TipoPalabra.PRONOMBRE.getNombreEspanol() %>'
-            },
-            '<%= TipoPalabra.NUMERAL.getXmlCode() %>': {
-                enum: ENUM_NUMERAL,
-                nombre: '<%= TipoPalabra.NUMERAL.getNombreEspanol() %>'
-            },
-            '<%= TipoPalabra.PARTICULA.getXmlCode() %>': {
-                enum: ENUM_PARTICULA,
-                nombre: '<%= TipoPalabra.PARTICULA.getNombreEspanol() %>'
-            }
+            [ [[${TP.SUSTANTIVO.getXmlCode()}]] ]: { enum: ENUM_SUSTANTIVO, nombre: [[${TP.SUSTANTIVO.getNombreEspanol()}]] },
+            [ [[${TP.VERBO.getXmlCode()}]] ]:      { enum: ENUM_VERBO,      nombre: [[${TP.VERBO.getNombreEspanol()}]]      },
+            [ [[${TP.ADJETIVO.getXmlCode()}]] ]:   { enum: ENUM_ADJETIVO,   nombre: [[${TP.ADJETIVO.getNombreEspanol()}]]   },
+            [ [[${TP.PRONOMBRE.getXmlCode()}]] ]:  { enum: ENUM_PRONOMBRE,  nombre: [[${TP.PRONOMBRE.getNombreEspanol()}]]  },
+            [ [[${TP.NUMERAL.getXmlCode()}]] ]:    { enum: ENUM_NUMERAL,    nombre: [[${TP.NUMERAL.getNombreEspanol()}]]    },
+            [ [[${TP.PARTICULA.getXmlCode()}]] ]:  { enum: ENUM_PARTICULA,  nombre: [[${TP.PARTICULA.getNombreEspanol()}]]  }
         };
 
         // Cargar palabras al iniciar
@@ -399,4 +379,5 @@
     </script>
 </body>
 </html>
+
 

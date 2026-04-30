@@ -1,21 +1,21 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<!DOCTYPE html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estudio - Esloveno</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css?v=${cssVersion}">
-    <%@ include file="head-favicon.jsp" %>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <th:block th:replace="~{fragments/head-favicon :: head-favicon}"></th:block>
 </head>
-<body>
-    <c:set var="pageTitle" value="📖 Estudio de Palabras" scope="request"/>
-    <%@ include file="navbar.jsp" %>
-    <div class="container">
 
-        <c:set var="tamanio" value="${fn:length(datos)}" />
+<body>
+
+    <div th:replace="~{fragments/navbar :: navbar('📖 Estudio de Palabras')}"></div>
+    <div class="container">
 
         <form action="/enviarRespuestas" method="POST" id="respuestasForm">
             <input type="hidden" id="tiempoTotalSegundos" name="tiempoTotalSegundos" value="">
@@ -23,42 +23,40 @@
                 <tbody>
                     <!-- Fila 1: pregunta (transparente al idioma) -->
                     <tr class="row-visible">
-                        <c:forEach var="dato" items="${datos}">
-                            <td class="text-center<c:if test='${dato.id != null}'> celda-srs</c:if>">
-                                <strong><c:out value="${dato.textoFila1}" /></strong>
+                        <th:block th:each="dato : ${datos}">
+                            <td class="text-center" th:classappend="${dato.id != null} ? 'celda-srs' : ''">
+                                <strong th:text="${dato.textoFila1}"></strong>
                             </td>
-                        </c:forEach>
+                        </th:block>
                     </tr>
 
                     <!-- Fila 2: respuesta y botones (colapsada) -->
                     <tr class="row-collapsed" id="row-details">
-                        <c:forEach var="dato" items="${datos}" varStatus="status">
-                            <td class="text-center<c:if test='${dato.id != null}'> celda-srs</c:if>">
-                                <strong><c:out value="${dato.textoFila2}" /></strong>
+                        <th:block th:each="dato, index : ${datos}">
+                            <td class="text-center" th:classappend="${dato.id != null} ? 'celda-srs' : ''">
+                                <strong th:text="${dato.textoFila2}"></strong>
 
                                 <!-- Botones y próx estudio -->
-                                <c:if test="${dato.id != null}">
+                                <th:block th:if="${dato.id != null}">
                                     <br/>
                                     <div class="button-container">
-                                        <button type="button" class="btn-abajo btn-danger<c:if test='${dato.id == null}'> btn-invisible</c:if>" id="btn_abajo_${status.index}"
-                                                onclick="setResponse(${status.index})"
-                                                <c:if test="${dato.id == null}">disabled</c:if>>👎</button>
-                                        <button type="button" class="btn-arriba btn-success<c:if test='${dato.id == null}'> btn-invisible</c:if>" id="btn_arriba_${status.index}"
-                                                onclick="setResponse(${status.index})"
-                                                <c:if test="${dato.id == null}">disabled</c:if>>👍</button>
+                                        <button type="button" class="btn-abajo btn-danger" th:id="|btn_abajo_${index.index}|"
+                                                th:onclick="|setResponse(${index.index})|">👎</button>
+                                        <button type="button" class="btn-arriba btn-success" th:id="|btn_arriba_${index.index}|"
+                                                th:onclick="|setResponse(${index.index})|">👍</button>
                                     </div>
 
-                                    <div id="intervalo_${status.index}" class="intervalo-texto">
-                                        <span id="intervalo_texto_${status.index}"></span>
+                                    <div th:id="|intervalo_${index.index}|" class="intervalo-texto">
+                                        <span th:id="|intervalo_texto_${index.index}|"></span>
                                     </div>
-                                    <input type="hidden" id="intervalo_arriba_${status.index}" value="${dato.intervaloArriba}">
-                                    <input type="hidden" id="intervalo_abajo_${status.index}" value="${dato.intervaloAbajo}">
-                                    <input type="hidden" name="tipo_${status.index}" value="${dato.tipo.xmlCode}">
-                                    <input type="hidden" name="id_${status.index}" value="${dato.id}">
-                                    <input type="hidden" id="valor_${status.index}" name="valor_${status.index}" value="" class="valor-input">
-                                </c:if>
+                                    <input type="hidden" th:id="|intervalo_arriba_${index.index}|" th:value="${dato.intervaloArriba}">
+                                    <input type="hidden" th:id="|intervalo_abajo_${index.index}|" th:value="${dato.intervaloAbajo}">
+                                    <input type="hidden" th:name="|tipo_${index.index}|" th:value="${dato.tipo.xmlCode}">
+                                    <input type="hidden" th:name="|id_${index.index}|" th:value="${dato.id}">
+                                    <input type="hidden" th:id="|valor_${index.index}|" th:name="|valor_${index.index}|" value="" class="valor-input">
+                                </th:block>
                             </td>
-                        </c:forEach>
+                        </th:block>
                     </tr>
                 </tbody>
             </table>
@@ -71,17 +69,12 @@
 
         <!-- Contador de tarjetas disponibles -->
         <div class="tarjetas-info">
-            <c:choose>
-                <c:when test="${tarjetasDisponibles > 0}">
-                    <p class="tarjetas-disponibles">📚 Hay <strong>${tarjetasDisponibles}</strong> palabra(s) disponible(s) para el estudio</p>
-                </c:when>
-                <c:when test="${tarjetasNuevas > 0}">
-                    <p class="tarjetas-nuevas">🆕 Hay <strong>${tarjetasNuevas}</strong> palabra(s) nueva(s) para aprender</p>
-                </c:when>
-                <c:otherwise>
-                    <p class="sin-tarjetas">✅ ¡No hay tarjetas pendientes! Vuelve más tarde.</p>
-                </c:otherwise>
-            </c:choose>
+            <th:block th:switch="${tarjetasDisponibles > 0} ? 'disponibles' : (${tarjetasNuevas > 0} ? 'nuevas' : 'none')">
+                <p th:case="'disponibles'" class="tarjetas-disponibles">📚 Hay <strong th:text="${tarjetasDisponibles}">0</strong> palabra(s) disponible(s) para el estudio</p>
+                <p th:case="'nuevas'" class="tarjetas-nuevas">🆕 Hay <strong th:text="${tarjetasNuevas}">0</strong> palabra(s) nueva(s) para aprender</p>
+                <p th:case="*" class="sin-tarjetas">✅ ¡No hay tarjetas pendientes! Vuelve más tarde.</p>
+            </th:block>
+
         </div>
 
     </div>
@@ -169,6 +162,11 @@
             }
         });
     </script>
+
+
 </body>
+
 </html>
+
+
 

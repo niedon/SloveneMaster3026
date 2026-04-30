@@ -28,7 +28,6 @@ public class InitializationController {
     public String index(Model model) {
         boolean ready = initializationService.isFullyReady();
         model.addAttribute("ready", ready);
-        model.addAttribute("cssVersion", InitializationInterceptor.CSS_VERSION);
 
         if (!ready) {
             log.info("Sistema no inicializado, mostrando pantalla de carga");

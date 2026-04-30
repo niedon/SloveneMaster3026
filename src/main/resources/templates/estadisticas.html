@@ -1,66 +1,52 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!DOCTYPE html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estadísticas de Estudio</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/main.css?v=${cssVersion}">
-    <%@ include file="head-favicon.jsp" %>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <th:block th:replace="~{fragments/head-favicon :: head-favicon}"></th:block>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <style>
-        /* Estilos específicos para la página de estadísticas */
-        .control-panel .btn-group .btn {
-            border-radius: 0;
-        }
-        .control-panel .btn-group .btn:first-child {
-            border-top-left-radius: 0.25rem;
-            border-bottom-left-radius: 0.25rem;
-        }
-        .control-panel .btn-group .btn:last-child {
-            border-top-right-radius: 0.25rem;
-            border-bottom-right-radius: 0.25rem;
-        }
-        .control-panel label {
-            font-weight: 500;
-            color: #6c757d;
-        }
-        .input-group-text {
-            background-color: #f8f9fa;
-        }
-    </style>
 </head>
-<body>
-    <c:set var="pageTitle" value="📊 Estadísticas" scope="request"/>
-    <%@ include file="navbar.jsp" %>
+
+
+    <div th:replace="~{fragments/navbar :: navbar('📊 Estadísticas')}"></div>
     <div class="container container-extra-wide">
 
         <!-- Panel de Control de Tiempo Modificado -->
-        <div class="card mb-4 p-3 control-panel shadow-sm">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                <div class="btn-group shadow-sm" role="group" aria-label="Rango de tiempo">
-                    <button type="button" class="btn btn-outline-primary" data-range="1h" onclick="seleccionarRango('1h')">1h</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="24h" onclick="seleccionarRango('24h')">24h</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="7d" onclick="seleccionarRango('7d')">7 D</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="30d" onclick="seleccionarRango('30d')">30 D</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="all" onclick="seleccionarRango('all')">Todo</button>
+        <div class="stats-control-panel mb-4">
+            <div class="controls-wrapper">
+
+                <div class="stats-btn-group" role="group" aria-label="Rango de tiempo">
+                    <button type="button" class="stats-btn" data-range="1h" onclick="seleccionarRango('1h')">1H</button>
+                    <button type="button" class="stats-btn" data-range="24h" onclick="seleccionarRango('24h')">24H</button>
+                    <button type="button" class="stats-btn" data-range="7d" onclick="seleccionarRango('7d')">7D</button>
+                    <button type="button" class="stats-btn" data-range="30d" onclick="seleccionarRango('30d')">30D</button>
+                    <button type="button" class="stats-btn" data-range="all" onclick="seleccionarRango('all')">Todo</button>
                 </div>
 
-                <div class="d-flex align-items-center gap-2 bg-light p-2 rounded border">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i> &nbsp;Desde</span>
-                        <input type="datetime-local" id="fechaInicio" class="form-control">
+                <div class="manual-date-selector">
+                    <div class="date-input-group">
+                        <i class="fas fa-calendar-alt icon"></i>
+                        <span class="label">Desde</span>
+                        <input type="datetime-local" id="fechaInicio" class="custom-datetime">
                     </div>
-                    <div class="input-group input-group-sm ms-2">
-                        <span class="input-group-text">Hasta</span>
-                        <input type="datetime-local" id="fechaFin" class="form-control">
+                    <div class="date-divider">
+                        <i class="fas fa-arrow-right"></i>
                     </div>
-                    <button class="btn btn-primary btn-sm ms-2 px-3" onclick="aplicarFechasManual()">
-                        <i class="fas fa-check"></i> Aplicar
+                    <div class="date-input-group">
+                        <span class="label">Hasta</span>
+                        <input type="datetime-local" id="fechaFin" class="custom-datetime">
+                    </div>
+                    <button class="btn-primary apply-btn" onclick="aplicarFechasManual()">
+                        <i class="fas fa-check"></i>
                     </button>
                 </div>
+
             </div>
         </div>
 
@@ -148,7 +134,7 @@
             <!-- Pronóstico de Revisiones -->
             <div class="col-md-12">
                 <div class="card p-3 h-100 shadow-sm">
-                    <h5 class="card-title">Carga de Revisiones (Pronóstico/Atrasadas)</h5>
+                    <h5 class="card-title">Pronóstico de repasos (Cantidad de tiempo seleccionado, desde este momento)</h5>
                     <div class="chart-container" style="position: relative; height:300px;">
                         <canvas id="chartPronostico"></canvas>
                     </div>
@@ -256,9 +242,10 @@
 
         // --- 3. CARGA DE DATOS (AJAX) ---
 
+/*
         function cargarTodosLosGraficos(startEpoch, endEpoch, granularidad) {
             const zonaHoraria = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const params = `?inicio=\${startEpoch}&fin=\${endEpoch}&granularidad=\${granularidad}&zonaHoraria=\${encodeURIComponent(zonaHoraria)}`;
+            const params = `?inicio=${startEpoch}&fin=${endEpoch}&granularidad=${granularidad}&zonaHoraria=${encodeURIComponent(zonaHoraria)}`;
 
             // Nuevos endpoints separados
             fetchData('/api/stats/historico-totales' + params, 'chartHistorico', 'bar', { stacked: true });
@@ -276,6 +263,30 @@
 
             fetchData('/api/stats/pronostico' + params, 'chartPronostico', 'bar');
         }
+*/
+        function cargarTodosLosGraficos(startEpoch, endEpoch, granularidad) {
+            const zonaHoraria = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const paramsDefault = `?inicio=${startEpoch}&fin=${endEpoch}&granularidad=${granularidad}&zonaHoraria=${encodeURIComponent(zonaHoraria)}`;
+
+            // Para el pronóstico, calculamos el "time span" (cuánto tiempo se filtró) y
+            // lo proyectamos hacia el futuro, arrancando desde el momento actual.
+            const rangoTiempoMs = endEpoch - startEpoch;
+            const nowEpoch = new Date().getTime();
+            const paramsFuturo = `?inicio=${nowEpoch}&fin=${nowEpoch + rangoTiempoMs}&granularidad=${granularidad}&zonaHoraria=${encodeURIComponent(zonaHoraria)}`;
+
+            // Llamadas estándar hacia el pasado
+            fetchData('/api/stats/historico-totales' + paramsDefault, 'chartHistorico', 'bar', { stacked: true });
+            fetchData('/api/stats/historico-porcentaje' + paramsDefault, 'chartPorcentaje', 'line', { fill: true, tension: 0.4, scales: { y: { min: 0, max: 100 } } });
+            fetchData('/api/stats/tiempos' + paramsDefault, 'chartTiempos', 'line', { tension: 0.4 });
+            fetchData('/api/stats/tipos' + paramsDefault, 'chartTipos', 'bar', {
+                indexAxis: 'y',
+                scales: { x: { beginAtZero: true, max: 100 } }
+             });
+
+            // Llamada de PRONÓSTICO utilizando los parámetros a futuro
+            // (Conserva las atrasadas que te devuelve backend y sigue la línea del tiempo pedida)
+            fetchData('/api/stats/pronostico' + paramsFuturo, 'chartPronostico', 'bar');
+        }
 
         async function fetchData(url, chartId, type, extraOptions = {}) {
             // Mostrar loading state si se quisiera (opcional)
@@ -285,6 +296,7 @@
                 renderChart(chartId, type, data, extraOptions);
             } catch (error) {
                 console.error("Error cargando chart " + chartId, error);
+                console.log(error.stack);
             }
         }
 
@@ -376,6 +388,7 @@
             });
         }
     </script>
-</body>
+
 </html>
+
 

@@ -22,10 +22,6 @@ spring:
   jpa:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
     defer-datasource-initialization: true
-  mvc:
-    view:
-      prefix: /WEB-INF/jsp/
-      suffix: .jsp
 
 server:
   servlet:
