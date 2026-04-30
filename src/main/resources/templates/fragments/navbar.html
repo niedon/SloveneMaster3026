@@ -79,8 +79,17 @@
                 texto.style.fontFamily = "inherit";
 
                 const btnClose = document.createElement('button');
-                btnClose.innerHTML = "&times;";
-                btnClose.style.cssText = "background: none; border: none; font-size: 20px; cursor: pointer; color: #999; margin-left: 15px;";
+                btnClose.innerHTML = "✓";
+                btnClose.style.cssText = "background: none; border: none; font-size: 20px; cursor: pointer; color: #999; margin-left: 15px; border-radius: 20%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;";
+
+                btnClose.onmouseenter = () => {
+                    btnClose.style.backgroundColor = "#28a745";
+                    btnClose.style.color = "#fff";
+                };
+                btnClose.onmouseleave = () => {
+                    btnClose.style.backgroundColor = "transparent";
+                    btnClose.style.color = "#999";
+                };
 
                 btnClose.onclick = function() {
                     fetch(`/api/mensajes/${msg.id}/marcar-leido`, { method: 'POST' })

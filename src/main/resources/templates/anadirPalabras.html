@@ -17,14 +17,19 @@
     <div class="container">
 
         <div class="instructions">
-            <h2>Instrucciones</h2>
-            <ul>
-                <li>Escribe una palabra en esloveno en el campo de búsqueda</li>
-                <li>Opcionalmente, filtra por tipo de palabra</li>
-                <li>Haz clic en "Buscar" para encontrar todas las coincidencias</li>
-                <li>Selecciona la palabra que deseas añadir haciendo clic en "Añadir"</li>
-                <li>Las palabras en rojo no están soportadas aún</li>
-            </ul>
+            <h2 class="toggle-header" onclick="toggleInstructions('instructions-content-anadir')" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                Instrucciones
+                <span id="toggle-icon-anadir" style="transition: transform 0.3s; font-size: 0.8em;">▼</span>
+            </h2>
+            <div id="instructions-content-anadir" style="display: none; margin-top: 15px;">
+                <ul>
+                    <li>Escribe una palabra en esloveno en el campo de búsqueda</li>
+                    <li>Opcionalmente, filtra por tipo de palabra</li>
+                    <li>Haz clic en "Buscar" para encontrar todas las coincidencias</li>
+                    <li>Selecciona la palabra que deseas añadir haciendo clic en "Añadir"</li>
+                    <li>Las palabras en rojo no están soportadas aún</li>
+                </ul>
+            </div>
         </div>
 
         <div class="search-form">
@@ -72,6 +77,19 @@
         const resultsList = document.getElementById('resultsList');
 
         let currentSessionId = null;
+
+        function toggleInstructions(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('toggle-icon-anadir');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
 
         // Permitir buscar con Enter
         wordInput.addEventListener('keypress', function(event) {

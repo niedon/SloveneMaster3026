@@ -1,14 +1,12 @@
 package com.bcadaval.esloveno.structures.frase.frases;
 
 import com.bcadaval.esloveno.beans.enums.Caso;
-import com.bcadaval.esloveno.beans.enums.CategoriaFrase;
 import com.bcadaval.esloveno.beans.enums.Grado;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.services.palabra.NumeralService;
 import com.bcadaval.esloveno.services.palabra.SustantivoService;
-import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionApoyoEstandar;
 import com.bcadaval.esloveno.structures.extractores.ExtraccionSlotEstandar;
 import com.bcadaval.esloveno.structures.frase.Frase;
@@ -16,7 +14,6 @@ import com.bcadaval.esloveno.structures.frase.PalabraFrase;
 import com.bcadaval.esloveno.structures.frase.criterio.AdjetivoCriterioBuilder;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Frase: Numeral + Adjetivo + Sustantivo.
@@ -30,8 +27,10 @@ import org.springframework.stereotype.Component;
  *   <li><strong>SUSTANTIVO</strong> (apoyo): sustantivo que concuerda con el adjetivo</li>
  * </ol>
  */
-@Component
-@DificultadFrase(categoria = CategoriaFrase.EN_PROCESO)
+// FRASE DESACTIVADA HASTA NUEVO AVISO
+//@Component
+//@DificultadFrase(categoria = CategoriaFrase.EN_PROCESO)
+@SuppressWarnings("unused")
 public class FraseSustantivoAdjetivo extends Frase {
 
     @Autowired

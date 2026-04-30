@@ -69,12 +69,13 @@
 
         <!-- Contador de tarjetas disponibles -->
         <div class="tarjetas-info">
-            <th:block th:switch="${tarjetasDisponibles > 0} ? 'disponibles' : (${tarjetasNuevas > 0} ? 'nuevas' : 'none')">
+            <th:block th:switch="${keyMensaje}">
+                <p th:case="'nohayfrases'" class="sin-tarjetas">✅ ¡No hay frases disponibles! Entra en <a href="/configuracion">Configuración</a> y activa alguna frase.</p>
+                <p th:case="'sinfrases'" class="sin-tarjetas">✅ ¡No hay frases pendientes! Vuelve más tarde o añade más palabras.</p>
                 <p th:case="'disponibles'" class="tarjetas-disponibles">📚 Hay <strong th:text="${tarjetasDisponibles}">0</strong> palabra(s) disponible(s) para el estudio</p>
                 <p th:case="'nuevas'" class="tarjetas-nuevas">🆕 Hay <strong th:text="${tarjetasNuevas}">0</strong> palabra(s) nueva(s) para aprender</p>
                 <p th:case="*" class="sin-tarjetas">✅ ¡No hay tarjetas pendientes! Vuelve más tarde.</p>
             </th:block>
-
         </div>
 
     </div>

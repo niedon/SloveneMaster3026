@@ -3,6 +3,7 @@ package com.bcadaval.esloveno.rest;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.bcadaval.esloveno.beans.base.PalabraFlexion;
 import com.bcadaval.esloveno.beans.enums.*;
@@ -27,8 +28,10 @@ import com.bcadaval.esloveno.repo.VerboFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboRepo;
 import com.bcadaval.esloveno.rest.dto.PalabraIncompletaDTO;
 import com.bcadaval.esloveno.rest.dto.ActualizarPalabraResponse;
+import com.bcadaval.esloveno.rest.dto.FieldSchemaDTO;
 import com.bcadaval.esloveno.services.ElegibilidadService;
 import com.bcadaval.esloveno.services.VariablesService;
+import com.bcadaval.esloveno.services.FormulariosService;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -79,6 +82,9 @@ public class CompletarPalabrasController {
 
     @Autowired
     private ElegibilidadService elegibilidadService;
+
+    @Autowired
+    private FormulariosService formulariosService;
 
     /**
      * Muestra la página para completar palabras incompletas
@@ -162,9 +168,8 @@ public class CompletarPalabrasController {
                         .id(numeral.getSloleksId())
                         .palabra(numeral.getPrincipal())
                         .tipo(TipoPalabra.NUMERAL.getXmlCode())
-                        .significado(numeral.getSignificado())
                         .cantidad(numeral.getCantidad())
-                        .completa(numeral.getSignificado() != null && numeral.getCantidad() != null)
+                        .completa(numeral.getCantidad() != null)
                         .build())
                 .forEach(palabras::add);
 
@@ -183,6 +188,12 @@ public class CompletarPalabrasController {
         return palabras;
     }
 
+    @GetMapping("/api/formulario/esquema")
+    @ResponseBody
+    public Map<String, List<FieldSchemaDTO>> obtenerEsquemaFormulario() {
+        return formulariosService.generarEsquemaFormulario();
+    }
+
     //TODO esta función debería reformularse tras los cambios de elegibilidad?
     /**
      * Actualiza una palabra con los datos proporcionados.
@@ -194,7 +205,7 @@ public class CompletarPalabrasController {
     public ActualizarPalabraResponse actualizarPalabra(
             @RequestParam String id,
             @RequestParam String tipo,
-            @RequestParam String significado,
+            @RequestParam(required = false) String significado,
             @RequestParam(required = false) String transitividad,
             @RequestParam(required = false) String animacidad,
             @RequestParam(required = false) String contabilidad,

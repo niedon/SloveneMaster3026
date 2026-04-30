@@ -16,7 +16,7 @@ OR REPLACE INTO variables (clave, valor, tipo, descripcion) VALUES
 
 -- Mensaje inicial
 INSERT INTO MENSAJES_FLOTANTES (MENSAJE, LEIDO)
-SELECT 'Para empezar a estudiar, rellena las palabras necesarias entrando en Menú → Completar', 0
+SELECT 'Para empezar a estudiar, rellena las palabras entrando en Menú → Completar. Solo se podrán estudiar las palabras completas.', 0
 WHERE NOT EXISTS (SELECT 1 FROM MENSAJES_FLOTANTES);
 
 -- Palabras

@@ -11,6 +11,31 @@
     <div th:replace="~{fragments/navbar :: navbar('📝 Completar Palabras')}"></div>
     <div class="container">
 
+        <div class="instructions" style="margin-bottom: 20px;">
+            <h2 class="toggle-header" onclick="toggleInstructions('instructions-content-completar')" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+                Instrucciones
+                <span id="toggle-icon-completar" style="transition: transform 0.3s; font-size: 0.8em;">▼</span>
+            </h2>
+            <div id="instructions-content-completar" style="display: none; margin-top: 15px;">
+                <ul>
+                    <li><strong>Obligatorio:</strong> Si una palabra no se completa, <strong>no se podrá estudiar</strong>.</li>
+                    <li>
+                        <ol>
+                            <li>Buscar una palabra incompleta <span style="color:#dc3545; font-weight:bold;">✗</span> (con el filtro "Solo incompletas").</li>
+                            <li>Pulsar sobre la palabra para seleccionarla.</li>
+                            <li>Rellenar los datos en el formulario y guardar.</li>
+                        </ol>
+                    </li>
+                    <li><strong>Recursos de ayuda:</strong> Para encontrar el significado y las características de las palabras, te recomendamos asignar estos diccionarios gratuitos:
+                        <ul>
+                            <li><a href="https://fran.si/" target="_blank" rel="noopener noreferrer">Fran (Portal Oficial del Esloveno)</a></li>
+                            <li><a href="https://es.pons.com/traducción/esloveno-español" target="_blank" rel="noopener noreferrer">PONS (Diccionario Esloveno-Español)</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
         <!-- Mensaje de resultado -->
         <div class="message" id="messageBox"></div>
 
@@ -19,6 +44,7 @@
 
         <!-- Filtros -->
         <div class="search-container">
+            <label for="searchInput"></label>
             <input type="text"
                    class="search-input"
                    id="searchInput"
@@ -29,6 +55,7 @@
                     <input type="checkbox" id="filtroIncompletas" checked>
                     Solo incompletas
                 </label>
+                <label for="filtroTipo"></label>
                 <select id="filtroTipo" style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc;"
                         th:with="TipoPalabra=${T(com.bcadaval.esloveno.beans.enums.TipoPalabra)}">
                     <option value="">Todos los tipos</option>
@@ -54,83 +81,8 @@
                 <input type="hidden" id="palabraId" name="id">
                 <input type="hidden" id="palabraTipo" name="tipo">
 
-                <!-- Campo Significado (para todos) -->
-                <div class="form-group">
-                    <label for="significado">Significado en español *</label>
-                    <input type="text" id="significado" name="significado" required>
-                </div>
-
-                <!-- Campo Transitividad (solo verbos) -->
-                <div class="form-group hidden" id="transitividadGroup">
-                    <label for="transitividad">Transitividad *</label>
-                    <select id="transitividad" name="transitividad">
-                        <option value="">Seleccione...</option>
-                        <option value="TRANSITIVO">Transitivo</option>
-                        <option value="INTRANSITIVO">Intransitivo</option>
-                        <option value="AMBITRANSITIVO">Ambitransitivo</option>
-                    </select>
-                </div>
-
-                <!-- Campo RequiereSujetoAnimado (solo verbos) -->
-                <div class="form-group hidden" id="requiereSujetoAnimadoGroup">
-                    <label for="requiereSujetoAnimado">¿Requiere sujeto animado? *</label>
-                    <select id="requiereSujetoAnimado" name="requiereSujetoAnimado">
-                        <option value="">Seleccione...</option>
-                        <option value="SI">Sí</option>
-                        <option value="NO">No</option>
-                    </select>
-                </div>
-
-                <!-- Campo RequiereObjetoAnimado (solo verbos) -->
-                <div class="form-group hidden" id="requiereObjetoAnimadoGroup">
-                    <label for="requiereObjetoAnimado">¿Requiere objeto animado? *</label>
-                    <select id="requiereObjetoAnimado" name="requiereObjetoAnimado">
-                        <option value="">Seleccione...</option>
-                        <option value="SI">Sí</option>
-                        <option value="NO">No</option>
-                    </select>
-                </div>
-
-                <!-- Campo Animacidad (solo sustantivos) -->
-                <div class="form-group hidden" id="animacidadGroup">
-                    <label for="animacidad">Animacidad *</label>
-                    <select id="animacidad" name="animacidad">
-                        <option value="">Seleccione...</option>
-                        <option value="ANIMADO">Animado</option>
-                        <option value="INANIMADO">Inanimado</option>
-                    </select>
-                </div>
-
-                <!-- Campo Contabilidad (solo sustantivos) -->
-                <div class="form-group hidden" id="contabilidadGroup">
-                    <label for="contabilidad">Contabilidad *</label>
-                    <select id="contabilidad" name="contabilidad">
-                        <option value="">Seleccione...</option>
-                        <option value="CONTABLE">Contable</option>
-                        <option value="INCONTABLE">Incontable</option>
-                    </select>
-                </div>
-
-                <!-- Campo ClaseSemantica (solo sustantivos) -->
-                <div class="form-group hidden" id="claseSemanticaGroup">
-                    <label for="claseSemantica">Clase semántica *</label>
-                    <select id="claseSemantica" name="claseSemantica">
-                        <option value="">Seleccione...</option>
-                        <option value="HUMANO">Humano</option>
-                        <option value="ANIMAL">Animal</option>
-                        <option value="OBJETO">Objeto</option>
-                        <option value="LUGAR">Lugar</option>
-                        <option value="SUSTANCIA">Sustancia</option>
-                        <option value="ABSTRACTO">Abstracto</option>
-                    </select>
-                </div>
-
-                <!-- Campo Cantidad (solo numerales) -->
-                <div class="form-group hidden" id="cantidadGroup">
-                    <label for="cantidad">Cantidad (valor numérico) *</label>
-                    <input type="number" id="cantidad" name="cantidad" min="0" step="1"
-                           placeholder="Ej: 1 para en, 2 para dva, 5 para pet...">
-                </div>
+                <!-- Contenedor dinámico de campos -->
+                <div id="dynamicFieldsContainer"></div>
 
                 <div class="form-actions">
                     <button type="button" class="btn-secondary" onclick="cancelarEdicion()">Cancelar</button>
@@ -140,11 +92,33 @@
         </div>
     </div>
 
+    <!-- Template para cada campo del formulario -->
+    <template id="template-form-group">
+        <div class="form-group">
+            <label class="dynamic-label"></label>
+            <div class="dynamic-input-container"></div>
+        </div>
+    </template>
+
     <script th:inline="javascript"
             th:with="TP=${T(com.bcadaval.esloveno.beans.enums.TipoPalabra)}">
         let palabrasCompletas = [];
         let palabrasFiltradas = [];
         let palabraSeleccionada = null;
+        let schemaGlobal = {};
+
+        function toggleInstructions(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('toggle-icon-completar');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
 
         // Constantes del enum
         const ENUM_SUSTANTIVO = [[${TP.SUSTANTIVO.name()}]];
@@ -164,9 +138,10 @@
             [ [[${TP.PARTICULA.getXmlCode()}]] ]:  { enum: ENUM_PARTICULA,  nombre: [[${TP.PARTICULA.getNombreEspanol()}]]  }
         };
 
-        // Cargar palabras al iniciar
+        // Cargar esquema y palabras al iniciar
         document.addEventListener('DOMContentLoaded', function() {
-            cargarPalabras();
+            cargarEsquema()
+                .then(() => cargarPalabras());
         });
 
         // Filtros en tiempo real
@@ -179,6 +154,16 @@
             e.preventDefault();
             guardarPalabra();
         });
+
+        function cargarEsquema() {
+            return fetch('/api/formulario/esquema')
+                .then(response => response.json())
+                .then(data => { schemaGlobal = data; })
+                .catch(error => {
+                    console.error('Error cargando esquema:', error);
+                    mostrarMensaje('Error al cargar esquema de formularios', 'error');
+                });
+        }
 
         function cargarPalabras() {
             fetch('/api/palabrasIncompletas')
@@ -258,55 +243,59 @@
         function mostrarFormulario(palabra) {
             const formContainer = document.getElementById('formContainer');
             const formTitle = document.getElementById('formTitle');
+            const contenedorCampos = document.getElementById('dynamicFieldsContainer');
 
             const tipoInfo = TIPO_PALABRA[palabra.tipo];
             const tipoEnum = tipoInfo ? tipoInfo.enum : palabra.tipo;
 
             document.getElementById('palabraId').value = palabra.id;
             document.getElementById('palabraTipo').value = tipoEnum;
-            document.getElementById('significado').value = palabra.significado || '';
 
+            contenedorCampos.innerHTML = ''; // Limpiar
             formTitle.textContent = (palabra.completa ? 'Editar: ' : 'Completar: ') + palabra.palabra;
 
-            // Ocultar todos los campos específicos
-            var gruposEspecificos = [
-                'transitividadGroup', 'requiereSujetoAnimadoGroup', 'requiereObjetoAnimadoGroup',
-                'animacidadGroup', 'contabilidadGroup', 'claseSemanticaGroup', 'cantidadGroup'
-            ];
-            gruposEspecificos.forEach(function(g) { document.getElementById(g).classList.add('hidden'); });
+            const camposEsquema = schemaGlobal[tipoEnum] || [];
+            const templateGroup = document.getElementById('template-form-group');
 
-            // Resetear required
-            ['transitividad', 'requiereSujetoAnimado', 'requiereObjetoAnimado',
-             'animacidad', 'contabilidad', 'claseSemantica'].forEach(function(id) {
-                document.getElementById(id).required = false;
+            camposEsquema.forEach(campo => {
+                const clon = templateGroup.content.cloneNode(true);
+                const labelElement = clon.querySelector('.dynamic-label');
+                labelElement.textContent = campo.label + ' *';
+                labelElement.setAttribute('for', campo.name);
+
+                let elementoEntrada;
+                if (campo.inputType === 'SELECT') {
+                    elementoEntrada = document.createElement('select');
+                    elementoEntrada.add(new Option('Seleccione...', ''));
+                    if (campo.options) {
+                        campo.options.forEach(opt => {
+                            elementoEntrada.add(new Option(opt.label, opt.value));
+                        });
+                    }
+                } else {
+                    elementoEntrada = document.createElement('input');
+                    elementoEntrada.type = campo.inputType.toLowerCase() === 'number' ? 'number' : 'text';
+                    if (campo.inputType === 'NUMBER') {
+                        elementoEntrada.min = 0;
+                        elementoEntrada.step = 1;
+                    }
+                    if (campo.placeholder) {
+                        elementoEntrada.placeholder = campo.placeholder;
+                    }
+                }
+
+                elementoEntrada.id = campo.name;
+                elementoEntrada.name = campo.name;
+                elementoEntrada.required = true;
+
+                // Mostrar valor existente si lo hay
+                if (palabra[campo.name] !== null && palabra[campo.name] !== undefined) {
+                    elementoEntrada.value = palabra[campo.name];
+                }
+
+                clon.querySelector('.dynamic-input-container').appendChild(elementoEntrada);
+                contenedorCampos.appendChild(clon);
             });
-            document.getElementById('cantidad').required = false;
-
-            if (tipoEnum === ENUM_VERBO) {
-                ['transitividadGroup', 'requiereSujetoAnimadoGroup', 'requiereObjetoAnimadoGroup'].forEach(function(g) {
-                    document.getElementById(g).classList.remove('hidden');
-                });
-                document.getElementById('transitividad').value = palabra.transitividad || '';
-                document.getElementById('transitividad').required = true;
-                document.getElementById('requiereSujetoAnimado').value = palabra.requiereSujetoAnimado || '';
-                document.getElementById('requiereSujetoAnimado').required = true;
-                document.getElementById('requiereObjetoAnimado').value = palabra.requiereObjetoAnimado || '';
-                document.getElementById('requiereObjetoAnimado').required = true;
-            } else if (tipoEnum === ENUM_SUSTANTIVO) {
-                ['animacidadGroup', 'contabilidadGroup', 'claseSemanticaGroup'].forEach(function(g) {
-                    document.getElementById(g).classList.remove('hidden');
-                });
-                document.getElementById('animacidad').value = palabra.animacidad || '';
-                document.getElementById('animacidad').required = true;
-                document.getElementById('contabilidad').value = palabra.contabilidad || '';
-                document.getElementById('contabilidad').required = true;
-                document.getElementById('claseSemantica').value = palabra.claseSemantica || '';
-                document.getElementById('claseSemantica').required = true;
-            } else if (tipoEnum === ENUM_NUMERAL) {
-                document.getElementById('cantidadGroup').classList.remove('hidden');
-                document.getElementById('cantidad').value = palabra.cantidad != null ? palabra.cantidad : '';
-                document.getElementById('cantidad').required = true;
-            }
 
             formContainer.classList.add('visible');
             formContainer.scrollIntoView({ behavior: 'smooth' });
@@ -324,27 +313,20 @@
             const formData = new FormData(document.getElementById('editForm'));
             const tipo = formData.get('tipo');
 
-            const significado = formData.get('significado').trim();
-            if (!significado) {
-                mostrarMensaje('El significado es obligatorio', 'error');
-                return;
-            }
+            // Ya no verificamos los campos uno a uno porque el esquema dinámico
+            // ha puesto "required=true" a todos los elementos del tipo correspondiente.
+            // Si el DOM pasa la validación nativa (required), asumimos que tienen valor.
+            // Sin embargo, validamos manualmente las cadenas vacías
 
-            if (tipo === ENUM_VERBO) {
-                if (!formData.get('transitividad')) { mostrarMensaje('La transitividad es obligatoria para verbos', 'error'); return; }
-                if (!formData.get('requiereSujetoAnimado')) { mostrarMensaje('Requiere sujeto animado es obligatorio para verbos', 'error'); return; }
-                if (!formData.get('requiereObjetoAnimado')) { mostrarMensaje('Requiere objeto animado es obligatorio para verbos', 'error'); return; }
-            }
-
-            if (tipo === ENUM_SUSTANTIVO) {
-                if (!formData.get('animacidad')) { mostrarMensaje('La animacidad es obligatoria para sustantivos', 'error'); return; }
-                if (!formData.get('contabilidad')) { mostrarMensaje('La contabilidad es obligatoria para sustantivos', 'error'); return; }
-                if (!formData.get('claseSemantica')) { mostrarMensaje('La clase semántica es obligatoria para sustantivos', 'error'); return; }
-            }
-
-            if (tipo === ENUM_NUMERAL) {
-                const cantidadVal = formData.get('cantidad');
-                if (!cantidadVal || cantidadVal.trim() === '') { mostrarMensaje('La cantidad es obligatoria para numerales', 'error'); return; }
+            const iteradorForm = formData.entries();
+            for (let [clave, valor] of iteradorForm) {
+                if (typeof valor === 'string' && valor.trim() === '') {
+                    // Solo validar si es requerido (y todos los inyectados lo son)
+                    if (clave !== 'id' && clave !== 'tipo') {
+                         mostrarMensaje(`Debe completar el campo para guardar.`, 'error');
+                         return;
+                    }
+                }
             }
 
             fetch('/api/actualizarPalabra', {

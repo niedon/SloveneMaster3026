@@ -58,6 +58,7 @@ public class WordsController {
 
 		// Obtener tarjetas listas para estudiar con el nuevo sistema
 		List<PalabraFlexion<?>> tarjetas = repeticionEspaciadaService.obtenerTarjetasDisponiblesNuevo(maxRevision);
+		List<Frase> frasesActivas = fraseService.getFrasesActivasYValidas();
 
 		long tarjetasNuevas = tarjetas.stream().filter(t -> t.getProximaRevision() == null).count();
 		long tarjetasRevision = tarjetas.size() - tarjetasNuevas;
@@ -71,10 +72,20 @@ public class WordsController {
 			log.warn("No hay tarjetas disponibles para estudiar");
 			datos = new ArrayList<>();
 		} else {
-			datos = construirFrase(tarjetas);
+			datos = construirFrase(tarjetas, frasesActivas);
 		}
 
 		model.addAttribute("datos", datos);
+
+		String keyMensaje = "*";
+		if(frasesActivas.isEmpty()) keyMensaje = "nohayfrases";
+		else if(datos.isEmpty()) keyMensaje = "sinfrases";
+		else{
+			if(tarjetasRevision>0) keyMensaje = "disponibles";
+			else if(tarjetasNuevas>0) keyMensaje = "nuevas";
+		}
+		model.addAttribute("keyMensaje", keyMensaje);
+
 		return "estudioPalabras";
 	}
 
@@ -94,8 +105,7 @@ public class WordsController {
 	 * @param tarjetas Lista de palabras disponibles (ya ordenadas y desplazadas)
 	 * @return Lista de DatoVisualizacion para el JSP
 	 */
-	private List<DatoVisualizacion> construirFrase(List<PalabraFlexion<?>> tarjetas) {
-		List<Frase> frases = fraseService.getFrasesActivasYValidas();
+	private List<DatoVisualizacion> construirFrase(List<PalabraFlexion<?>> tarjetas, List<Frase> frases) {
 
 		// Limpiar estado de frases (singleton)
 		frases.forEach(Frase::limpiar);
