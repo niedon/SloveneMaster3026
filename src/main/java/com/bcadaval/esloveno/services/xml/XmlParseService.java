@@ -409,7 +409,7 @@ public class XmlParseService {
 
         int lastCompletedFile = indexStateService.getLastFileNum();
         if (lastCompletedFile > 0 && indiceXmlDao.count() == 0) {
-            // Si la tabla quedó vacía por limpieza/recreación, reiniciar checkpoint para reconstruir todo.
+            // Si la tabla quedó vacía por limpieza/recreación, reiniciar checkpoint para reconstruir.
             lastCompletedFile = 0;
             indexStateService.setLastFileNum(0);
         }

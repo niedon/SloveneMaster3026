@@ -244,7 +244,7 @@ public class CompletarPalabrasController {
                 case NUMERAL -> numeralRepo.save((Numeral)numeralRepo.findById(id)
                         .orElseThrow(() -> new RuntimeException("Numeral no encontrado: " + id))
                         .setCantidad(cantidad)
-                        .setSignificado(significado)
+                        .setSignificado(String.valueOf(cantidad))
                 );
                 case PARTICULA -> particulaRepo.save((Particula)particulaRepo.findById(id)
                         .orElseThrow(() -> new RuntimeException("Partícula no encontrada: " + id))

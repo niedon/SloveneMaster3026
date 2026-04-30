@@ -15,106 +15,9 @@
         <div class="message" id="messageBox"></div>
 
         <form id="configForm">
-            <!-- Sección de intervalos -->
-            <div class="config-section">
-                <h2>⏱️ Intervalos de Repetición</h2>
-                <div class="config-grid">
-                    <div class="config-item">
-                        <label for="intervaloInicial">Primera Repetición (segundos)</label>
-                        <input type="number" id="intervaloInicial" name="intervaloInicial"
-                               th:value="${variablesMap['INTERVALO_INICIAL_SEGUNDOS']?.valor ?: '600'}"
-                               min="10" step="10">
-                        <div class="help-text">Tiempo antes de la primera repetición</div>
-                        <div class="tiempo-display" id="tiempoInicial"></div>
-                    </div>
-                    <div class="config-item">
-                        <label for="intervaloSegunda">Segunda Repetición (segundos)</label>
-                        <input type="number" id="intervaloSegunda" name="intervaloSegunda"
-                               th:value="${variablesMap['INTERVALO_SEGUNDA_SEGUNDOS']?.valor ?: '3600'}"
-                               min="60" step="60">
-                        <div class="help-text">Tiempo antes de la segunda repetición</div>
-                        <div class="tiempo-display" id="tiempoSegunda"></div>
-                    </div>
-                    <div class="config-item">
-                        <label for="intervaloReaprendizaje">Reaprendizaje (segundos)</label>
-                        <input type="number" id="intervaloReaprendizaje" name="intervaloReaprendizaje"
-                               th:value="${variablesMap['INTERVALO_REAPRENDIZAJE_SEGUNDOS']?.valor ?: '30'}"
-                               min="5" step="5">
-                        <div class="help-text">Tiempo tras fallar una tarjeta</div>
-                        <div class="tiempo-display" id="tiempoReaprendizaje"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sección de factores -->
-            <div class="config-section">
-                <h2>📈 Factores de Dificultad</h2>
-                <div class="config-grid">
-                    <div class="config-item">
-                        <label for="factorFacilidadInicial">Factor Inicial</label>
-                        <input type="number" id="factorFacilidadInicial" name="factorFacilidadInicial"
-                               th:value="${variablesMap['FACTOR_FACILIDAD_INICIAL']?.valor ?: '2.5'}"
-                               min="1.0" max="5.0" step="0.1">
-                        <div class="help-text">Factor de facilidad inicial (2.5 recomendado)</div>
-                    </div>
-                    <div class="config-item">
-                        <label for="factorFacilidadMinimo">Factor Mínimo</label>
-                        <input type="number" id="factorFacilidadMinimo" name="factorFacilidadMinimo"
-                               th:value="${variablesMap['FACTOR_FACILIDAD_MINIMO']?.valor ?: '1.3'}"
-                               min="1.0" max="3.0" step="0.1">
-                        <div class="help-text">Factor mínimo (tarjetas más difíciles)</div>
-                    </div>
-                    <div class="config-item">
-                        <label for="penalizacionFallo">Penalización por Fallo</label>
-                        <input type="number" id="penalizacionFallo" name="penalizacionFallo"
-                               th:value="${variablesMap['PENALIZACION_FALLO']?.valor ?: '0.2'}"
-                               min="0.05" max="0.5" step="0.05">
-                        <div class="help-text">Cuánto se reduce el factor al fallar</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sección de límites -->
-            <div class="config-section">
-                <h2>🎯 Límites Diarios</h2>
-                <div class="config-grid">
-                    <div class="config-item">
-                        <label for="maxTarjetasNuevas">Máximo Tarjetas Nuevas/Día</label>
-                        <input type="number" id="maxTarjetasNuevas" name="maxTarjetasNuevas"
-                               th:value="${variablesMap['MAX_TARJETAS_NUEVAS_DIA']?.valor ?: '20'}"
-                               min="1" step="1">
-                        <div class="help-text">Límite de tarjetas nuevas por día</div>
-                    </div>
-                    <div class="config-item">
-                        <label for="maxTarjetasRevision">Máximo Revisiones/Día</label>
-                        <input type="number" id="maxTarjetasRevision" name="maxTarjetasRevision"
-                               th:value="${variablesMap['MAX_TARJETAS_REVISION_DIA']?.valor ?: '100'}"
-                               min="1">
-                        <div class="help-text">Límite de revisiones por día</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sección miscelánea -->
-            <div class="config-section">
-                <h2>🔀 Miscelánea</h2>
-                <div class="config-grid">
-                    <div class="config-item">
-                        <label for="mezclarTarjetas">
-                            <input type="checkbox" id="mezclarTarjetas" name="mezclarTarjetas"
-                                   th:checked="${variablesMap['MEZCLAR_TARJETAS']?.valor == 'true'}"
-                                   class="config-checkbox">
-                            Mezclar tarjetas
-                        </label>
-                        <div class="help-text">Presenta las tarjetas en orden aleatorio</div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Sección de estructuras de frase -->
             <div class="config-section">
-                <h2>📝 Estructuras de Frase</h2>
-                <p>Activa o desactiva las categorías enteras. Todas las frases dentro se activarán o desactivarán.</p>
+                <h2>📝 Categorías de estudio</h2>
 
                 <th:block th:each="nivel : ${nivelesUI}">
                     <div class="dificultad-section">
@@ -171,6 +74,103 @@
                     <div class="help-text">Los casos y formas verbales se determinan automáticamente según las estructuras activas</div>
                 </div>
             </div>
+
+            <!-- Sección miscelánea -->
+            <div class="config-section">
+                <h2>🔀 Miscelánea</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="mezclarTarjetas">
+                            <input type="checkbox" id="mezclarTarjetas" name="mezclarTarjetas"
+                                   th:checked="${variablesMap['MEZCLAR_TARJETAS']?.valor == 'true'}"
+                                   class="config-checkbox">
+                            Mezclar tarjetas
+                        </label>
+                        <div class="help-text">Presenta las tarjetas en orden aleatorio</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de límites -->
+            <div class="config-section">
+                <h2>🎯 Límites Diarios</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="maxTarjetasNuevas">Máximo Tarjetas Nuevas/Día</label>
+                        <input type="number" id="maxTarjetasNuevas" name="maxTarjetasNuevas"
+                               th:value="${variablesMap['MAX_TARJETAS_NUEVAS_DIA']?.valor ?: '20'}"
+                               min="1" step="1">
+                        <div class="help-text">Límite de tarjetas nuevas por día</div>
+                    </div>
+                    <div class="config-item">
+                        <label for="maxTarjetasRevision">Máximo Revisiones/Día</label>
+                        <input type="number" id="maxTarjetasRevision" name="maxTarjetasRevision"
+                               th:value="${variablesMap['MAX_TARJETAS_REVISION_DIA']?.valor ?: '100'}"
+                               min="1">
+                        <div class="help-text">Límite de revisiones por día</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de intervalos -->
+            <div class="config-section">
+                <h2>⏱️ Intervalos de Repetición</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="intervaloInicial">Primera Repetición (segundos)</label>
+                        <input type="number" id="intervaloInicial" name="intervaloInicial"
+                               th:value="${variablesMap['INTERVALO_INICIAL_SEGUNDOS']?.valor ?: '600'}"
+                               min="10" step="10">
+                        <div class="help-text">Tiempo antes de la primera repetición</div>
+                        <div class="tiempo-display" id="tiempoInicial"></div>
+                    </div>
+                    <div class="config-item">
+                        <label for="intervaloSegunda">Segunda Repetición (segundos)</label>
+                        <input type="number" id="intervaloSegunda" name="intervaloSegunda"
+                               th:value="${variablesMap['INTERVALO_SEGUNDA_SEGUNDOS']?.valor ?: '3600'}"
+                               min="60" step="60">
+                        <div class="help-text">Tiempo antes de la segunda repetición</div>
+                        <div class="tiempo-display" id="tiempoSegunda"></div>
+                    </div>
+                    <div class="config-item">
+                        <label for="intervaloReaprendizaje">Reaprendizaje (segundos)</label>
+                        <input type="number" id="intervaloReaprendizaje" name="intervaloReaprendizaje"
+                               th:value="${variablesMap['INTERVALO_REAPRENDIZAJE_SEGUNDOS']?.valor ?: '30'}"
+                               min="5" step="5">
+                        <div class="help-text">Tiempo tras fallar una tarjeta</div>
+                        <div class="tiempo-display" id="tiempoReaprendizaje"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de factores -->
+            <div class="config-section">
+                <h2 style="color:#d10034;">⚠️ Factores de Dificultad (avanzado, toca con cuidado)</h2>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <label for="factorFacilidadInicial">Factor Inicial</label>
+                        <input type="number" id="factorFacilidadInicial" name="factorFacilidadInicial"
+                               th:value="${variablesMap['FACTOR_FACILIDAD_INICIAL']?.valor ?: '2.5'}"
+                               min="1.0" max="5.0" step="0.1">
+                        <div class="help-text">Factor de facilidad inicial (2.5 recomendado)</div>
+                    </div>
+                    <div class="config-item">
+                        <label for="factorFacilidadMinimo">Factor Mínimo</label>
+                        <input type="number" id="factorFacilidadMinimo" name="factorFacilidadMinimo"
+                               th:value="${variablesMap['FACTOR_FACILIDAD_MINIMO']?.valor ?: '1.3'}"
+                               min="1.0" max="3.0" step="0.1">
+                        <div class="help-text">Factor mínimo (tarjetas más difíciles)</div>
+                    </div>
+                    <div class="config-item">
+                        <label for="penalizacionFallo">Penalización por Fallo</label>
+                        <input type="number" id="penalizacionFallo" name="penalizacionFallo"
+                               th:value="${variablesMap['PENALIZACION_FALLO']?.valor ?: '0.2'}"
+                               min="0.05" max="0.5" step="0.05">
+                        <div class="help-text">Cuánto se reduce el factor al fallar</div>
+                    </div>
+                </div>
+            </div>
+
 
             <div class="form-actions">
                 <button type="button" class="btn-secondary" onclick="location.reload()">Cancelar</button>

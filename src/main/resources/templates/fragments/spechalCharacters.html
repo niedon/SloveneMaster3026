@@ -1,0 +1,35 @@
+<th:block th:fragment="special-chars(inputId)">
+  <!-- Botones rápidos de caracteres eslovenos -->
+  <div class="keyboard-shortcuts">
+    <button type="button" class="char-btn"
+            th:data-target="${inputId}"
+            onclick="insertChar('č', event, this.getAttribute('data-target'))"
+            tabindex="-1">č</button>
+    <button type="button" class="char-btn"
+            th:data-target="${inputId}"
+            onclick="insertChar('š', event, this.getAttribute('data-target'))"
+            tabindex="-1">š</button>
+    <button type="button" class="char-btn"
+            th:data-target="${inputId}"
+            onclick="insertChar('ž', event, this.getAttribute('data-target'))"
+            tabindex="-1">ž</button>
+  </div>
+  <script>
+    if (typeof window.insertChar !== 'function') {
+        window.insertChar = function(char, event, targetInputId) {
+            if(event) event.preventDefault();
+
+            const input = document.getElementById(targetInputId);
+            if (!input) return;
+
+            const start = input.selectionStart || 0;
+            const end = input.selectionEnd || 0;
+            const text = input.value || '';
+
+            input.value = text.slice(0, start) + char + text.slice(end);
+            input.selectionStart = input.selectionEnd = start + char.length;
+            input.focus();
+        };
+    }
+  </script>
+</th:block>

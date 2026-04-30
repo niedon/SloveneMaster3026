@@ -9,10 +9,10 @@ import lombok.Getter;
 @Getter
 public enum NivelDificultad {
     NIVEL_1(1, "🌱 Nivel 1", "Etapa 1 - Fundamentos"),
-    NIVEL_2(2, "📗 Nivel 2", "Etapa 2 - Consolidación"),
-    NIVEL_3(3, "📘 Nivel 3", "Etapa 3 - Desarrollo"),
-    NIVEL_4(4, "📙 Nivel 4", "Etapa 4 - Expansión"),
-    NIVEL_5(5, "🎓 Nivel 5", "Etapa 5 - Fluidez"),
+    NIVEL_2(2, "📗 Nivel 2", "Etapa 2 - Negación y acusativo"),
+    NIVEL_3(3, "📘 Nivel 3", "Etapa 3 - El genitivo"),
+    NIVEL_4(4, "📙 Nivel 4", "Etapa 4 - Pasado"),
+    NIVEL_5(5, "🎓 Nivel 5", "Etapa 5 - Futuro"),
     NIVEL_6(6, "🌍 Nivel 6", "Etapa 6 - Siguientes");
 
     /**

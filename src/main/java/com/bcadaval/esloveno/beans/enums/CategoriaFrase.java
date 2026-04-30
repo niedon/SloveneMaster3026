@@ -28,7 +28,7 @@ public enum CategoriaFrase {
 
 
     // ================================= NIVEL 6 =================================
-    EN_PROCESO(99, "En proceso", "Otras frases en proceso", NivelDificultad.NIVEL_6);
+    @SuppressWarnings("unused") EN_PROCESO(99, "En proceso", "Otras frases en proceso", NivelDificultad.NIVEL_6);
 
     private final int orden;
     private final String titulo;

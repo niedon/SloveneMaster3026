@@ -17,10 +17,13 @@
 
                 <!-- Barra de búsqueda -->
                 <div class="buscar-search-bar">
-                    <input type="text"
-                           id="searchInput"
-                           placeholder="🔍 Buscar palabra en esloveno o español..."
-                           autocomplete="off">
+                    <div class="input-wrapper">
+                        <input type="text"
+                               id="searchInput"
+                               placeholder="🔍 Buscar palabra en esloveno o español..."
+                               autocomplete="off">
+                        <th:block th:replace="~{fragments/spechalCharacters :: special-chars('searchInput')}"></th:block>
+                    </div>
                     <button class="btn-primary" onclick="buscar()">Buscar</button>
                 </div>
 

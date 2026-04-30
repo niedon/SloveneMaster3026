@@ -56,7 +56,6 @@ public class PronombreFlexion extends PalabraFlexion<Pronombre> {
         return pronombreBase;
     }
 
-    //TODO check innecesario debido a @Data de significado en esta clase
     @Override
     public String getSignificado() {
         return significado;

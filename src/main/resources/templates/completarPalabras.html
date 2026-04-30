@@ -12,20 +12,18 @@
     <div class="container">
 
         <div class="instructions" style="margin-bottom: 20px;">
-            <h2 class="toggle-header" onclick="toggleInstructions('instructions-content-completar')" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+            <h2 class="toggle-header" onclick="toggleInstructions('instructions-content-completar')" style="cursor: pointer; display: flex; align-items: center; justify-content: flex-start; gap: 10px;">
+                <span id="toggle-icon-completar" style="transform: rotate(-90deg);transition: transform 0.3s; font-size: 0.8em;">▼</span>
                 Instrucciones
-                <span id="toggle-icon-completar" style="transition: transform 0.3s; font-size: 0.8em;">▼</span>
             </h2>
             <div id="instructions-content-completar" style="display: none; margin-top: 15px;">
                 <ul>
                     <li><strong>Obligatorio:</strong> Si una palabra no se completa, <strong>no se podrá estudiar</strong>.</li>
-                    <li>
-                        <ol>
-                            <li>Buscar una palabra incompleta <span style="color:#dc3545; font-weight:bold;">✗</span> (con el filtro "Solo incompletas").</li>
-                            <li>Pulsar sobre la palabra para seleccionarla.</li>
-                            <li>Rellenar los datos en el formulario y guardar.</li>
-                        </ol>
-                    </li>
+                    <ol>
+                        <li>Buscar una palabra incompleta <span style="color:#dc3545; font-weight:bold;">✗</span> (con el filtro "Solo incompletas").</li>
+                        <li>Pulsar sobre la palabra para seleccionarla.</li>
+                        <li>Rellenar los datos en el formulario y guardar.</li>
+                    </ol>
                     <li><strong>Recursos de ayuda:</strong> Para encontrar el significado y las características de las palabras, te recomendamos asignar estos diccionarios gratuitos:
                         <ul>
                             <li><a href="https://fran.si/" target="_blank" rel="noopener noreferrer">Fran (Portal Oficial del Esloveno)</a></li>
@@ -44,12 +42,14 @@
 
         <!-- Filtros -->
         <div class="search-container">
-            <label for="searchInput"></label>
-            <input type="text"
-                   class="search-input"
-                   id="searchInput"
-                   placeholder="🔍 Buscar palabra..."
-                   autocomplete="off">
+            <div class="input-wrapper">
+                <input type="text"
+                       class="search-input"
+                       id="searchInput"
+                       placeholder="🔍 Buscar palabra..."
+                       autocomplete="off">
+                <th:block th:replace="~{fragments/spechalCharacters :: special-chars('searchInput')}"></th:block>
+            </div>
             <div style="margin-top: 8px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                 <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
                     <input type="checkbox" id="filtroIncompletas" checked>
@@ -113,10 +113,10 @@
 
             if (content.style.display === 'none') {
                 content.style.display = 'block';
-                icon.style.transform = 'rotate(180deg)';
+                icon.style.transform = 'rotate(0deg)';
             } else {
                 content.style.display = 'none';
-                icon.style.transform = 'rotate(0deg)';
+                icon.style.transform = 'rotate(-90deg)';
             }
         }
 

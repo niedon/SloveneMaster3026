@@ -12,6 +12,8 @@ import lombok.Data;
 @Builder
 public class DatoVisualizacion {
 
+    private String modoVisualizacion;
+
     /**
      * Texto a mostrar en la fila 1 (pregunta).
      * Puede ser español o esloveno según el modo, pero el JSP no necesita saberlo.

@@ -353,6 +353,7 @@ public abstract class Frase {
         }
 
         return DatoVisualizacion.builder()
+                .modoVisualizacion(modo.name())
                 .textoFila1(elem.getTextoFila1(modo))
                 .textoFila2(elem.getTextoFila2(modo))
                 .id(participaEnSRS ? palabra.getId() : null)

@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class IndexStateService {
 
+    @Autowired
+    private MensajeFlotanteService mensajeFlotanteService;
+
     public enum IndexStatus {
         NOT_STARTED,
         BUILDING,
@@ -36,6 +39,9 @@ public class IndexStateService {
 
     public synchronized void setStatus(IndexStatus status) {
         saveString(INDEX_STATUS, status.name(), "STRING", "Estado del indexado XML");
+        if(status == IndexStatus.READY) {
+            mensajeFlotanteService.insertarMensaje("Ha acabado el indexado de los datos. Las búsquedas de nuevas palabras ahora serán más rápidas.");
+        }
     }
 
     public synchronized int getLastFileNum() {

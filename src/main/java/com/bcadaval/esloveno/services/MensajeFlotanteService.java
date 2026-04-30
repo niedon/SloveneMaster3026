@@ -17,13 +17,13 @@ public class MensajeFlotanteService {
 
     public static final int INTERVALO_REFRESCO_SEGUNDOS = 30;
 
-    public MensajeFlotante insertarMensaje(String texto) {
+    public void insertarMensaje(String texto) {
         MensajeFlotante msg = MensajeFlotante.builder()
                 .mensaje(texto)
                 .fecha(LocalDateTime.now())
                 .leido(false)
                 .build();
-        return repo.save(msg);
+        repo.save(msg);
     }
 
     public List<MensajeFlotante> obtenerNoLeidos() {

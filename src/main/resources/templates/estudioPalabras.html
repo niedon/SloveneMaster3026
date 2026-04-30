@@ -23,6 +23,10 @@
                 <tbody>
                     <!-- Fila 1: pregunta (transparente al idioma) -->
                     <tr class="row-visible">
+                        <th:block th:if="${not #lists.isEmpty(datos)}">
+                            <td class="text-center" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);" th:if="${datos[0].modoVisualizacion == 'ES_SL'}">🇪🇸</td>
+                            <td class="text-center" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);" th:if="${datos[0].modoVisualizacion == 'SL_ES'}">🇸🇮</td>
+                        </th:block>
                         <th:block th:each="dato : ${datos}">
                             <td class="text-center" th:classappend="${dato.id != null} ? 'celda-srs' : ''">
                                 <strong th:text="${dato.textoFila1}"></strong>
@@ -32,6 +36,10 @@
 
                     <!-- Fila 2: respuesta y botones (colapsada) -->
                     <tr class="row-collapsed" id="row-details">
+                        <th:block th:if="${not #lists.isEmpty(datos)}">
+                            <td class="text-center" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);" th:if="${datos[0].modoVisualizacion == 'ES_SL'}">🇸🇮</td>
+                            <td class="text-center" style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);" th:if="${datos[0].modoVisualizacion == 'SL_ES'}">🇪🇸</td>
+                        </th:block>
                         <th:block th:each="dato, index : ${datos}">
                             <td class="text-center" th:classappend="${dato.id != null} ? 'celda-srs' : ''">
                                 <strong th:text="${dato.textoFila2}"></strong>
@@ -135,6 +143,53 @@
             }
         }
 
+        // Función para crear y mostrar el modal bloqueante
+        function showBlockingModal(mensaje) {
+            // Si ya existe por algún motivo, lo eliminamos
+            const existingModal = document.getElementById('custom-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Contenedor principal con el fondo desenfocado
+            const overlay = document.createElement('div');
+            overlay.id = 'custom-modal';
+            overlay.className = 'modal-overlay';
+
+            // Caja del contenido
+            const modalBox = document.createElement('div');
+            modalBox.className = 'modal-box';
+
+            // Texto del mensaje
+            const textDiv = document.createElement('div');
+            textDiv.className = 'modal-text';
+            textDiv.innerText = '⚠ ' + mensaje;
+
+            // Botón de OK
+            const btnOk = document.createElement('button');
+            btnOk.className = 'btn-modal-ok';
+            btnOk.innerText = 'OK';
+
+            // El modal SOLO se cerrará si pulsan el botón OK
+            btnOk.addEventListener('click', function() {
+                overlay.classList.remove('show');
+                setTimeout(() => {
+                    overlay.remove();
+                }, 300); // Esperar que termine la transición CSS antes de limpiar el DOM
+            });
+
+            // Ensamblar
+            modalBox.appendChild(textDiv);
+            modalBox.appendChild(btnOk);
+            overlay.appendChild(modalBox);
+            document.body.appendChild(overlay);
+
+            // Pequeño delay para asegurar que el CSS active la transición de entrada
+            setTimeout(() => {
+                overlay.classList.add('show');
+            }, 10);
+        }
+
         let tiempoInicioEstudio = null;
         document.addEventListener("DOMContentLoaded", () => {
             tiempoInicioEstudio = Date.now();
@@ -152,7 +207,7 @@
 
             if (!allCompleted) {
                 event.preventDefault();
-                alert('Quedan palabras por puntuar');
+                showBlockingModal('Quedan palabras por puntuar');
                 return false;
             }
 

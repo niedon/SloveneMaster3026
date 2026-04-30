@@ -17,9 +17,9 @@
     <div class="container">
 
         <div class="instructions">
-            <h2 class="toggle-header" onclick="toggleInstructions('instructions-content-anadir')" style="cursor: pointer; display: flex; align-items: center; justify-content: space-between;">
+            <h2 class="toggle-header" onclick="toggleInstructions('instructions-content-anadir')" style="cursor: pointer; display: flex; align-items: center; justify-content: flex-start; gap: 10px;">
+                <span id="toggle-icon-anadir" style="transform: rotate(-90deg);transition: transform 0.3s; font-size: 0.8em;">▼</span>
                 Instrucciones
-                <span id="toggle-icon-anadir" style="transition: transform 0.3s; font-size: 0.8em;">▼</span>
             </h2>
             <div id="instructions-content-anadir" style="display: none; margin-top: 15px;">
                 <ul>
@@ -33,7 +33,10 @@
         </div>
 
         <div class="search-form">
-            <input type="text" id="wordInput" placeholder="Escribe una palabra en esloveno..." autocomplete="off">
+            <div class="input-wrapper" style="flex: 1;">
+                <input type="text" id="wordInput" placeholder="Escribe una palabra en esloveno..." autocomplete="off">
+                <th:block th:replace="~{fragments/spechalCharacters :: special-chars('wordInput')}"></th:block>
+            </div>
             <div class="filter-container">
                 <select id="tipoFilter">
                     <option value="">Todos los tipos</option>
@@ -84,10 +87,10 @@
 
             if (content.style.display === 'none') {
                 content.style.display = 'block';
-                icon.style.transform = 'rotate(180deg)';
+                icon.style.transform = 'rotate(0deg)';
             } else {
                 content.style.display = 'none';
-                icon.style.transform = 'rotate(0deg)';
+                icon.style.transform = 'rotate(-90deg)';
             }
         }
 
