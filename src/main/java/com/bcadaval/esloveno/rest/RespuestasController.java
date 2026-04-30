@@ -31,6 +31,7 @@ public class RespuestasController {
 	@Autowired
 	private RepeticionEspaciadaService repeticionEspaciadaService;
 
+	@SuppressWarnings("SameReturnValue")
 	@PostMapping("/enviarRespuestas")
 	public String enviarRespuestas(@RequestParam Map<String, String> params) {
 		try {

@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * <p>
  * Esto es mucho más eficiente que {@code ORDER BY RANDOM()} o cargar toda la tabla.
  */
+@SuppressWarnings("unused")
 @Component
 public class RandomEntitySelector {
 

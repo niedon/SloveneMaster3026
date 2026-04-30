@@ -14,6 +14,7 @@ public class EstadisticasController {
     /**
      * Muestra la página de estadísticas con gráficos
      */
+    @SuppressWarnings("SameReturnValue")
     @GetMapping("/estadisticas")
     public String mostrarEstadisticas() {
         log.debug("Accediendo a la página de estadísticas");

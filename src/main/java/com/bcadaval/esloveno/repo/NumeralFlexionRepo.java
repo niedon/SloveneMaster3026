@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public interface NumeralFlexionRepo extends FlexionBaseRepo<NumeralFlexion, Integer> {
 
     /**

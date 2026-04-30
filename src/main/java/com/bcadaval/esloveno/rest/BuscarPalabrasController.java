@@ -28,6 +28,7 @@ public class BuscarPalabrasController {
     /**
      * Muestra la página de búsqueda de palabras
      */
+    @SuppressWarnings("SameReturnValue")
     @GetMapping("/buscarPalabras")
     public String mostrarPaginaBuscar() {
         log.debug("Accediendo a la página de buscar palabras");

@@ -9,6 +9,7 @@ import java.util.function.Function;
 @Component
 public class ExtractorVerbo implements EstrategiaExtraccion<VerboFlexion> {
 
+    @SuppressWarnings("unchecked")
     public static <T extends PalabraFlexion<?>> EstrategiaExtraccion<T> get() {
         return (EstrategiaExtraccion<T>) new ExtractorVerbo();
     }

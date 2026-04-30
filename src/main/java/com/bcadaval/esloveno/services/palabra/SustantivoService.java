@@ -1,4 +1,4 @@
-package com.bcadaval.esloveno.services.palabra.sustantivo;
+package com.bcadaval.esloveno.services.palabra;
 
 import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;

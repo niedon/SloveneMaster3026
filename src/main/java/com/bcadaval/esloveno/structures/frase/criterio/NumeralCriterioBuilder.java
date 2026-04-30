@@ -21,6 +21,7 @@ import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
  *     .build();
  * </pre>
  */
+@SuppressWarnings("unused")
 public class NumeralCriterioBuilder extends CriterioBuilderBase<NumeralFlexion, NumeralCriterioBuilder> {
 
     /**

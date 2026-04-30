@@ -39,6 +39,7 @@ public enum ClaseSemantica {
         };
     }
 
+    @SuppressWarnings("unused")
     @Converter(autoApply = true)
     public static class ClaseSemanticaConverter implements AttributeConverter<ClaseSemantica, String> {
 

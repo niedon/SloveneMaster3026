@@ -1,4 +1,4 @@
-package com.bcadaval.esloveno.services.palabra.verbo;
+package com.bcadaval.esloveno.services.palabra;
 
 import java.util.List;
 
@@ -6,7 +6,6 @@ import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.repo.VerboFlexionRepo;
 import com.bcadaval.esloveno.repo.VerboRepo;
-import com.bcadaval.esloveno.beans.palabra.Verbo;
 import com.bcadaval.esloveno.services.RandomEntitySelector;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +19,7 @@ import org.springframework.stereotype.Service;
  * según criterios gramaticales, delegando toda la lógica de filtrado
  * a Specifications JPA ejecutadas en base de datos.
  */
+@SuppressWarnings({"SameParameterValue", "unused"})
 @Service
 public class VerbosService {
 
@@ -31,54 +31,6 @@ public class VerbosService {
 
 	@Autowired
 	private RandomEntitySelector randomSelector;
-
-	/**
-	 * Obtiene todos los verbos.
-	 *
-	 * @return lista de todos los verbos en BD
-	 */
-	public List<Verbo> findAll() {
-		return verboRepo.findAll();
-	}
-
-	/**
-	 * Busca un verbo por su sloleksId.
-	 *
-	 * @param sloleksId identificador Sloleks del verbo
-	 * @return el verbo encontrado
-	 * @throws VerboNotFoundException si no existe
-	 */
-	public Verbo findById(String sloleksId) throws VerboNotFoundException {
-		return verboRepo.findById(sloleksId).orElseThrow(VerboNotFoundException::new);
-	}
-
-	/**
-	 * Comprueba si un verbo tiene más de 8 conjugaciones (flexiones) en BD.
-	 * Se usa para determinar si el verbo ya fue conjugado completamente.
-	 *
-	 * @param sloleksId identificador del verbo
-	 * @return {@code true} si el verbo tiene más de 8 flexiones
-	 */
-	public boolean verbHasConjugations(String sloleksId) {
-		if (verboRepo.findById(sloleksId).isEmpty()) {
-			return false;
-		}
-		Specification<VerboFlexion> spec = (root, query, cb) ->
-				cb.equal(root.get("sloleksId"), sloleksId);
-		return verboFlexionRepo.count(spec) > 8;
-	}
-
-	/**
-	 * Guarda las conjugaciones de un verbo existente.
-	 *
-	 * @param conjugations lista de flexiones a guardar
-	 * @return las flexiones guardadas
-	 * @throws VerboNotFoundException si el verbo base no existe
-	 */
-	public List<VerboFlexion> saveConjugations(List<VerboFlexion> conjugations) throws VerboNotFoundException {
-		verboRepo.findById(conjugations.getFirst().getSloleksId()).orElseThrow(VerboNotFoundException::new);
-		return verboFlexionRepo.saveAll(conjugations);
-	}
 
 	/**
 	 * Obtiene un verbo transitivo en presente de forma aleatoria.
@@ -110,28 +62,6 @@ public class VerbosService {
 		if (verbosIgnorados != null && !verbosIgnorados.isEmpty()) {
 			spec = spec.and(principalBaseNotIn(verbosIgnorados));
 		}
-
-		return randomSelector.selectRandom(verboFlexionRepo, spec).orElse(null);
-	}
-
-	/**
-	 * Obtiene un verbo intransitivo o ambitransitivo en presente de forma aleatoria,
-	 * filtrado por persona y número.
-	 * <p>
-	 * Toda la lógica se ejecuta en BD: forma verbal = PRESENT, negativo = false,
-	 * transitividad IN (INTRANSITIVO, AMBITRANSITIVO), persona y número dados.
-	 *
-	 * @param persona persona gramatical requerida
-	 * @param numero  número gramatical requerido
-	 * @return flexión del verbo, o null si no hay candidatos
-	 */
-	public VerboFlexion getVerboIntransitivoPresenteAleatorio(Persona persona, Numero numero) {
-		Specification<VerboFlexion> spec = Specification
-				.where(conFormaVerbal(FormaVerbal.PRESENT))
-				.and(conNegativo(false))
-				.and(conPersona(persona))
-				.and(conNumero(numero))
-				.and(conTransitividadBaseIn(Transitividad.INTRANSITIVO, Transitividad.AMBITRANSITIVO));
 
 		return randomSelector.selectRandom(verboFlexionRepo, spec).orElse(null);
 	}

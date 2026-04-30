@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.bcadaval.esloveno.beans.palabra.Adjetivo;
 
 @Repository
+@SuppressWarnings("unused")
 public interface AdjetivoRepo extends JpaRepository<Adjetivo, String>{
 
     /**

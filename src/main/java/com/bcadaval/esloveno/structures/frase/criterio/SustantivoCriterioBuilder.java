@@ -25,6 +25,7 @@ import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
  *     .build();
  * </pre>
  */
+@SuppressWarnings("unused")
 public class SustantivoCriterioBuilder extends CriterioBuilderBase<SustantivoFlexion, SustantivoCriterioBuilder> {
 
     /**

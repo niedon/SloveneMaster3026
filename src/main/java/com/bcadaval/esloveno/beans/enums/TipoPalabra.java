@@ -8,6 +8,7 @@ import lombok.Getter;
  * Enum que representa los tipos de palabras soportados en el sistema.
  * Cada tipo tiene su código XML, clase principal y clase de flexión asociadas.
  */
+@SuppressWarnings("unused")
 @Getter
 public enum TipoPalabra {
 

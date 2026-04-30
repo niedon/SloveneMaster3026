@@ -388,16 +388,10 @@ public class XmlParseService {
         };
     }
 
+    @SuppressWarnings("SameParameterValue")
     private Boolean parseYesNoBoolean(String value, Boolean defaultValue) {
         Boolean result = parseYesNoBoolean(value);
         return result != null ? result : defaultValue;
-    }
-
-    /**
-     * Indexa todos los archivos XML en la base de datos de manera masiva
-     */
-    public void indexarTodosLosXml(java.util.function.IntConsumer progressCallback) throws IOException {
-        indexarTodosLosXmlResumible(progressCallback, null);
     }
 
     /**
@@ -451,7 +445,7 @@ public class XmlParseService {
             }
 
             procesados++;
-            if (progressCallback != null && totalArchivos > 0) {
+            if (progressCallback != null) {
                 progressCallback.accept(15 + (procesados * 75 / totalArchivos));
             }
         }
@@ -533,7 +527,7 @@ public class XmlParseService {
             (result.getLema() != null ? result.getLema() : "");
     }
 
-    private List<ResultadoBusqueda> getAllXmlStringsFromIndex(String word) throws IOException {
+    private List<ResultadoBusqueda> getAllXmlStringsFromIndex(String word) {
         List<IndiceXmlDTO> indices = indiceXmlDao.buscarPorLema(word);
         List<ResultadoBusqueda> resultados = new ArrayList<>();
 

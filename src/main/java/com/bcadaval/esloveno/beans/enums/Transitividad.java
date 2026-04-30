@@ -31,6 +31,7 @@ public enum Transitividad {
         };
 	}
 	
+	@SuppressWarnings("unused")
 	@Converter(autoApply = true)
 	public static class TransitividadConverter implements AttributeConverter<Transitividad, String> {
 		

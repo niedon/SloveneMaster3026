@@ -49,6 +49,7 @@ public class ConfiguracionController {
     /**
      * Muestra la página de configuración
      */
+    @SuppressWarnings("SameReturnValue")
     @GetMapping("/configuracion")
     public String mostrarConfiguracion(Model model) {
         log.debug("Accediendo a la página de configuración");

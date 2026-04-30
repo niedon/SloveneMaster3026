@@ -7,14 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import com.bcadaval.esloveno.beans.palabra.Verbo;
 
+@SuppressWarnings("unused")
 @Repository
 public interface VerboRepo extends JpaRepository<Verbo, String>{
-
-    /**
-     * Encuentra verbos incompletos: significado, transitividad,
-     * requiereSujetoAnimado o requiereObjetoAnimado null
-     */
-    List<Verbo> findBySignificadoIsNullOrTransitividadIsNullOrRequiereSujetoAnimadoIsNullOrRequiereObjetoAnimadoIsNull();
 
     /**
      * Busca verbos cuya forma principal contenga el texto (case-insensitive)

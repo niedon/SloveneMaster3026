@@ -16,6 +16,7 @@ import lombok.Getter;
  * IMPERATIVE: Imperativo (glej, glejte, etc.)
  * CONDITIONAL: Condicional (gledal bi, gledala bi, etc.)
  */
+@SuppressWarnings("unused")
 @Getter
 public enum FormaVerbal {
     INFINITIVE("INF", "infinitive"),
@@ -50,6 +51,7 @@ public enum FormaVerbal {
         return fromCode(xmlCode);
     }
 
+    @SuppressWarnings("unused")
     @Converter(autoApply = true)
     public static class FormaVerbalConverter implements AttributeConverter<FormaVerbal, String> {
 

@@ -31,6 +31,7 @@ public enum Numero {
         };
 	}
 	
+	@SuppressWarnings("unused")
 	@Converter(autoApply = true)
 	public static class NumeroConverter implements AttributeConverter<Numero, String> {
 		

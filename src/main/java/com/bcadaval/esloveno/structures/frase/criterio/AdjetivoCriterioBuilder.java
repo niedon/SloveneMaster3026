@@ -23,6 +23,7 @@ import com.bcadaval.esloveno.beans.palabra.AdjetivoFlexion;
  *     .build();
  * </pre>
  */
+@SuppressWarnings("unused")
 public class AdjetivoCriterioBuilder extends CriterioBuilderBase<AdjetivoFlexion, AdjetivoCriterioBuilder> {
 
     /**

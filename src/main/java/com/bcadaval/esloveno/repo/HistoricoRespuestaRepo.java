@@ -9,10 +9,9 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.List;
 
+@SuppressWarnings("unused")
 @Repository
 public interface HistoricoRespuestaRepo extends JpaRepository<HistoricoRespuesta, Long> {
-
-    List<HistoricoRespuesta> findByTsRespuestaBetween(Instant inicio, Instant fin);
 
     // QUERY 2: Para gráfico de Tiempo Promedio
     // Devuelve: [FechaString, PromedioSegundos]

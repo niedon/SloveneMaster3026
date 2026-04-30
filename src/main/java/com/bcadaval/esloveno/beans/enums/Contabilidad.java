@@ -34,6 +34,7 @@ public enum Contabilidad {
         };
     }
 
+    @SuppressWarnings("unused")
     @Converter(autoApply = true)
     public static class ContabilidadConverter implements AttributeConverter<Contabilidad, String> {
 

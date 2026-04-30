@@ -10,6 +10,7 @@ import com.bcadaval.esloveno.beans.Variable;
 /**
  * Repositorio para acceder a las variables de configuración del sistema
  */
+@SuppressWarnings("unused")
 @Repository
 public interface VariablesRepo extends JpaRepository<Variable, String> {
 

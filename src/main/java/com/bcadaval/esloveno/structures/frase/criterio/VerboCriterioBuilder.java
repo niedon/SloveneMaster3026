@@ -26,6 +26,7 @@ import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
  *     .build();
  * </pre>
  */
+@SuppressWarnings("unused")
 public class VerboCriterioBuilder extends CriterioBuilderBase<VerboFlexion, VerboCriterioBuilder> {
 
     /**
@@ -81,6 +82,7 @@ public class VerboCriterioBuilder extends CriterioBuilderBase<VerboFlexion, Verb
      * @param generos valores aceptados
      * @return este builder
      */
+    @SuppressWarnings("unused")
     public VerboCriterioBuilder conGenero(Genero... generos) {
         return agregarRestriccion("genero", (Object[]) generos);
     }
@@ -114,6 +116,7 @@ public class VerboCriterioBuilder extends CriterioBuilderBase<VerboFlexion, Verb
      * @param aspectos valores aceptados
      * @return este builder
      */
+    @SuppressWarnings("unused")
     public VerboCriterioBuilder conAspecto(Aspecto... aspectos) {
         return agregarRestriccion("base.aspecto", (Object[]) aspectos);
     }
@@ -125,6 +128,7 @@ public class VerboCriterioBuilder extends CriterioBuilderBase<VerboFlexion, Verb
      * @param valores valores aceptados
      * @return este builder
      */
+    @SuppressWarnings("unused")
     public VerboCriterioBuilder conRequiereSujetoAnimado(RequiereSujetoAnimado... valores) {
         return agregarRestriccion("base.requiereSujetoAnimado", (Object[]) valores);
     }
@@ -136,6 +140,7 @@ public class VerboCriterioBuilder extends CriterioBuilderBase<VerboFlexion, Verb
      * @param valores valores aceptados
      * @return este builder
      */
+    @SuppressWarnings("unused")
     public VerboCriterioBuilder conRequiereObjetoAnimado(RequiereObjetoAnimado... valores) {
         return agregarRestriccion("base.requiereObjetoAnimado", (Object[]) valores);
     }

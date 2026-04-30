@@ -15,6 +15,7 @@ import java.time.Instant;
  * <p>
  * Todas las Specifications son composables con {@code .and()}, {@code .or()}.
  */
+@SuppressWarnings("unused")
 public final class FlexionSpecs {
 
     private FlexionSpecs() {

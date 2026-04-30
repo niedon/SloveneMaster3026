@@ -83,6 +83,7 @@ public class CompletarPalabrasController {
     /**
      * Muestra la página para completar palabras incompletas
      */
+    @SuppressWarnings("SameReturnValue")
     @GetMapping("/completarPalabras")
     public String mostrarPaginaCompletarPalabras() {
         log.debug("Accediendo a la página de completar palabras");
@@ -268,10 +269,7 @@ public class CompletarPalabrasController {
             TipoPalabra tipoPalabraEnum = TipoPalabra.valueOf(tipo);
             if (tipoPalabraEnum == TipoPalabra.PRONOMBRE) {
                 // Para pronombres, cada flexión es independiente; recalcular por sloleksId del pronombre
-                PronombreFlexion pf = pronombreFlexionRepo.findById(Integer.valueOf(id)).orElse(null);
-                if (pf != null) {
-                    elegibilidadService.recalcularParaPalabra(pf.getSloleksId(), tipoPalabraEnum);
-                }
+                pronombreFlexionRepo.findById(Integer.valueOf(id)).ifPresent(pf -> elegibilidadService.recalcularParaPalabra(pf.getSloleksId(), tipoPalabraEnum));
             } else {
                 elegibilidadService.recalcularParaPalabra(id, tipoPalabraEnum);
             }

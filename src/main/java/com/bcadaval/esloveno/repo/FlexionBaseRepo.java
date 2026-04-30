@@ -16,6 +16,7 @@ public interface FlexionBaseRepo<T extends PalabraFlexion<?>, ID> extends JpaRep
 
     List<T> findBySloleksId(String sloleksId);
 
+    // noinspection JpaQlInspection
     @Modifying
     // #{#entityName} se resolverá dinámicamente según la entidad del repositorio hijo (ej. AdjetivoFlexion)
     @Query("UPDATE #{#entityName} e SET e.elegible = false")
@@ -25,6 +26,7 @@ public interface FlexionBaseRepo<T extends PalabraFlexion<?>, ID> extends JpaRep
      * Agrupa proximaRevision por formato y cuenta, usando la función nativa strftime de SQLite.
      * JPQL puro que delega la agrupación a la BD.
      */
+    // noinspection JpaQlInspection
     @Query("SELECT function('strftime', :format, e.proximaRevision) as fecha, COUNT(e) " +
             "FROM #{#entityName} e " +
             "WHERE e.proximaRevision >= :inicio " +

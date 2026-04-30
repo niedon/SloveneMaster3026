@@ -49,6 +49,7 @@ public class ScrapController {
 	/**
 	 * Muestra la página para añadir palabras al diccionario
 	 */
+	@SuppressWarnings("SameReturnValue")
 	@GetMapping("/anadirPalabras")
 	public String mostrarPaginaAnadirPalabras() {
 		log.debug("Accediendo a la página de añadir palabras");

@@ -13,6 +13,7 @@ import lombok.extern.log4j.Log4j2;
 /**
  * Servicio para gestionar las variables de configuración del sistema SRS
  */
+@SuppressWarnings("unused")
 @Log4j2
 @Service
 public class VariablesService {
@@ -41,6 +42,7 @@ public class VariablesService {
     /**
      * Guarda una variable
      */
+    @SuppressWarnings("UnusedReturnValue")
     public Variable guardarVariable(Variable variable) {
         return variablesRepo.save(variable);
     }

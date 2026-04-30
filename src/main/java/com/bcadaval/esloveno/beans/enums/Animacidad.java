@@ -13,6 +13,7 @@ import lombok.Getter;
  *   <li>{@code INANIMADO} — Objetos inanimados (equivalente al antiguo {@code animado = false})</li>
  * </ul>
  */
+@SuppressWarnings("unused")
 @Getter
 public enum Animacidad {
 
@@ -45,6 +46,7 @@ public enum Animacidad {
         return animado ? ANIMADO : INANIMADO;
     }
 
+    @SuppressWarnings("unused")
     @Converter(autoApply = true)
     public static class AnimacidadConverter implements AttributeConverter<Animacidad, String> {
 

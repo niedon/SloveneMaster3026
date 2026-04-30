@@ -39,6 +39,7 @@ public class NumeralFlexion extends PalabraFlexion<Numeral> {
      *
      * @return la cantidad (ej. 1 para "en", 2 para "dva"), o null si no asignada
      */
+    @SuppressWarnings("unused")
     public Integer getCantidad() {
         return numeralBase.getCantidad();
     }

@@ -40,6 +40,7 @@ public enum Aspecto {
 		};
 	}
 	
+	@SuppressWarnings("unused")
 	@Converter(autoApply = true)
 	public static class AspectoConverter implements AttributeConverter<Aspecto, String> {
 		

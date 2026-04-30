@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import com.bcadaval.esloveno.beans.palabra.Sustantivo;
 
+@SuppressWarnings("unused")
 @Repository
 public interface SustantivoRepo extends JpaRepository<Sustantivo, String> {
 

@@ -2,6 +2,7 @@ package com.bcadaval.esloveno.beans.enums;
 
 import lombok.Getter;
 
+@SuppressWarnings("unused")
 @Getter
 public enum NumeralForm {
 

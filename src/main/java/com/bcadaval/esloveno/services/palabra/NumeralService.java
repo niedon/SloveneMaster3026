@@ -22,6 +22,7 @@ import com.bcadaval.esloveno.repo.NumeralRepo;
  * gramaticales, delegando la lógica de filtrado a Specifications JPA
  * y usando {@link RandomEntitySelector} para la aleatoriedad eficiente.
  */
+@SuppressWarnings("unused")
 @Service
 public class NumeralService {
 
@@ -140,6 +141,7 @@ public class NumeralService {
 	/**
 	 * Filtra numerales cuya palabra base tiene cantidad >= al valor dado.
 	 */
+	@SuppressWarnings("SameParameterValue")
 	private static Specification<NumeralFlexion> conCantidadMinima(int minimo) {
 		return (root, query, cb) ->
 				cb.greaterThanOrEqualTo(

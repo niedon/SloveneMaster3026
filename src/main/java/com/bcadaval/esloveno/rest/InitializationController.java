@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.bcadaval.esloveno.config.InitializationInterceptor;
 import com.bcadaval.esloveno.services.InitializationService;
 import com.bcadaval.esloveno.services.InitializationService.InitStatusDTO;
 
@@ -24,6 +23,7 @@ public class InitializationController {
     /**
      * Página principal - muestra la pantalla de inicio/inicialización
      */
+    @SuppressWarnings("SameReturnValue")
     @GetMapping("/")
     public String index(Model model) {
         boolean ready = initializationService.isFullyReady();

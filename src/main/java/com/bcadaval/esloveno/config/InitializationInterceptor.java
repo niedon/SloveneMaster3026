@@ -2,7 +2,6 @@ package com.bcadaval.esloveno.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -18,7 +17,12 @@ import lombok.extern.log4j.Log4j2;
 
 /**
  * Interceptor que verifica si el sistema está inicializado antes de acceder a cualquier página.
- * Si no está inicializado, redirige a la página de inicio para completar la inicialización.
+ * Actúa como una barrera de seguridad o "guardia" que garantiza que la aplicación tiene
+ * los recursos mínimos (base de datos SQLite, archivos XML) antes de procesar cualquier petición a los controladores.
+ * Esto es especialmente útil al desplegar el proyecto en un nuevo entorno o contenedor,
+ * evitando excepciones y errores de base de datos mientras los datos se descargan y configuran.
+ * Si el sistema no está inicializado, bloquea el acceso a rutas protegidas y redirige
+ * automáticamente a la página de inicio para completar el flujo de inicialización.
  */
 @Log4j2
 @Configuration
@@ -53,4 +57,3 @@ public class InitializationInterceptor implements WebMvcConfigurer, HandlerInter
         return true;
     }
 }
-

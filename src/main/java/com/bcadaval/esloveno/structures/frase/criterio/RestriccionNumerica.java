@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
  * Para el cálculo de palabras estudiables, cada restricción numérica puede
  * expandirse a un conjunto de valores discretos cuando sea posible.
  */
+@SuppressWarnings("unused")
 public sealed interface RestriccionNumerica {
 
     /**

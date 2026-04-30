@@ -103,14 +103,6 @@ public class RepeticionEspaciadaService {
         log.debug("{} actualizado: {} - Recordó: {}",
             flexion.getClass().getSimpleName(), flexion.getFlexion(), recordado);
     }
-    
-    /**
-     * Mantiene compatibilidad con el código anterior que no envíe segundos.
-     */
-    @Transactional
-    public void procesarRespuesta(PalabraFlexion<?> flexion, boolean recordado) {
-        procesarRespuesta(flexion, recordado, null);
-    }
 
     /**
      * Guarda en la base de datos el histórico de la respuesta para las estadísticas.
@@ -402,6 +394,7 @@ public class RepeticionEspaciadaService {
      * @param ventana tamaño de la ventana de desplazamiento
      * @return nueva lista con desplazamiento aplicado
      */
+    @SuppressWarnings("SameParameterValue")
     private List<PalabraFlexion<?>> aplicarDesplazamientoLimitado(List<PalabraFlexion<?>> lista, int ventana) {
         if (lista.size() <= 1) return lista;
 

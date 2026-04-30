@@ -40,6 +40,7 @@ public enum Definitud {
         return null;
     }
 
+    @SuppressWarnings("unused")
     @Converter(autoApply = true)
     public static class DefinitudConverter implements AttributeConverter<Definitud, Integer> {
         @Override

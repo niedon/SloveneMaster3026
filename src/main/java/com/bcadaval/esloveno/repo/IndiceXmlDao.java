@@ -1,5 +1,6 @@
 package com.bcadaval.esloveno.repo;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -51,7 +52,7 @@ public class IndiceXmlDao {
         String sql = "INSERT INTO INDICE_XML (LEMA, TIPO, SLOLEKS_ID, ARCHIVO_NUM) VALUES (?, ?, ?, ?)";
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
             @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
+            public void setValues(@NonNull PreparedStatement ps, int i) throws SQLException {
                 IndiceXmlDTO dto = loteArchivo.get(i);
                 ps.setString(1, dto.lema());
                 ps.setString(2, dto.tipo());

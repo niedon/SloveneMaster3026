@@ -10,6 +10,7 @@ import com.bcadaval.esloveno.beans.EstructuraFraseConfig;
 /**
  * Repositorio para la configuración de estructuras de frase.
  */
+@SuppressWarnings("unused")
 @Repository
 public interface EstructuraFraseConfigRepo extends JpaRepository<EstructuraFraseConfig, String> {
 

@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 public class ExtraccionNull implements EstrategiaExtraccion<PalabraFlexion<?>> {
 
+    @SuppressWarnings("unchecked")
     public static <T extends PalabraFlexion<?>> EstrategiaExtraccion<T> get() {
         return (EstrategiaExtraccion<T>) new ExtraccionNull();
     }

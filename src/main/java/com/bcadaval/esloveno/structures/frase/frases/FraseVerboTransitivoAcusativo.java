@@ -6,7 +6,7 @@ import com.bcadaval.esloveno.beans.palabra.PronombreFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
 import com.bcadaval.esloveno.beans.palabra.VerboFlexion;
 import com.bcadaval.esloveno.services.palabra.NumeralService;
-import com.bcadaval.esloveno.services.palabra.verbo.VerbosService;
+import com.bcadaval.esloveno.services.palabra.VerbosService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtractorNumero;
 import com.bcadaval.esloveno.structures.extractores.ExtractorVerbo;

@@ -37,6 +37,7 @@ import java.util.*;
  *
  * @param <T> Tipo concreto de {@link PalabraFlexion} al que se dirige este criterio
  */
+@SuppressWarnings("unused")
 @Getter
 public class CriterioBusquedaNuevo<T extends PalabraFlexion<?>> {
 

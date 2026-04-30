@@ -2,7 +2,7 @@ package com.bcadaval.esloveno.structures.frase.frases;
 
 import com.bcadaval.esloveno.beans.enums.*;
 import com.bcadaval.esloveno.beans.palabra.*;
-import com.bcadaval.esloveno.services.palabra.verbo.VerbosService;
+import com.bcadaval.esloveno.services.palabra.VerbosService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.extractores.ExtractorVerbo;
 import com.bcadaval.esloveno.structures.frase.Frase;

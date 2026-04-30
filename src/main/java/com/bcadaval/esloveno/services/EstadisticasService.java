@@ -280,9 +280,8 @@ public class EstadisticasService {
         return switch (granularidad.toLowerCase()) {
             case "minutos" -> zdt.withSecond(0).withNano(0);
             case "horas" -> zdt.withMinute(0).withSecond(0).withNano(0);
-            case "dias" -> zdt.toLocalDate().atStartOfDay(zdt.getZone());
             case "meses" -> zdt.withDayOfMonth(1).toLocalDate().atStartOfDay(zdt.getZone());
-            default -> zdt.toLocalDate().atStartOfDay(zdt.getZone());
+            default -> zdt.toLocalDate().atStartOfDay(zdt.getZone()); // días y default
         };
     }
 
@@ -290,9 +289,8 @@ public class EstadisticasService {
         return switch (granularidad.toLowerCase()) {
             case "minutos" -> zdt.plusMinutes(1);
             case "horas" -> zdt.plusHours(1);
-            case "dias" -> zdt.plusDays(1);
             case "meses" -> zdt.plusMonths(1);
-            default -> zdt.plusDays(1);
+            default -> zdt.plusDays(1); // días y default
         };
     }
 

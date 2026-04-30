@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 
 <!DOCTYPE html>
 
@@ -32,14 +32,14 @@
                 <div class="manual-date-selector">
                     <div class="date-input-group">
                         <i class="fas fa-calendar-alt icon"></i>
-                        <span class="label">Desde</span>
+                        <label class="label" for="fechaInicio">Desde</label>
                         <input type="datetime-local" id="fechaInicio" class="custom-datetime">
                     </div>
                     <div class="date-divider">
                         <i class="fas fa-arrow-right"></i>
                     </div>
                     <div class="date-input-group">
-                        <span class="label">Hasta</span>
+                        <label class="label" for="fechaFin">Hasta</label>
                         <input type="datetime-local" id="fechaFin" class="custom-datetime">
                     </div>
                     <button class="btn-primary apply-btn" onclick="aplicarFechasManual()">

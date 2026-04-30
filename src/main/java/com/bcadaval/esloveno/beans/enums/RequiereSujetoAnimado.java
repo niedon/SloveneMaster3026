@@ -34,6 +34,7 @@ public enum RequiereSujetoAnimado {
         };
     }
 
+    @SuppressWarnings("unused")
     @Converter(autoApply = true)
     public static class RequiereSujetoAnimadoConverter implements AttributeConverter<RequiereSujetoAnimado, String> {
 

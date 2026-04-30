@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
  *   <li>El usuario guarda la configuración de frases activas</li>
  * </ol>
  */
+@SuppressWarnings("unused")
 @Log4j2
 @Service
 public class FraseService {

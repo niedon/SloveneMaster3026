@@ -42,6 +42,7 @@ public enum Caso{
 		};
 	}
 	
+	@SuppressWarnings("unused")
 	@Converter(autoApply = true)
 	public static class CasoConverter implements AttributeConverter<Caso, String> {
 		

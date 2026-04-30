@@ -32,6 +32,7 @@ public enum Grado {
 		};
 	}
 	
+	@SuppressWarnings("unused")
 	@Converter(autoApply = true)
 	public static class GradoConverter implements AttributeConverter<Grado, String> {
 

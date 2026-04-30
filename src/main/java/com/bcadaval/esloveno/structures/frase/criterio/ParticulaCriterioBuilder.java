@@ -19,6 +19,7 @@ import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
  *     .build();
  * </pre>
  */
+@SuppressWarnings("unused")
 public class ParticulaCriterioBuilder extends CriterioBuilderBase<ParticulaFlexion, ParticulaCriterioBuilder> {
 
     /**

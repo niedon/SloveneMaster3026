@@ -51,6 +51,7 @@ public class WordsController {
 	 *   <li>Genera los huecos de apoyo/opcionales no rellenos y envía al JSP</li>
 	 * </ol>
 	 */
+	@SuppressWarnings("SameReturnValue")
 	@GetMapping("/getWords")
 	public String getWords(Model model) {
 		int maxRevision = variablesService.getMaxTarjetasRevisionDia();

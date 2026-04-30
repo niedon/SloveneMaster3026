@@ -2,16 +2,13 @@ package com.bcadaval.esloveno.structures.frase.frases;
 
 import com.bcadaval.esloveno.beans.enums.Caso;
 import com.bcadaval.esloveno.beans.enums.CategoriaFrase;
-import com.bcadaval.esloveno.beans.enums.NivelDificultad;
 import com.bcadaval.esloveno.beans.palabra.NumeralFlexion;
 import com.bcadaval.esloveno.beans.palabra.ParticulaFlexion;
 import com.bcadaval.esloveno.beans.palabra.SustantivoFlexion;
-import com.bcadaval.esloveno.services.palabra.sustantivo.SustantivoService;
 import com.bcadaval.esloveno.structures.DificultadFrase;
 import com.bcadaval.esloveno.structures.frase.Frase;
 import com.bcadaval.esloveno.structures.frase.PalabraFrase;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -32,16 +29,10 @@ import org.springframework.stereotype.Component;
  *   <li><strong>NUMERO_DEPENDIENTE</strong>: numeral que acompaña al sustantivo dependiente,
  *       derivado automáticamente de él.</li>
  * </ul>
- *
- * <h2>Nivel de dificultad</h2>
- * {@link com.bcadaval.esloveno.beans.enums.NivelDificultad#INTERMEDIO INTERMEDIO}
  */
 @Component
 @DificultadFrase(categoria = CategoriaFrase.RELACION_NOMINAL)
 public class FraseRelacionNominal extends Frase {
-
-    @Autowired
-    private SustantivoService sustantivoService;
 
     /**
      * Devuelve el identificador único de esta estructura de frase.

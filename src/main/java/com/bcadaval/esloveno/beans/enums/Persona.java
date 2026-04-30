@@ -31,6 +31,7 @@ public enum Persona {
 		};
 	}
 
+	@SuppressWarnings("unused")
 	@Converter(autoApply = true)
 	public static class PersonaConverter implements AttributeConverter<Persona, String> {
 		

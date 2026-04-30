@@ -60,9 +60,9 @@ public class PalabraService {
 	}
 
 	/** Guarda una palabra y sus flexiones asociadas de forma transaccional */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	@Transactional
-	public Palabra<?> saveWordAndConjugations(Palabra<?> palabra) {
+	public void saveWordAndConjugations(Palabra<?> palabra) {
 		log.debug("Guardando palabra {} con {} flexiones", palabra.getPrincipal(), palabra.getListaFlexiones().size());
 
 		Palabra<?> palabraGuardada = switch(palabra){
@@ -83,8 +83,6 @@ public class PalabraService {
 		}
 
 		getFlexionRepository(palabra).saveAll(palabra.getListaFlexiones());
-
-		return palabraGuardada;
 	}
 
 	/**

@@ -37,6 +37,7 @@ public enum Genero {
         };
 	}
 
+	@SuppressWarnings("unused")
 	@Converter(autoApply = true)
 	public static class GeneroConverter implements AttributeConverter<Genero, String> {
 		
