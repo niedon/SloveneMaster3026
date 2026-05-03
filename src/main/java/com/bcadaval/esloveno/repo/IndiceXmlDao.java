@@ -46,6 +46,13 @@ public class IndiceXmlDao {
     }
 
     /**
+     * Borra todos los datos del índice
+     */
+    public void deleteAll() {
+        jdbcTemplate.update("DELETE FROM INDICE_XML");
+    }
+
+    /**
      * Inserción masiva de índices
      */
     public void batchInsert(List<IndiceXmlDTO> loteArchivo) {

@@ -59,5 +59,15 @@ public class InitializationController {
         initializationService.startInitialization();
         return ResponseEntity.ok(initializationService.getStatusDTO());
     }
-}
 
+    /**
+     * API para reconstruir el índice XML
+     */
+    @GetMapping("/api/reconstruirIndice")
+    @ResponseBody
+    public ResponseEntity<String> reconstruirIndice() {
+        log.info("Solicitud de reconstrucción del índice");
+        initializationService.reconstruirIndice();
+        return ResponseEntity.ok("Proceso de reconstrucción del índice iniciado");
+    }
+}

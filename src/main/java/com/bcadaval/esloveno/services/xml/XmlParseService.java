@@ -439,6 +439,10 @@ public class XmlParseService {
                 // Reemplazo atómico por archivo para evitar inconsistencias tras caída.
                 indiceXmlDao.replaceArchivoIndex(fileNum, batchInsert);
                 indexStateService.setLastFileNum(fileNum);
+
+                long totalEntradas = indiceXmlDao.count();
+                log.info("Archivo escaneado: {}. Total de entradas en el índice: {}", fileName, totalEntradas);
+
             } catch (Exception e) {
                 log.error("Error indexando el archivo {}", p, e);
                 throw new IOException("Error indexando " + fileName + ": " + e.getMessage(), e);

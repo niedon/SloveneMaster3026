@@ -215,6 +215,25 @@ public class InitializationService {
         }
     }
 
+    /**
+     * Reconstruye el índice de cero
+     */
+    public synchronized void reconstruirIndice() {
+        log.info("Solicitada reconstrucción del índice XML...");
+        indexStateService.setStatus(IndexStatus.NOT_STARTED);
+        indexStateService.setLastFileNum(0);
+        indiceXmlDao.deleteAll();
+
+        if (status.get() == InitStatus.COMPLETED) {
+            // Reiniciar estado
+            status.set(InitStatus.IN_PROGRESS);
+            progress.set(10);
+            message.set("Preparando reconstrucción del índice...");
+        }
+
+        ensureBackgroundIndexing();
+    }
+
     private void ensureDataDirectoryExists() throws IOException {
         message.set("Preparando directorios...");
         progress.set(5);
